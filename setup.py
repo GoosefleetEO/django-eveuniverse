@@ -43,7 +43,7 @@ setup(
     install_requires=[
         "django>=2.2",
         "celery>=4.0.2",
-        "django-esi>=2.0.4,<3",
+        "django-esi>=2.0.4,<4",
         "django-bitfield",
         "requests",
     ],

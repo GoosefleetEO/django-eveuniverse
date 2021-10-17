@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.8.1] - 2021-10-17
+
+### Changed
+
+- Support for django-esi 3
+- Added tests for Python 3.9, Django 3.2
+- Removed tests for Django 3.0
+
 ## [0.8.0] - 2021-04-16
 
 ### Added

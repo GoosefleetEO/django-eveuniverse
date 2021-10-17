@@ -34,6 +34,10 @@ pre-commit-check:
   stage: test
   image: python:3.8-buster
 
+.test-py39:
+  stage: test
+  image: python:3.9-buster
+
 test-docs:
   extends: .test-py37
   script:
@@ -49,6 +53,12 @@ test-36-django31:
   extends: .test-py36
   script:
   - tox -e py36-django31
+  - bash <(curl -s https://codecov.io/bash)
+
+test-36-django32:
+  extends: .test-py36
+  script:
+  - tox -e py36-django32
   - bash <(curl -s https://codecov.io/bash)
 
 test-37-django22:
@@ -73,6 +83,30 @@ test-38-django31:
   extends: .test-py38
   script:
   - tox -e py38-django31
+  - bash <(curl -s https://codecov.io/bash)
+
+test-38-django32:
+  extends: .test-py38
+  script:
+  - tox -e py38-django32
+  - bash <(curl -s https://codecov.io/bash)
+
+test-39-django22:
+  extends: .test-py39
+  script:
+  - tox -e py39-django22
+  - bash <(curl -s https://codecov.io/bash)
+
+test-39-django31:
+  extends: .test-py39
+  script:
+  - tox -e py39-django31
+  - bash <(curl -s https://codecov.io/bash)
+
+test-39-django32:
+  extends: .test-py39
+  script:
+  - tox -e py39-django32
   - bash <(curl -s https://codecov.io/bash)
 
 deploy-pypi:
