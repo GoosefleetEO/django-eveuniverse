@@ -1,68 +1,12 @@
-from datetime import timedelta
 from unittest.mock import Mock, patch
 
 import requests
 
 from django.test import TestCase
-from django.utils import translation
-from django.utils.html import mark_safe
 
-from ..utils import (
-    NoSocketsTestCase,
-    SocketAccessError,
-    add_bs_label_html,
-    add_no_wrap_html,
-    app_labels,
-    chunks,
-    clean_setting,
-    create_bs_button_html,
-    create_bs_glyph_html,
-    create_link_html,
-    messages_plus,
-    set_test_logger,
-    timeuntil_str,
-    yesno_str,
-)
+from ..utils import NoSocketsTestCase, SocketAccessError, chunks, clean_setting
 
 MODULE_PATH = "eveuniverse.utils"
-logger = set_test_logger(MODULE_PATH, __file__)
-
-
-class TestMessagePlus(TestCase):
-    @patch(MODULE_PATH + ".messages")
-    def test_valid_call(self, mock_messages):
-        messages_plus.debug(Mock(), "Test Message")
-        self.assertTrue(mock_messages.debug.called)
-        call_args_list = mock_messages.debug.call_args_list
-        args, kwargs = call_args_list[0]
-        self.assertEqual(
-            args[1],
-            '<span class="glyphicon glyphicon-eye-open" '
-            'aria-hidden="true"></span>&nbsp;&nbsp;'
-            "Test Message",
-        )
-
-    def test_invalid_level(self):
-        with self.assertRaises(ValueError):
-            messages_plus._add_messages_icon(987, "Test Message")
-
-    @patch(MODULE_PATH + ".messages")
-    def test_all_levels(self, mock_messages):
-        text = "Test Message"
-        messages_plus.error(Mock(), text)
-        self.assertTrue(mock_messages.error.called)
-
-        messages_plus.debug(Mock(), text)
-        self.assertTrue(mock_messages.debug.called)
-
-        messages_plus.info(Mock(), text)
-        self.assertTrue(mock_messages.info.called)
-
-        messages_plus.success(Mock(), text)
-        self.assertTrue(mock_messages.success.called)
-
-        messages_plus.warning(Mock(), text)
-        self.assertTrue(mock_messages.warning.called)
 
 
 class TestChunks(TestCase):
@@ -156,110 +100,8 @@ class TestCleanSetting(TestCase):
         self.assertEqual(result, "alpha")
 
 
-class TestTimeUntil(TestCase):
-    def test_timeuntil(self):
-        duration = timedelta(days=365 + 30 * 4 + 5, seconds=3600 * 14 + 60 * 33 + 10)
-        expected = "1y 4mt 5d 14h 33m 10s"
-        self.assertEqual(timeuntil_str(duration), expected)
-
-        duration = timedelta(days=2, seconds=3600 * 14 + 60 * 33 + 10)
-        expected = "2d 14h 33m 10s"
-        self.assertEqual(timeuntil_str(duration), expected)
-
-        duration = timedelta(days=2, seconds=3600 * 14 + 60 * 33 + 10)
-        expected = "2d 14h 33m 10s"
-        self.assertEqual(timeuntil_str(duration), expected)
-
-        duration = timedelta(days=0, seconds=60 * 33 + 10)
-        expected = "0h 33m 10s"
-        self.assertEqual(timeuntil_str(duration), expected)
-
-        duration = timedelta(days=0, seconds=10)
-        expected = "0h 0m 10s"
-        self.assertEqual(timeuntil_str(duration), expected)
-
-        duration = timedelta(days=-10, seconds=-20)
-        expected = ""
-        self.assertEqual(timeuntil_str(duration), expected)
-
-
 class TestNoSocketsTestCase(NoSocketsTestCase):
     def test_raises_exception_on_attempted_network_access(self):
 
         with self.assertRaises(SocketAccessError):
             requests.get("https://www.google.com")
-
-
-class TestAppLabel(TestCase):
-    def test_returns_set_of_app_labels(self):
-        labels = app_labels()
-        for label in ["eveuniverse", "auth", "contenttypes"]:
-            self.assertIn(label, labels)
-
-
-class TestHtmlHelper(TestCase):
-    def test_add_no_wrap_html(self):
-        expected = '<span style="white-space: nowrap;">Dummy</span>'
-        self.assertEqual(add_no_wrap_html("Dummy"), expected)
-
-    def test_yesno_str(self):
-        with translation.override("en"):
-            self.assertEqual(yesno_str(True), "yes")
-            self.assertEqual(yesno_str(False), "no")
-            self.assertEqual(yesno_str(None), "no")
-            self.assertEqual(yesno_str(123), "no")
-            self.assertEqual(yesno_str("xxxx"), "no")
-
-    def test_add_bs_label_html(self):
-        expected = '<div class="label label-danger">Dummy</div>'
-        self.assertEqual(add_bs_label_html("Dummy", "danger"), expected)
-
-    def test_create_link_html_default(self):
-        expected = (
-            '<a href="https://www.example.com" target="_blank">' "Example Link</a>"
-        )
-        self.assertEqual(
-            create_link_html("https://www.example.com", "Example Link"), expected
-        )
-
-    def test_create_link_html(self):
-        expected = '<a href="https://www.example.com">Example Link</a>'
-        self.assertEqual(
-            create_link_html("https://www.example.com", "Example Link", False), expected
-        )
-        expected = (
-            '<a href="https://www.example.com">' "<strong>Example Link</strong></a>"
-        )
-        self.assertEqual(
-            create_link_html(
-                "https://www.example.com",
-                mark_safe("<strong>Example Link</strong>"),
-                False,
-            ),
-            expected,
-        )
-
-    def test_create_bs_glyph_html(self):
-        expected = '<span class="glyphicon glyphicon-example"></span>'
-        self.assertEqual(create_bs_glyph_html("example"), expected)
-
-    def test_create_bs_button_html_default(self):
-        expected = (
-            '<a href="https://www.example.com" class="btn btn-info">'
-            '<span class="glyphicon glyphicon-example"></span></a>'
-        )
-        self.assertEqual(
-            create_bs_button_html("https://www.example.com", "example", "info"),
-            expected,
-        )
-
-    def test_create_bs_button_html_disabled(self):
-        expected = (
-            '<a href="https://www.example.com" class="btn btn-info"'
-            ' disabled="disabled">'
-            '<span class="glyphicon glyphicon-example"></span></a>'
-        )
-        self.assertEqual(
-            create_bs_button_html("https://www.example.com", "example", "info", True),
-            expected,
-        )
