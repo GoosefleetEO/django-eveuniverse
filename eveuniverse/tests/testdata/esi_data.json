@@ -245,7 +245,7 @@
             "2": {
                 "category_id": 2,
                 "groups": [
-                    6
+                    6, 7, 8, 9, 10
                 ],
                 "name": "Celestial",
                 "published": true
@@ -450,7 +450,17 @@
                 "name": "Sun",
                 "published": false,
                 "types": [
-                    3800
+                    3800, 45038
+                ]
+            },
+            "7": {
+                "category_id": 2,
+                "group_id": 7,
+                "name": "Planet",
+                "published": false,
+                "types": [
+                    13,
+                    2016
                 ]
             },
             "8": {
@@ -471,6 +481,24 @@
                     15
                 ]
             },
+            "10": {
+                "category_id": 2,
+                "group_id": 10,
+                "name": "Stargate",
+                "published": false,
+                "types": [
+                    16, 29627
+                ]
+            },
+            "15": {
+                "category_id": 3,
+                "group_id": 15,
+                "name": "Station",
+                "published": false,
+                "types": [
+                    1529
+                ]
+            },
             "18": {
                 "category_id": 4,
                 "group_id": 18,
@@ -484,34 +512,6 @@
                     38,
                     39,
                     40
-                ]
-            },
-            "7": {
-                "category_id": 2,
-                "group_id": 7,
-                "name": "Planet",
-                "published": false,
-                "types": [
-                    13,
-                    2016
-                ]
-            },
-            "10": {
-                "category_id": 2,
-                "group_id": 10,
-                "name": "Stargate",
-                "published": false,
-                "types": [
-                    16
-                ]
-            },
-            "15": {
-                "category_id": 3,
-                "group_id": 15,
-                "name": "Station",
-                "published": false,
-                "types": [
-                    1529
                 ]
             },
             "25": {
@@ -575,7 +575,7 @@
                 "name": "Permanent SKIN",
                 "published": true,
                 "types": [
-                    35825
+                    34599, 35825
                 ]
             }
         },

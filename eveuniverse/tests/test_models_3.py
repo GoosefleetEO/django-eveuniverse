@@ -2,9 +2,13 @@ from unittest.mock import patch
 
 import requests_mock
 
+from django.test.utils import override_settings
+
 from ..core import fuzzwork
 from ..models import (
     EveAsteroidBelt,
+    EveCategory,
+    EveGroup,
     EveMoon,
     EvePlanet,
     EveSolarSystem,
@@ -1015,3 +1019,133 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
         result = enaluri.nearest_celestial(x=-1, y=-2, z=3)
         # then
         self.assertIsNone(result)
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+@patch(MANAGERS_PATH + ".esi")
+class EveCategoryUpdateAll(NoSocketsTestCase):
+    def test_should_update_without_children_and_sync(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveCategory.objects.update_or_create_all_esi(
+            include_children=False, wait_for_children=True
+        )
+        # then
+        self.assertSetEqual(
+            set(EveCategory.objects.values_list("id", flat=True)),
+            {2, 3, 4, 6, 9, 17, 65, 91},
+        )
+        self.assertEqual(EveGroup.objects.count(), 0)
+        self.assertEqual(EveType.objects.count(), 0)
+
+    def test_should_update_with_children_and_sync(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveCategory.objects.update_or_create_all_esi(
+            include_children=True, wait_for_children=True
+        )
+        # then
+        self.assertSetEqual(
+            set(EveCategory.objects.values_list("id", flat=True)),
+            {2, 3, 4, 6, 9, 17, 65, 91},
+        )
+        self.assertSetEqual(
+            set(EveGroup.objects.values_list("id", flat=True)),
+            {6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
+        )
+        self.assertSetEqual(
+            set(EveType.objects.values_list("id", flat=True)),
+            {
+                13,
+                14,
+                15,
+                16,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                34599,
+                950,
+                21947,
+                29627,
+                21949,
+                21951,
+                21953,
+                21955,
+                21957,
+                21959,
+                21961,
+                21967,
+                3800,
+                603,
+                608,
+                2016,
+                621,
+                45038,
+                35825,
+                626,
+                1529,
+            },
+        )
+
+    def test_should_update_with_children_and_async(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveCategory.objects.update_or_create_all_esi(
+            include_children=True, wait_for_children=False
+        )
+        # then
+        self.assertSetEqual(
+            set(EveCategory.objects.values_list("id", flat=True)),
+            {2, 3, 4, 6, 9, 17, 65, 91},
+        )
+        self.assertSetEqual(
+            set(EveGroup.objects.values_list("id", flat=True)),
+            {6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
+        )
+        self.assertSetEqual(
+            set(EveType.objects.values_list("id", flat=True)),
+            {
+                13,
+                14,
+                15,
+                16,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                34599,
+                950,
+                21947,
+                29627,
+                21949,
+                21951,
+                21953,
+                21955,
+                21957,
+                21959,
+                21961,
+                21967,
+                3800,
+                603,
+                608,
+                2016,
+                621,
+                45038,
+                35825,
+                626,
+                1529,
+            },
+        )

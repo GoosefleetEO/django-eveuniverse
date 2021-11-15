@@ -104,6 +104,7 @@ class EsiClientStub:
                 "asteroid_belt_id",
             ),
             EsiEndpoint("Universe", "get_universe_bloodlines", None),
+            EsiEndpoint("Universe", "get_universe_categories", None),
             EsiEndpoint(
                 "Universe", "get_universe_categories_category_id", "category_id"
             ),
@@ -114,6 +115,7 @@ class EsiClientStub:
             ),
             EsiEndpoint("Universe", "get_universe_factions", None),
             EsiEndpoint("Universe", "get_universe_graphics_graphic_id", "graphic_id"),
+            EsiEndpoint("Universe", "get_universe_groups", None),
             EsiEndpoint("Universe", "get_universe_groups_group_id", "group_id"),
             EsiEndpoint("Universe", "get_universe_moons_moon_id", "moon_id"),
             EsiEndpoint("Universe", "get_universe_moons_moon_id", "moon_id"),
@@ -129,6 +131,7 @@ class EsiClientStub:
             EsiEndpoint("Universe", "get_universe_systems", None),
             EsiEndpoint("Universe", "get_universe_systems_system_id", "system_id"),
             EsiEndpoint("Universe", "get_universe_types_type_id", "type_id"),
+            EsiEndpoint("Universe", "get_universe_types", None),
             EsiEndpoint("Universe", "post_universe_names", None),
         ]
         for endpoint in esi_endpoints:

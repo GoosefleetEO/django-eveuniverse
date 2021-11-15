@@ -435,7 +435,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                     else:
                         update_or_create_eve_object.delay(
                             model_name=self.model.__name__,
-                            entity_id=id,
+                            id=id,
                             include_children=include_children,
                             wait_for_children=wait_for_children,
                             enabled_sections=list(enabled_sections),
