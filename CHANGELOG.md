@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.8.2] - 2021-11-15
+
+### Fixed
+
+- `EveCategory.objects.update_or_create_all_esi(include_children=True, wait_for_children=False)` fails with `TypeError: update_or_create_eve_object() got an unexpected keyword argument 'entity_id'`
+
 ## [0.8.1] - 2021-10-17
 
 ### Changed
