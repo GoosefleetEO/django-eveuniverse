@@ -11,6 +11,7 @@ from ..constants import EVE_GROUP_ID_MOON
 from ..core import esitools, eveimageserver, evemicros, eveskinserver
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
+from .testdata.factories import create_evemicros_request
 
 
 @patch("eveuniverse.core.esitools.esi")
@@ -205,123 +206,6 @@ class TestEveSkinServer(TestCase):
             eveskinserver.type_icon_url(42, size=22)
 
 
-items = {
-    40170698: {
-        "itemID": 40170698,
-        "itemName": "Colelie VI - Asteroid Belt 1",
-        "typeID": 15,
-        "typeName": "Asteroid Belt",
-        "groupID": 9,
-        "groupName": "Asteroid Belt",
-        "solarSystemID": "30002682",
-        "regionID": 10000032,
-        "constellationID": 10000032,
-        "x": "392074567680",
-        "y": "78438850560",
-        "z": "-199546920960",
-        "security": 0.51238882808862296069918329521897248923778533935546875,
-        "distance": 4.69249999999999989341858963598497211933135986328125,
-        "distanceKm": 701983769,
-    },
-    50011472: {
-        "itemID": 50011472,
-        "itemName": "Stargate (Deltole)",
-        "typeID": 3875,
-        "typeName": "Stargate (Gallente System)",
-        "groupID": 10,
-        "groupName": "Stargate",
-        "solarSystemID": "30002682",
-        "regionID": 10000032,
-        "constellationID": 10000032,
-        "x": "390678650880",
-        "y": "78437130240",
-        "z": "-199573463040",
-        "security": 0.51238882808862296069918329521897248923778533935546875,
-        "distance": 4.6958999999999999630517777404747903347015380859375,
-        "distanceKm": 702495020,
-    },
-    40170697: {
-        "itemID": 40170697,
-        "itemName": "Colelie VI",
-        "typeID": 13,
-        "typeName": "Planet (Gas)",
-        "groupID": 7,
-        "groupName": "Planet",
-        "solarSystemID": "30002682",
-        "regionID": 10000032,
-        "constellationID": 10000032,
-        "x": "390691127743",
-        "y": "78438936622",
-        "z": "-199521990101",
-        "security": 0.51238882808862296069918329521897248923778533935546875,
-        "distance": 4.69620000000000015205614545266143977642059326171875,
-        "distanceKm": 702535753,
-    },
-    40170699: {
-        "itemID": 40170699,
-        "itemName": "Colelie VI - Moon 1",
-        "typeID": 14,
-        "typeName": "Moon",
-        "groupID": 8,
-        "groupName": "Moon",
-        "solarSystemID": "30002682",
-        "regionID": 10000032,
-        "constellationID": 10000032,
-        "x": "390796699186",
-        "y": "78460132168",
-        "z": "-199482549699",
-        "security": 0.51238882808862296069918329521897248923778533935546875,
-        "distance": 4.69620000000000015205614545266143977642059326171875,
-        "distanceKm": 702535998,
-    },
-    40170700: {
-        "itemID": 40170700,
-        "itemName": "Colelie VI - Moon 2",
-        "typeID": 14,
-        "typeName": "Moon",
-        "groupID": 8,
-        "groupName": "Moon",
-        "solarSystemID": "30002682",
-        "regionID": 10000032,
-        "constellationID": 10000032,
-        "x": "390287025280",
-        "y": "78357805096",
-        "z": "-199058647578",
-        "security": 0.51238882808862296069918329521897248923778533935546875,
-        "distance": 4.699799999999999755573298898525536060333251953125,
-        "distanceKm": 703071835,
-    },
-    40170701: {
-        "itemID": 40170701,
-        "itemName": "Colelie VI - Moon 3",
-        "typeID": 14,
-        "typeName": "Moon",
-        "groupID": 8,
-        "groupName": "Moon",
-        "solarSystemID": "30002682",
-        "regionID": 10000032,
-        "constellationID": 10000032,
-        "x": "390135687385",
-        "y": "78327421033",
-        "z": "-198566076258",
-        "security": 0.51238882808862296069918329521897248923778533935546875,
-        "distance": 4.70300000000000029132252166164107620716094970703125,
-        "distanceKm": 703551499,
-    },
-}
-
-
-def create_item(item_id):
-    return items[item_id]
-
-
-def create_request(*item_ids, ok=True):
-    return {
-        "ok": ok,
-        "result": [create_item(item_id) for item_id in item_ids],
-    }
-
-
 @requests_mock.Mocker()
 class TestEveMicrosNearestCelestial(TestCase):
     def setUp(self) -> None:
@@ -332,7 +216,7 @@ class TestEveMicrosNearestCelestial(TestCase):
         requests_mocker.register_uri(
             "GET",
             url="https://www.kalkoken.org/apps/evemicros/eveUniverse.php?nearestCelestials=30002682,660502472160,-130687672800,-813545103840",
-            json=create_request(40170698, 50011472, 40170697),
+            json=create_evemicros_request(40170698, 50011472, 40170697),
         )
         # when
         result = evemicros.nearest_celestial(
@@ -350,7 +234,7 @@ class TestEveMicrosNearestCelestial(TestCase):
         requests_mocker.register_uri(
             "GET",
             url="https://www.kalkoken.org/apps/evemicros/eveUniverse.php?nearestCelestials=99,1,2,3",
-            json=create_request(40170698, 50011472, 40170697),
+            json=create_evemicros_request(40170698, 50011472, 40170697),
         )
         evemicros.nearest_celestial(solar_system_id=99, x=1, y=2, z=3)
         # when
@@ -364,7 +248,7 @@ class TestEveMicrosNearestCelestial(TestCase):
         requests_mocker.register_uri(
             "GET",
             url="https://www.kalkoken.org/apps/evemicros/eveUniverse.php?nearestCelestials=30002682,1,2,3",
-            json=create_request(),
+            json=create_evemicros_request(),
         )
         # when
         result = evemicros.nearest_celestial(solar_system_id=30002682, x=1, y=2, z=3)
@@ -376,7 +260,7 @@ class TestEveMicrosNearestCelestial(TestCase):
         requests_mocker.register_uri(
             "GET",
             url="https://www.kalkoken.org/apps/evemicros/eveUniverse.php?nearestCelestials=30002682,1,2,3",
-            json=create_request(40170698, 50011472, ok=False),
+            json=create_evemicros_request(40170698, 50011472, ok=False),
         )
         # when
         result = evemicros.nearest_celestial(solar_system_id=30002682, x=1, y=2, z=3)
@@ -399,7 +283,7 @@ class TestEveMicrosNearestCelestial(TestCase):
         requests_mocker.register_uri(
             "GET",
             url="https://www.kalkoken.org/apps/evemicros/eveUniverse.php?nearestCelestials=30002682,660502472160,-130687672800,-813545103840",
-            json=create_request(40170698, 50011472, 40170697, 40170699),
+            json=create_evemicros_request(40170698, 50011472, 40170697, 40170699),
         )
         # when
         result = evemicros.nearest_celestial(

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.9.0] - 2021-12-30
+
+### Added
+
+- `EveSolarSystem.nearest_celestial()` can not optionally filter results by group
+
 ### Changed
 
 - Replaced fuzzwork API with evemicros API for determining nearest celestials

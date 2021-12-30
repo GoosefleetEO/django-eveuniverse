@@ -1195,8 +1195,14 @@ class EveSolarSystem(EveUniverseEntityModel):
         except HTTPNotFound:
             return None
 
-    def nearest_celestial(self, x: int, y: int, z: int) -> Optional[NearestCelestial]:
+    def nearest_celestial(
+        self, x: int, y: int, z: int, group_id: int = None
+    ) -> Optional[NearestCelestial]:
         """Determine nearest celestial to given coordinates as eveuniverse object.
+
+        Args:
+            x, y, z: Start point in space to look from
+            group_id: Eve ID of group to filter results by
 
         Raises:
             HTTPError: If an HTTP error is encountered
@@ -1204,10 +1210,11 @@ class EveSolarSystem(EveUniverseEntityModel):
         Returns:
             Eve item or None if none is found
         """
-        item = evemicros.nearest_celestial(solar_system_id=self.id, x=x, y=y, z=z)
+        item = evemicros.nearest_celestial(
+            solar_system_id=self.id, x=x, y=y, z=z, group_id=group_id
+        )
         if not item:
             return None
-
         eve_type, _ = EveType.objects.get_or_create_esi(id=item.type_id)
         if eve_type.eve_group_id == constants.EVE_GROUP_ID_ASTEROID_BELT:
             MyClass = EveAsteroidBelt
@@ -1221,7 +1228,6 @@ class EveSolarSystem(EveUniverseEntityModel):
             MyClass = EveStation
         else:
             return None
-
         obj, _ = MyClass.objects.get_or_create_esi(id=item.id)
         return self.NearestCelestial(
             eve_type=eve_type, eve_object=obj, distance=item.distance

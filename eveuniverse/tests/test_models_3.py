@@ -4,6 +4,7 @@ import requests_mock
 
 from django.test.utils import override_settings
 
+from ..constants import EVE_GROUP_ID_MOON
 from ..core import evemicros
 from ..models import (
     EveAsteroidBelt,
@@ -912,10 +913,10 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
 @patch(MODELS_PATH + ".evemicros")
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
-    def test_should_return_stargate(self, mock_esi, mock_fuzzwork):
+    def test_should_return_stargate(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_fuzzwork.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
             id=50016284, name="Stargate (Akidagi)", type_id=16, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -928,10 +929,10 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
         )
         self.assertEqual(result.distance, 1000)
 
-    def test_should_return_planet(self, mock_esi, mock_fuzzwork):
+    def test_should_return_planet(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_fuzzwork.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
             id=40349471, name="Enaluri III", type_id=13, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -944,10 +945,10 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
         )
         self.assertEqual(result.distance, 1000)
 
-    def test_should_return_station(self, mock_esi, mock_fuzzwork):
+    def test_should_return_station(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_fuzzwork.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
             id=60015068,
             name="Enaluri V - State Protectorate Assembly Plant",
             type_id=1529,
@@ -963,10 +964,10 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
         )
         self.assertEqual(result.distance, 1000)
 
-    def test_should_return_asteroid_belt(self, mock_esi, mock_fuzzwork):
+    def test_should_return_asteroid_belt(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_fuzzwork.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
             id=40349487, name="Enaluri III - Asteroid Belt 1", type_id=15, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -982,10 +983,10 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
         )
         self.assertEqual(result.distance, 1000)
 
-    def test_should_return_moon(self, mock_esi, mock_fuzzwork):
+    def test_should_return_moon(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_fuzzwork.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
             id=40349472, name="Enaluri III - Moon 1", type_id=14, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -998,10 +999,10 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
         )
         self.assertEqual(result.distance, 1000)
 
-    def test_should_return_none_if_unknown_type(self, mock_esi, mock_fuzzwork):
+    def test_should_return_none_if_unknown_type(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_fuzzwork.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
             id=99, name="Merlin", type_id=603, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -1010,15 +1011,31 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
         # then
         self.assertIsNone(result)
 
-    def test_should_return_none_if_not_found(self, mock_esi, mock_fuzzwork):
+    def test_should_return_none_if_not_found(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_fuzzwork.nearest_celestial.return_value = None
+        mock_evemicros.nearest_celestial.return_value = None
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
         # when
         result = enaluri.nearest_celestial(x=-1, y=-2, z=3)
         # then
         self.assertIsNone(result)
+
+    def test_should_return_moon_by_group(self, mock_esi, mock_evemicros):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
+            id=40349472, name="Enaluri III - Moon 1", type_id=14, distance=1000
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        # when
+        result = enaluri.nearest_celestial(x=-1, y=-2, z=3, group_id=EVE_GROUP_ID_MOON)
+        # then
+        self.assertEqual(result.eve_type, EveType.objects.get_or_create_esi(id=14)[0])
+        self.assertEqual(
+            result.eve_object, EveMoon.objects.get_or_create_esi(id=40349472)[0]
+        )
+        self.assertEqual(result.distance, 1000)
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
