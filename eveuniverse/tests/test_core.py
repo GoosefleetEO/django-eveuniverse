@@ -7,7 +7,7 @@ from requests.exceptions import HTTPError
 from django.core.cache import cache
 from django.test import TestCase
 
-from ..constants import EVE_GROUP_ID_MOON
+from ..constants import EveGroupId
 from ..core import esitools, eveimageserver, evemicros, eveskinserver
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
@@ -291,7 +291,7 @@ class TestEveMicrosNearestCelestial(TestCase):
             x=660502472160,
             y=-130687672800,
             z=-813545103840,
-            group_id=EVE_GROUP_ID_MOON,
+            group_id=EveGroupId.MOON,
         )
         # then
         self.assertEqual(result.id, 40170699)

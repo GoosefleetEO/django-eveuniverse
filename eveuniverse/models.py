@@ -11,7 +11,6 @@ from bravado.exception import HTTPNotFound
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 
-from . import constants
 from .app_settings import (
     EVEUNIVERSE_LOAD_ASTEROID_BELTS,
     EVEUNIVERSE_LOAD_DOGMAS,
@@ -25,6 +24,7 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_TYPE_MATERIALS,
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
+from .constants import EveCategoryId, EveGroupId
 from .core import eveimageserver, evemicros, eveskinserver
 from .managers import (
     EveAsteroidBeltManager,
@@ -1216,15 +1216,15 @@ class EveSolarSystem(EveUniverseEntityModel):
         if not item:
             return None
         eve_type, _ = EveType.objects.get_or_create_esi(id=item.type_id)
-        if eve_type.eve_group_id == constants.EVE_GROUP_ID_ASTEROID_BELT:
+        if eve_type.eve_group_id == EveGroupId.ASTEROID_BELT:
             MyClass = EveAsteroidBelt
-        elif eve_type.eve_group_id == constants.EVE_GROUP_ID_MOON:
+        elif eve_type.eve_group_id == EveGroupId.MOON:
             MyClass = EveMoon
-        elif eve_type.eve_group_id == constants.EVE_GROUP_ID_PLANET:
+        elif eve_type.eve_group_id == EveGroupId.PLANET:
             MyClass = EvePlanet
-        elif eve_type.eve_group_id == constants.EVE_GROUP_ID_STARGATE:
+        elif eve_type.eve_group_id == EveGroupId.STARGATE:
             MyClass = EveStargate
-        elif eve_type.eve_group_id == constants.EVE_GROUP_ID_STATION:
+        elif eve_type.eve_group_id == EveGroupId.STATION:
             MyClass = EveStation
         else:
             return None
@@ -1501,10 +1501,10 @@ class EveType(EveUniverseEntityModel):
             if not category_id:
                 category_id = self.eve_group.eve_category_id
 
-            if category_id == constants.EVE_CATEGORY_ID_BLUEPRINT:
+            if category_id == EveCategoryId.BLUEPRINT:
                 variant = self.IconVariant.BPO
 
-            elif category_id == constants.EVE_CATEGORY_ID_SKIN:
+            elif category_id == EveCategoryId.SKIN:
                 variant = self.IconVariant.SKIN
 
         if variant is self.IconVariant.BPO:

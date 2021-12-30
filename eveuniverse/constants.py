@@ -1,4 +1,22 @@
-# EVE IDs
+from enum import IntEnum
+
+
+class EveCategoryId(IntEnum):
+    SHIP = 6
+    BLUEPRINT = 9
+    STRUCTURE = 65
+    SKIN = 91
+
+
+class EveGroupId(IntEnum):
+    PLANET = 7
+    MOON = 8
+    ASTEROID_BELT = 9
+    STARGATE = 10
+    STATION = 15
+
+
+# EVE IDs (deprecated, use above enums instead)
 EVE_CATEGORY_ID_SHIP = 6
 EVE_CATEGORY_ID_BLUEPRINT = 9
 EVE_CATEGORY_ID_STRUCTURE = 65

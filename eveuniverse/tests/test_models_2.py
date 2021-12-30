@@ -3,11 +3,7 @@ from unittest.mock import patch
 
 from django.test.utils import override_settings
 
-from ..constants import (
-    EVE_CATEGORY_ID_BLUEPRINT,
-    EVE_CATEGORY_ID_SKIN,
-    EVE_CATEGORY_ID_STRUCTURE,
-)
+from ..constants import EveCategoryId
 from ..models import (
     EsiMapping,
     EveAncestry,
@@ -249,7 +245,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
         eve_type, _ = EveType.objects.get_or_create_esi(id=603)
 
         self.assertEqual(
-            eve_type.icon_url(size=256, category_id=EVE_CATEGORY_ID_BLUEPRINT),
+            eve_type.icon_url(size=256, category_id=EveCategoryId.BLUEPRINT),
             "https://images.evetech.net/types/603/bp?size=256",
         )
 
@@ -300,7 +296,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
 
         self.assertIn(
             "skin_generic_128.png",
-            eve_type.icon_url(size=128, category_id=EVE_CATEGORY_ID_SKIN),
+            eve_type.icon_url(size=128, category_id=EveCategoryId.SKIN),
         )
 
     @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", False)
@@ -310,7 +306,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
         eve_type, _ = EveType.objects.get_or_create_esi(id=34599)
 
         self.assertEqual(
-            eve_type.icon_url(size=256, category_id=EVE_CATEGORY_ID_STRUCTURE),
+            eve_type.icon_url(size=256, category_id=EveCategoryId.STRUCTURE),
             "https://images.evetech.net/types/34599/icon?size=256",
         )
 

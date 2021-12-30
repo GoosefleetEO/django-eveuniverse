@@ -4,7 +4,7 @@ import requests_mock
 
 from django.test.utils import override_settings
 
-from ..constants import EVE_GROUP_ID_MOON
+from ..constants import EveGroupId
 from ..core import evemicros
 from ..models import (
     EveAsteroidBelt,
@@ -1029,7 +1029,7 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
         # when
-        result = enaluri.nearest_celestial(x=-1, y=-2, z=3, group_id=EVE_GROUP_ID_MOON)
+        result = enaluri.nearest_celestial(x=-1, y=-2, z=3, group_id=EveGroupId.MOON)
         # then
         self.assertEqual(result.eve_type, EveType.objects.get_or_create_esi(id=14)[0])
         self.assertEqual(

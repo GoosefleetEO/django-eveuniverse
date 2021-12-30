@@ -17,7 +17,7 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_STATIONS,
     EVEUNIVERSE_TASKS_TIME_LIMIT,
 )
-from .constants import EVE_CATEGORY_ID_SHIP, EVE_CATEGORY_ID_STRUCTURE
+from .constants import EVE_CATEGORY_ID_SHIP, EveCategoryId
 from .models import EveEntity, EveMarketPrice, EveUniverseEntityModel
 from .providers import esi
 from .utils import LoggerAddTag
@@ -224,7 +224,7 @@ def load_ship_types() -> None:
 def load_structure_types() -> None:
     """Loads all structure types"""
     logger.info("Started loading all structure types into eveuniverse")
-    _load_category(EVE_CATEGORY_ID_STRUCTURE)
+    _load_category(EveCategoryId.STRUCTURE)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
