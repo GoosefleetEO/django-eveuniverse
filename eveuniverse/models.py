@@ -1204,7 +1204,7 @@ class EveSolarSystem(EveUniverseEntityModel):
         Returns:
             Eve item or None if none is found
         """
-        item = evemicros.nearest_celestial(x, y, z, solar_system_id=self.id)
+        item = evemicros.nearest_celestial(solar_system_id=self.id, x=x, y=y, z=z)
         if not item:
             return None
 

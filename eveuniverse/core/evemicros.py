@@ -14,11 +14,14 @@ EveItem = namedtuple("EveItem", ["id", "name", "type_id", "distance"])
 
 
 def nearest_celestial(
-    x: int, y: int, z: int, solar_system_id: int
+    solar_system_id: int, x: int, y: int, z: int, group_id: int = None
 ) -> Optional[EveItem]:
-    """Fetch nearest celestial to given coordinates from API.
+    """Fetch nearest celestial to given coordinates from API. Results are cached.
 
-    Results are cached.
+    Args:
+        solar_system_id: Eve ID of solar system
+        x, y, z: Start point in space to look from
+        group_id: Eve ID of group to filter results by
 
     Raises:
         HTTPError: If an HTTP error is encountered
@@ -26,34 +29,49 @@ def nearest_celestial(
     Returns:
         Found Eve item or None if nothing found nearby.
     """
+    result = _fetch_result_from_api_cached(
+        solar_system_id=solar_system_id, x=x, y=y, z=z
+    )
+    return _get_item_from_result(result, group_id)
+
+
+def _fetch_result_from_api_cached(
+    solar_system_id: int, x: int, y: int, z: int
+) -> Optional[dict]:
+    """Fetches result from API or cache.
+    Returns None if data from API does not have expected structure.
+    """
     params = map(str, map(int, [solar_system_id, x, y, z]))
     query = urlencode({"nearestCelestials": ",".join(params)})
-    item = cache.get(key=_build_cache_key(query))
-    if not item:
-        item = _fetch_from_api(query)
-        if item is None:
+    cache_key = f"EVEUNIVERSE_NEAREST_CELESTIAL_{query}"
+    result = cache.get(key=cache_key)
+    if not result:
+        r = requests.get(f"{_BASE_URL}?{query}")
+        r.raise_for_status()
+        data = r.json()
+        if "ok" not in data or not data["ok"] or "result" not in data:
             return None
-    result = EveItem(
-        id=int(item["itemID"]),
-        name=str(item["itemName"]),
-        type_id=int(item["typeID"]),
-        distance=float(item["distanceKm"]),
-    )
+        result = data["result"]
+        cache.set(key=cache_key, value=result, timeout=_CACHE_TIMEOUT)
     return result
 
 
-def _build_cache_key(query) -> str:
-    cache_key_base = "EVEUNIVERSE_NEAREST_CELESTIAL"
-    cache_key = f"{cache_key_base}_{query}"
-    return cache_key
-
-
-def _fetch_from_api(query) -> Optional[dict]:
-    r = requests.get(f"{_BASE_URL}?{query}")
-    r.raise_for_status()
-    data = r.json()
-    if "ok" not in data or not data["ok"] or "result" not in data or not data["result"]:
+def _get_item_from_result(result, group_id) -> Optional[dict]:
+    """Tries to find item in result. Returns None if item can not be found."""
+    if not result:
         return None
-    item = data["result"][0]
-    cache.set(key=_build_cache_key(query), value=item, timeout=_CACHE_TIMEOUT)
-    return item
+    if not group_id:
+        return _create_item(result[0])
+    for item in result:
+        if item["groupID"] == group_id:
+            return _create_item(item)
+    return None
+
+
+def _create_item(record: dict) -> EveItem:
+    return EveItem(
+        id=int(record["itemID"]),
+        name=str(record["itemName"]),
+        type_id=int(record["typeID"]),
+        distance=float(record["distanceKm"]),
+    )

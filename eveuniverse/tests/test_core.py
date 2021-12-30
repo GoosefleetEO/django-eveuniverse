@@ -7,6 +7,7 @@ from requests.exceptions import HTTPError
 from django.core.cache import cache
 from django.test import TestCase
 
+from ..constants import EVE_GROUP_ID_MOON
 from ..core import esitools, eveimageserver, evemicros, eveskinserver
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
@@ -335,7 +336,7 @@ class TestEveMicrosNearestCelestial(TestCase):
         )
         # when
         result = evemicros.nearest_celestial(
-            x=660502472160, y=-130687672800, z=-813545103840, solar_system_id=30002682
+            solar_system_id=30002682, x=660502472160, y=-130687672800, z=-813545103840
         )
         # then
         self.assertEqual(result.id, 40170698)
@@ -351,9 +352,9 @@ class TestEveMicrosNearestCelestial(TestCase):
             url="https://www.kalkoken.org/apps/evemicros/eveUniverse.php?nearestCelestials=99,1,2,3",
             json=create_request(40170698, 50011472, 40170697),
         )
-        evemicros.nearest_celestial(x=1, y=2, z=3, solar_system_id=99)
+        evemicros.nearest_celestial(solar_system_id=99, x=1, y=2, z=3)
         # when
-        result = evemicros.nearest_celestial(x=1, y=2, z=3, solar_system_id=99)
+        result = evemicros.nearest_celestial(solar_system_id=99, x=1, y=2, z=3)
         # then
         self.assertEqual(result.id, 40170698)
         self.assertEqual(requests_mocker.call_count, 1)
@@ -366,7 +367,7 @@ class TestEveMicrosNearestCelestial(TestCase):
             json=create_request(),
         )
         # when
-        result = evemicros.nearest_celestial(x=1, y=2, z=3, solar_system_id=30002682)
+        result = evemicros.nearest_celestial(solar_system_id=30002682, x=1, y=2, z=3)
         # then
         self.assertIsNone(result)
 
@@ -378,7 +379,7 @@ class TestEveMicrosNearestCelestial(TestCase):
             json=create_request(40170698, 50011472, ok=False),
         )
         # when
-        result = evemicros.nearest_celestial(x=1, y=2, z=3, solar_system_id=30002682)
+        result = evemicros.nearest_celestial(solar_system_id=30002682, x=1, y=2, z=3)
         # then
         self.assertIsNone(result)
 
@@ -391,4 +392,22 @@ class TestEveMicrosNearestCelestial(TestCase):
         )
         # when
         with self.assertRaises(HTTPError):
-            evemicros.nearest_celestial(x=1, y=2, z=3, solar_system_id=30002682)
+            evemicros.nearest_celestial(solar_system_id=30002682, x=1, y=2, z=3)
+
+    def test_should_return_moon_from_api(self, requests_mocker):
+        # given
+        requests_mocker.register_uri(
+            "GET",
+            url="https://www.kalkoken.org/apps/evemicros/eveUniverse.php?nearestCelestials=30002682,660502472160,-130687672800,-813545103840",
+            json=create_request(40170698, 50011472, 40170697, 40170699),
+        )
+        # when
+        result = evemicros.nearest_celestial(
+            solar_system_id=30002682,
+            x=660502472160,
+            y=-130687672800,
+            z=-813545103840,
+            group_id=EVE_GROUP_ID_MOON,
+        )
+        # then
+        self.assertEqual(result.id, 40170699)
