@@ -1,6 +1,5 @@
 import enum
 import inspect
-import logging
 import math
 import sys
 from collections import namedtuple
@@ -12,7 +11,7 @@ from bravado.exception import HTTPNotFound
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 
-from . import __title__, constants
+from . import constants
 from .app_settings import (
     EVEUNIVERSE_LOAD_ASTEROID_BELTS,
     EVEUNIVERSE_LOAD_DOGMAS,
@@ -26,7 +25,7 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_TYPE_MATERIALS,
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
-from .core import eveimageserver, eveskinserver, fuzzwork
+from .core import eveimageserver, evemicros, eveskinserver
 from .managers import (
     EveAsteroidBeltManager,
     EveEntityManager,
@@ -41,9 +40,6 @@ from .managers import (
     EveUniverseEntityModelManager,
 )
 from .providers import esi
-from .utils import LoggerAddTag
-
-logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
 NAMES_MAX_LENGTH = 100
 
@@ -1200,11 +1196,15 @@ class EveSolarSystem(EveUniverseEntityModel):
             return None
 
     def nearest_celestial(self, x: int, y: int, z: int) -> Optional[NearestCelestial]:
-        """Return nearest celestial to given coordinates as eveuniverse object.
+        """Determine nearest celestial to given coordinates as eveuniverse object.
 
-        Will return None if none is found.
+        Raises:
+            HTTPError: If an HTTP error is encountered
+
+        Returns:
+            Eve item or None if none is found
         """
-        item = fuzzwork.nearest_celestial(x, y, z, solar_system_id=self.id)
+        item = evemicros.nearest_celestial(x, y, z, solar_system_id=self.id)
         if not item:
             return None
 

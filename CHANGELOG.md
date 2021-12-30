@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Changed
+
+- Replaced fuzzwork API with evemicros API for determining nearest celestials
+
 ## [0.8.2] - 2021-11-15
 
 ### Fixed
