@@ -31,14 +31,14 @@ eveimageserver
 .. automodule:: eveuniverse.core.eveimageserver
     :members:
 
+evemicros
+----------------
+.. automodule:: eveuniverse.core.evemicros
+    :members:
+
 eveskinserver
 ----------------
 .. automodule:: eveuniverse.core.eveskinserver
-    :members:
-
-fuzzwork
-----------------
-.. automodule:: eveuniverse.core.fuzzwork
     :members:
 
 Eve Models

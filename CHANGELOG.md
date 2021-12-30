@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- Replaced fuzzwork API with evemicros API for determining nearest celestials
+- Replaced `core.fuzzwork` module with `core.evemicros` for retrieving nearest celestials from API
 
 ## [0.8.2] - 2021-11-15
 
