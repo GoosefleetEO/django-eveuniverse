@@ -1085,7 +1085,7 @@ class EveSolarSystem(EveUniverseEntityModel):
 
         PLANETS = "planets"  #:
         STARGATES = "stargates"  #:
-        STARS = "stars"  #
+        STARS = "stars"  #:
         STATIONS = "stations"  #:
 
     eve_constellation = models.ForeignKey(
@@ -1443,7 +1443,7 @@ class EveType(EveUniverseEntityModel):
 
         DOGMAS = "dogmas"  #:
         GRAPHICS = "graphics"  #:
-        MARKET_GROUPS = "market_groups"  #
+        MARKET_GROUPS = "market_groups"  #:
         TYPE_MATERIALS = "type_materials"  #:
 
     capacity = models.FloatField(default=None, null=True)

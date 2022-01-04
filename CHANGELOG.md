@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.10.0] - 2022-01-04
+
 ### Added
 
 - EveEntity.profile_url: URL to display this object on the default third party webpage
@@ -17,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - core.eveitems: URL for profile pages on eveitems webpage
 - core.evewho: URL for profile pages on evewho webpage
 - core.dotlan: URL for profile pages on dotlan webpage
+
+### Fixed
+
+- Missing documentation for some sections, e.g. `EveType.Section.MARKET_GROUPS`
 
 ## [0.9.0] - 2021-12-30
 
