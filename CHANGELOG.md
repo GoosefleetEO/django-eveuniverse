@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - core.evewho: URL for profile pages on evewho webpage
 - core.dotlan: URL for profile pages on dotlan webpage
 
+### Changed
+
+- Removed support for Python 3.6 & Django 3.1
+
 ### Fixed
 
 - Missing documentation for some sections, e.g. `EveType.Section.MARKET_GROUPS`
