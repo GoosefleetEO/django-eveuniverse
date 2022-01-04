@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+
+- EveType.profile_url: URL to display this type on the default third party webpage
+
 ## [0.9.0] - 2021-12-30
 
 ### Added

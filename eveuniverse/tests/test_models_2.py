@@ -348,6 +348,20 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
         )
 
 
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+@patch(MANAGERS_PATH + ".esi")
+class TestEveTypeProfileUrl(NoSocketsTestCase):
+    def test_can_url(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        eve_type, _ = EveType.objects.get_or_create_esi(id=603)
+        # when
+        result = eve_type.profile_url
+        # then
+        self.assertEqual(result, "https://www.kalkoken.org/apps/eveitems/?typeId=603")
+
+
 class TestEveUnit(NoSocketsTestCase):
     def test_get_object(self):
         obj = EveUnit.objects.get(id=10)

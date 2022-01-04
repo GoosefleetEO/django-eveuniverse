@@ -4,6 +4,7 @@ import math
 import sys
 from collections import namedtuple
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from urllib.parse import urlencode
 
 from bitfield import BitField
 from bravado.exception import HTTPNotFound
@@ -1400,6 +1401,8 @@ class EveStationService(models.Model):
 class EveType(EveUniverseEntityModel):
     """An inventory type in Eve Online"""
 
+    _PROFILE_BASE_URL = "https://www.kalkoken.org/apps/eveitems/"
+
     class Section(_SectionBase):
         """Sections that can be optionally loaded with each instance"""
 
@@ -1458,6 +1461,12 @@ class EveType(EveUniverseEntityModel):
             "dogma_effects": "EveTypeDogmaEffect",
         }
         load_order = 134
+
+    @property
+    def profile_url(self) -> str:
+        """URL to display this type on the default third party webpage."""
+        query = urlencode({"typeId": self.id}, doseq=True)
+        return f"{self._PROFILE_BASE_URL}?{query}"
 
     class IconVariant(enum.Enum):
         """Variant of icon to produce with `icon_url()`"""
