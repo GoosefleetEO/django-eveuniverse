@@ -21,6 +21,11 @@ Base classes
 Core functions
 ==============
 
+dotlan
+----------------
+.. automodule:: eveuniverse.core.dotlan
+    :members:
+
 esitools
 ----------------
 .. automodule:: eveuniverse.core.esitools

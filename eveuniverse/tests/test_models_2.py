@@ -1102,6 +1102,63 @@ class TestEveEntity(NoSocketsTestCase):
         self.assertFalse(obj.is_npc)
 
 
+class TestEveEntityProfileUrl(NoSocketsTestCase):
+    def test_should_handle_alliance(self):
+        # given
+        obj = EveEntity.objects.create(
+            id=3001, name="Wayne Enterprises", category=EveEntity.CATEGORY_ALLIANCE
+        )
+        # when/then
+        self.assertEqual(
+            obj.profile_url, "https://evemaps.dotlan.net/alliance/Wayne_Enterprises"
+        )
+
+    def test_should_handle_character(self):
+        # given
+        obj = EveEntity.objects.create(
+            id=1001, name="Bruce Wayne", category=EveEntity.CATEGORY_CHARACTER
+        )
+        # when/then
+        self.assertEqual(obj.profile_url, "https://evewho.com/character/1001")
+
+    def test_should_handle_corporation(self):
+        # given
+        obj = EveEntity.objects.create(
+            id=2001, name="Wayne Technologies", category=EveEntity.CATEGORY_CORPORATION
+        )
+        # when/then
+        self.assertEqual(
+            obj.profile_url, "https://evemaps.dotlan.net/corp/Wayne_Technologies"
+        )
+
+    def test_should_handle_faction(self):
+        # given
+        obj = EveEntity.objects.create(
+            id=99, name="Amarr Empire", category=EveEntity.CATEGORY_FACTION
+        )
+        # when/then
+        self.assertEqual(
+            obj.profile_url, "https://evemaps.dotlan.net/factionwarfare/Amarr_Empire"
+        )
+
+    def test_should_handle_inventory_type(self):
+        # given
+        obj = EveEntity.objects.create(
+            id=603, name="Merlin", category=EveEntity.CATEGORY_INVENTORY_TYPE
+        )
+        # when/then
+        self.assertEqual(
+            obj.profile_url, "https://www.kalkoken.org/apps/eveitems/?typeId=603"
+        )
+
+    def test_should_return_empty_string_for_undefined_category(self):
+        # given
+        obj = EveEntity.objects.create(
+            id=99, name="Wayne Technologies", category=EveEntity.CATEGORY_STATION
+        )
+        self.assertEqual(obj.profile_url, "")
+
+
 @patch(MANAGERS_PATH + ".esi")
 class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
     def setUp(self):

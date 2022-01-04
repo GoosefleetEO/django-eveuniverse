@@ -26,7 +26,7 @@ from .app_settings import (
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
 from .constants import EveCategoryId, EveGroupId
-from .core import eveimageserver, evemicros, eveskinserver
+from .core import dotlan, eveimageserver, evemicros, eveskinserver, evewho
 from .managers import (
     EveAsteroidBeltManager,
     EveEntityManager,
@@ -482,6 +482,29 @@ class EveEntity(EveUniverseEntityModel):
             return True
 
         return False
+
+    @property
+    def profile_url(self) -> str:
+        """URL to default third party website with profile info about this entity.
+
+        Supported for:
+        alliance, character, corporation, faction, region, solar system, type
+        """
+        if self.is_alliance:
+            return dotlan.alliance_url(self.name)
+        elif self.is_character:
+            return evewho.character_url(self.id)
+        elif self.is_corporation:
+            return dotlan.corporation_url(self.name)
+        elif self.is_faction:
+            return dotlan.faction_url(self.name)
+        elif self.is_region:
+            return dotlan.region_url(self.name)
+        elif self.is_solar_system:
+            return dotlan.solar_system_url(self.name)
+        elif self.is_type:
+            return EveType.generic_profile_url(self.id)
+        return ""
 
     def is_category(self, category: str) -> bool:
         """returns True if this entity has the given category, else False"""
@@ -1465,8 +1488,13 @@ class EveType(EveUniverseEntityModel):
     @property
     def profile_url(self) -> str:
         """URL to display this type on the default third party webpage."""
-        query = urlencode({"typeId": self.id}, doseq=True)
-        return f"{self._PROFILE_BASE_URL}?{query}"
+        return self.generic_profile_url(self.id)
+
+    @classmethod
+    def generic_profile_url(cls, eve_type_id) -> str:
+        """URL to display any type on the default third party webpage."""
+        query = urlencode({"typeId": eve_type_id}, doseq=True)
+        return f"{cls._PROFILE_BASE_URL}?{query}"
 
     class IconVariant(enum.Enum):
         """Variant of icon to produce with `icon_url()`"""
