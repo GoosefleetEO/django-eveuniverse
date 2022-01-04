@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- EveEntity.profile_url: URL to display this type on the default third party webpage
-- EveType.profile_url: URL to display this type on the default third party webpage
+- EveEntity.profile_url: URL to display this object on the default third party webpage
+- EveFaction.profile_url: URL to display this object on the default third party webpage
+- EveRegion.profile_url: URL to display this object on the default third party webpage
+- EveSolarSystem.profile_url: URL to display this object on the default third party webpage
+- EveType.profile_url: URL to display this object on the default third party webpage
+- core.eveitems: URL for profile pages on eveitems webpage
 - core.evewho: URL for profile pages on evewho webpage
 - core.dotlan: URL for profile pages on dotlan webpage
 

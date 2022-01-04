@@ -4,7 +4,6 @@ import math
 import sys
 from collections import namedtuple
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
-from urllib.parse import urlencode
 
 from bitfield import BitField
 from bravado.exception import HTTPNotFound
@@ -26,7 +25,7 @@ from .app_settings import (
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
 from .constants import EveCategoryId, EveGroupId
-from .core import dotlan, eveimageserver, evemicros, eveskinserver, evewho
+from .core import dotlan, eveimageserver, eveitems, evemicros, eveskinserver, evewho
 from .managers import (
     EveAsteroidBeltManager,
     EveEntityManager,
@@ -503,7 +502,7 @@ class EveEntity(EveUniverseEntityModel):
         elif self.is_solar_system:
             return dotlan.solar_system_url(self.name)
         elif self.is_type:
-            return EveType.generic_profile_url(self.id)
+            return eveitems.type_url(self.id)
         return ""
 
     def is_category(self, category: str) -> bool:
@@ -850,6 +849,11 @@ class EveFaction(EveUniverseEntityModel):
         field_mappings = {"eve_solar_system": "solar_system_id"}
         load_order = 210
 
+    @property
+    def profile_url(self) -> str:
+        """URL to default third party website with profile info about this entity."""
+        return dotlan.faction_url(self.name)
+
     def logo_url(self, size=EveUniverseEntityModel.DEFAULT_ICON_SIZE) -> str:
         """returns an image URL for this faction
 
@@ -1063,6 +1067,11 @@ class EveRegion(EveUniverseEntityModel):
         children = {"constellations": "EveConstellation"}
         load_order = 190
 
+    @property
+    def profile_url(self) -> str:
+        """URL to default third party website with profile info about this entity."""
+        return dotlan.region_url(self.name)
+
     @classmethod
     def eve_entity_category(cls) -> str:
         return EveEntity.CATEGORY_REGION
@@ -1124,6 +1133,11 @@ class EveSolarSystem(EveUniverseEntityModel):
         "NearestCelestial", ["eve_type", "eve_object", "distance"]
     )
     NearestCelestial.__doc__ = "Container for a nearest celestial"
+
+    @property
+    def profile_url(self) -> str:
+        """URL to default third party website with profile info about this entity."""
+        return dotlan.solar_system_url(self.name)
 
     @property
     def is_high_sec(self) -> bool:
@@ -1424,8 +1438,6 @@ class EveStationService(models.Model):
 class EveType(EveUniverseEntityModel):
     """An inventory type in Eve Online"""
 
-    _PROFILE_BASE_URL = "https://www.kalkoken.org/apps/eveitems/"
-
     class Section(_SectionBase):
         """Sections that can be optionally loaded with each instance"""
 
@@ -1488,13 +1500,7 @@ class EveType(EveUniverseEntityModel):
     @property
     def profile_url(self) -> str:
         """URL to display this type on the default third party webpage."""
-        return self.generic_profile_url(self.id)
-
-    @classmethod
-    def generic_profile_url(cls, eve_type_id) -> str:
-        """URL to display any type on the default third party webpage."""
-        query = urlencode({"typeId": eve_type_id}, doseq=True)
-        return f"{cls._PROFILE_BASE_URL}?{query}"
+        return eveitems.type_url(self.id)
 
     class IconVariant(enum.Enum):
         """Variant of icon to produce with `icon_url()`"""

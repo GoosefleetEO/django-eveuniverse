@@ -1,3 +1,5 @@
+"""Tools for interacting with ESI."""
+
 from bravado.exception import HTTPError
 
 from ..providers import esi
@@ -9,8 +11,6 @@ def is_esi_online() -> bool:
         status = esi.client.Status.get_status().results()
         if status.get("vip"):
             return False
-
     except HTTPError:
         return False
-
     return True

@@ -8,7 +8,15 @@ from django.core.cache import cache
 from django.test import TestCase
 
 from ..constants import EveGroupId
-from ..core import dotlan, esitools, eveimageserver, evemicros, eveskinserver, evewho
+from ..core import (
+    dotlan,
+    esitools,
+    eveimageserver,
+    eveitems,
+    evemicros,
+    eveskinserver,
+    evewho,
+)
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
 from .testdata.factories import create_evemicros_request
@@ -295,6 +303,13 @@ class TestEveMicrosNearestCelestial(TestCase):
         )
         # then
         self.assertEqual(result.id, 40170699)
+
+
+class TestEveItems(TestCase):
+    def test_type_url(self):
+        self.assertEqual(
+            eveitems.type_url(603), "https://www.kalkoken.org/apps/eveitems/?typeId=603"
+        )
 
 
 class TestEveWho(TestCase):

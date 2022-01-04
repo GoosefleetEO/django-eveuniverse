@@ -1,3 +1,5 @@
+"""Fetching image URLs for Eve objects."""
+
 import enum
 
 _EVE_IMAGE_SERVER_URL = "https://images.evetech.net"

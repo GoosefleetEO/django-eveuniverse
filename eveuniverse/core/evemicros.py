@@ -1,4 +1,5 @@
-"""Wrapper to access evemicros API"""
+"""Wrapper to access evemicros API."""
+
 from collections import namedtuple
 from typing import Optional
 from urllib.parse import urlencode

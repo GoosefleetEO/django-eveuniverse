@@ -1,3 +1,5 @@
+"""Wrapper for accessing eveskinserver API."""
+
 _EVE_SKIN_SERVER_URL = "https://eveskinserver.kalkoken.net"
 _DEFAULT_IMAGE_SIZE = 32
 

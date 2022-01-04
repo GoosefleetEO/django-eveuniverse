@@ -1,4 +1,5 @@
-"""Generates profile URLs for evewho."""
+"""Wrapper for generating profile URLs on evewho."""
+
 from enum import Enum, auto
 from urllib.parse import urljoin
 

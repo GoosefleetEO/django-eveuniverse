@@ -36,6 +36,11 @@ eveimageserver
 .. automodule:: eveuniverse.core.eveimageserver
     :members:
 
+eveitems
+----------------
+.. automodule:: eveuniverse.core.eveitems
+    :members:
+
 evemicros
 ----------------
 .. automodule:: eveuniverse.core.evemicros
@@ -44,6 +49,11 @@ evemicros
 eveskinserver
 ----------------
 .. automodule:: eveuniverse.core.eveskinserver
+    :members:
+
+evewho
+----------------
+.. automodule:: eveuniverse.core.evewho
     :members:
 
 Eve Models
