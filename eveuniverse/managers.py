@@ -662,18 +662,17 @@ class EveEntityQuerySet(models.QuerySet):
 
     def update_from_esi(self) -> int:
         """Updates all Eve entity objects in this queryset from ESI"""
-        ids = list(self.values_list("id", flat=True))
+        ids = list(
+            self.exclude(id__in=self.model.ESI_INVALID_IDS).values_list("id", flat=True)
+        )
         if not ids:
             return 0
-        else:
-            logger.info("Updating %d entities from ESI", len(ids))
-            resolved_counter = 0
-            for chunk_ids in chunks(ids, 1000):
-                logger.debug(
-                    "Trying to resolve the following IDs from ESI:\n%s", chunk_ids
-                )
-                resolved_counter = self._resolve_entities_from_esi(chunk_ids)
-            return resolved_counter
+        logger.info("Updating %d entities from ESI", len(ids))
+        resolved_counter = 0
+        for chunk_ids in chunks(ids, 1000):
+            logger.debug("Trying to resolve the following IDs from ESI:\n%s", chunk_ids)
+            resolved_counter = self._resolve_entities_from_esi(chunk_ids)
+        return resolved_counter
 
     def _resolve_entities_from_esi(self, ids: list, depth: int = 1):
         resolved_counter = 0
@@ -699,7 +698,6 @@ class EveEntityQuerySet(models.QuerySet):
                     )
                 except IntegrityError:
                     pass
-
         return resolved_counter
 
 
@@ -765,12 +763,14 @@ class EveEntityManager(EveUniverseEntityModelManager):
         """
         id = int(id)
         logger.info("%s: Trying to resolve ID to EveEntity with ESI", id)
+        if id in self.model.ESI_INVALID_IDS:
+            logger.info("%s: ID is not valid", id)
+            return None, False
         try:
             result = esi.client.Universe.post_universe_names(ids=[id]).results()
         except HTTPNotFound:
             logger.info("%s: ID is not valid", id)
             return None, False
-
         item = result[0]
         return self.update_or_create(
             id=item.get("id"),

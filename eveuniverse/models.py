@@ -374,6 +374,8 @@ class EveEntity(EveUniverseEntityModel):
     NPC_CHARACTER_ID_BEGIN = 3_000_000
     NPC_CHARACTER_ID_END = 4_000_000
 
+    ESI_INVALID_IDS = {1}  # Will never try to resolve these invalid IDs from ESI
+
     # categories
     CATEGORY_ALLIANCE = "alliance"
     CATEGORY_CHARACTER = "character"
@@ -415,8 +417,7 @@ class EveEntity(EveUniverseEntityModel):
     def __str__(self) -> str:
         if self.name:
             return self.name
-        else:
-            return f"ID:{self.id}"
+        return f"ID:{self.id}"
 
     @property
     def is_alliance(self) -> bool:
@@ -465,22 +466,37 @@ class EveEntity(EveUniverseEntityModel):
 
     @property
     def is_npc(self) -> bool:
-        """returns True if this entity is an NPC character or NPC corporation,
-        else False
-        """
+        """True if this entity is an NPC character or NPC corporation, else False."""
         if (
             self.is_corporation
             and self.NPC_CORPORATION_ID_BEGIN <= self.id < self.NPC_CORPORATION_ID_END
         ):
             return True
-
         if (
             self.is_character
             and self.NPC_CHARACTER_ID_BEGIN <= self.id < self.NPC_CHARACTER_ID_END
         ):
             return True
-
         return False
+
+    @property
+    def is_npc_starter_corporation(self) -> bool:
+        """True if this entity is an NPC starter corporation else False."""
+        starter_corporation_ids = {
+            1000165,  # Amarr - Hedion University
+            1000166,  # Amarr - Imperial Academy
+            1000077,  # Amarr - Royal Amarr Institute
+            1000044,  # Caldari - School of Applied Knowledge
+            1000045,  # Caldari - Science and Trade Institute
+            1000167,  # Caldari - State War Academy
+            1000169,  # Gallente - Center for Advanced Studies
+            1000168,  # Gallente - Federal Navy Academy
+            1000115,  # Gallente - University of Caille
+            1000172,  # Minmatar - Pator Tech School
+            1000170,  # Minmatar - Republic Military School
+            1000171,  # Minmatar - Republic University
+        }
+        return self.is_corporation and self.id in starter_corporation_ids
 
     @property
     def profile_url(self) -> str:

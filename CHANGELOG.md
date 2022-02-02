@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.11.0] - 2022-02-02
+
+### Added
+
+- EveEntity.is_npc_starter_corporation
+
+### Changed
+
+- Stopp trying to resolve known invalid IDs from ESI, e.g. 1
+
 ## [0.10.0] - 2022-01-04
 
 ### Added
