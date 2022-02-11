@@ -13,12 +13,13 @@ from . import zkillboard
 def eve_link_to_url(link: str) -> str:
     """Convert an eve style link into a normal URL.
 
-    Supports: Alliance, Character, Corporation, Killmail, Solar System, Station and normal URLs
-
     Example: ``showinfo:5//30004984`` => ``"https://evemaps.dotlan.net/system/Abune"``
 
+    Supported variants:
+        Alliance, Character, Corporation, Inventory Type, Killmail, Solar System, Station and normal URLs
+
     Returns:
-    - Converted URL or an empty string if the link was invalid or not supported
+        Converted URL or an empty string if the link was invalid or not supported
     """
     if is_url(link):
         return link
@@ -75,7 +76,7 @@ def is_url(url_string: str) -> bool:
 
 
 def remove_loc_tag(xml: str) -> str:
-    """Remove all loc tags."""
+    """Remove all ``loc`` XML tags."""
     xml = xml.replace("<loc>", "")
     return xml.replace("</loc>", "")
 
