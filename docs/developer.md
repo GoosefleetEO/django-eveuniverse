@@ -173,6 +173,7 @@ One solution here is to offer developers control over which related models are l
 ```
 
 (load_related_models_on_demand)=
+
 ### Load related models on-demand
 
 However, globally enabling those related models will affect all apps of a Django installation. For instance if you turn on dogmas globally, dogmas will be loaded for each and every type, even if it that extra data is not needed.
@@ -206,7 +207,7 @@ obj, _ = EveSolarSystem.objects.get_or_create_esi(id=30000142, include_children=
 
 #### Test tools
 
-The test tool for creating [test data](#test-data) also support the `enabled_sections` argument.
+The test tool for creating test data also support the `enabled_sections` argument.
 
 ### Preloading data
 
