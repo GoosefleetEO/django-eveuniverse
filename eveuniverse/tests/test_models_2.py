@@ -1189,10 +1189,31 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
             obj.profile_url, "https://www.kalkoken.org/apps/eveitems/?typeId=603"
         )
 
+    def test_should_handle_solar_system(self):
+        # given
+        obj = EveEntity.objects.create(
+            id=30004984, name="Abune", category=EveEntity.CATEGORY_SOLAR_SYSTEM
+        )
+        # when/then
+        self.assertEqual(obj.profile_url, "https://evemaps.dotlan.net/system/Abune")
+
+    def test_should_handle_station(self):
+        # given
+        obj = EveEntity.objects.create(
+            id=60003760,
+            name="Jita IV - Moon 4 - Caldari Navy Assembly Plant",
+            category=EveEntity.CATEGORY_STATION,
+        )
+        # when/then
+        self.assertEqual(
+            obj.profile_url,
+            "https://evemaps.dotlan.net/station/Jita_IV_-_Moon_4_-_Caldari_Navy_Assembly_Plant",
+        )
+
     def test_should_return_empty_string_for_undefined_category(self):
         # given
         obj = EveEntity.objects.create(
-            id=99, name="Wayne Technologies", category=EveEntity.CATEGORY_STATION
+            id=99, name="Wayne Technologies", category=EveEntity.CATEGORY_CONSTELLATION
         )
         self.assertEqual(obj.profile_url, "")
 

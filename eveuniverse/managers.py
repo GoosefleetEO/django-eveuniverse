@@ -142,52 +142,42 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             A tuple consisting of the requested object and a created flag
         """
         id = int(id)
-        add_prefix = make_logger_prefix("%s(id=%s)" % (self.model.__name__, id))
         enabled_sections = self.model._enabled_sections_union(enabled_sections)
-        try:
-            eve_data_obj = self._transform_esi_response_for_list_endpoints(
-                id, self._fetch_from_esi(id=id, enabled_sections=enabled_sections)
-            )
-            if eve_data_obj:
-                defaults = self._defaults_from_esi_obj(eve_data_obj, enabled_sections)
-                obj, created = self.update_or_create(id=id, defaults=defaults)
-                if enabled_sections and hasattr(obj, "enabled_sections"):
-                    updated_sections = False
-                    for section in enabled_sections:
-                        if str(section) in self.model.Section.values():
-                            setattr(obj.enabled_sections, section, True)
-                            updated_sections = True
-                    if updated_sections:
-                        obj.save()
-                inline_objects = self.model._inline_objects(enabled_sections)
-                if inline_objects:
-                    self._update_or_create_inline_objects(
-                        parent_eve_data_obj=eve_data_obj,
-                        parent_obj=obj,
-                        inline_objects=inline_objects,
-                        wait_for_children=wait_for_children,
-                        enabled_sections=enabled_sections,
-                    )
-                if include_children:
-                    self._update_or_create_children(
-                        parent_eve_data_obj=eve_data_obj,
-                        include_children=include_children,
-                        wait_for_children=wait_for_children,
-                        enabled_sections=enabled_sections,
-                    )
-            else:
-                raise HTTPNotFound(
-                    FakeResponse(status_code=404),
-                    message=f"{self.model.__name__} object with id {id} not found",
+        eve_data_obj = self._transform_esi_response_for_list_endpoints(
+            id, self._fetch_from_esi(id=id, enabled_sections=enabled_sections)
+        )
+        if eve_data_obj:
+            defaults = self._defaults_from_esi_obj(eve_data_obj, enabled_sections)
+            obj, created = self.update_or_create(id=id, defaults=defaults)
+            if enabled_sections and hasattr(obj, "enabled_sections"):
+                updated_sections = False
+                for section in enabled_sections:
+                    if str(section) in self.model.Section.values():
+                        setattr(obj.enabled_sections, section, True)
+                        updated_sections = True
+                if updated_sections:
+                    obj.save()
+            inline_objects = self.model._inline_objects(enabled_sections)
+            if inline_objects:
+                self._update_or_create_inline_objects(
+                    parent_eve_data_obj=eve_data_obj,
+                    parent_obj=obj,
+                    inline_objects=inline_objects,
+                    wait_for_children=wait_for_children,
+                    enabled_sections=enabled_sections,
                 )
-
-        except Exception as ex:
-            logger.warn(
-                add_prefix("Failed to update or create: %s" % ex),
-                exc_info=True,
+            if include_children:
+                self._update_or_create_children(
+                    parent_eve_data_obj=eve_data_obj,
+                    include_children=include_children,
+                    wait_for_children=wait_for_children,
+                    enabled_sections=enabled_sections,
+                )
+        else:
+            raise HTTPNotFound(
+                FakeResponse(status_code=404),
+                message=f"{self.model.__name__} object with id {id} not found",
             )
-            raise ex
-
         return obj, created
 
     def _fetch_from_esi(

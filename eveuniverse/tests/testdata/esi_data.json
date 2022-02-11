@@ -242,10 +242,23 @@
             }
         ],
         "get_universe_categories_category_id": {
+            "1": {
+                "category_id": 1,
+                "groups": [
+                    1
+                ],
+                "name": "Owner",
+                "published": true
+            },
             "2": {
                 "category_id": 2,
                 "groups": [
-                    6, 7, 8, 9, 10
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10
                 ],
                 "name": "Celestial",
                 "published": true
@@ -444,13 +457,41 @@
             }
         },
         "get_universe_groups_group_id": {
+            "1": {
+                "category_id": 1,
+                "group_id": 1,
+                "name": "Character",
+                "published": false,
+                "types": [
+                    1376
+                ]
+            },
+            "2": {
+                "category_id": 1,
+                "group_id": 2,
+                "name": "Corporation",
+                "published": false,
+                "types": [
+                    2
+                ]
+            },
+            "5": {
+                "category_id": 2,
+                "group_id": 5,
+                "name": "Solar System",
+                "published": false,
+                "types": [
+                    5
+                ]
+            },
             "6": {
                 "category_id": 2,
                 "group_id": 6,
                 "name": "Sun",
                 "published": false,
                 "types": [
-                    3800, 45038
+                    3800,
+                    45038
                 ]
             },
             "7": {
@@ -478,7 +519,8 @@
                 "name": "Asteroid Belt",
                 "published": false,
                 "types": [
-                    15
+                    15,
+                    52678
                 ]
             },
             "10": {
@@ -487,7 +529,8 @@
                 "name": "Stargate",
                 "published": false,
                 "types": [
-                    16, 29627
+                    16,
+                    29627
                 ]
             },
             "15": {
@@ -496,7 +539,8 @@
                 "name": "Station",
                 "published": false,
                 "types": [
-                    1529
+                    1529,
+                    52678
                 ]
             },
             "18": {
@@ -532,6 +576,15 @@
                 "types": [
                     621,
                     626
+                ]
+            },
+            "32": {
+                "category_id": 1,
+                "group_id": 32,
+                "name": "Alliance",
+                "published": false,
+                "types": [
+                    16159
                 ]
             },
             "105": {
@@ -575,7 +628,8 @@
                 "name": "Permanent SKIN",
                 "published": true,
                 "types": [
-                    34599, 35825
+                    34599,
+                    35825
                 ]
             }
         },
@@ -1014,6 +1068,32 @@
             }
         },
         "get_universe_types_type_id": {
+            "2": {
+                "capacity": 0,
+                "description": "",
+                "group_id": 2,
+                "mass": 0,
+                "name": "Corporation",
+                "packaged_volume": 0,
+                "portion_size": 1,
+                "published": false,
+                "radius": 1,
+                "type_id": 2,
+                "volume": 0
+            },
+            "5": {
+                "capacity": 0,
+                "description": "",
+                "group_id": 5,
+                "mass": 0,
+                "name": "Solar System",
+                "packaged_volume": 1,
+                "portion_size": 1,
+                "published": false,
+                "radius": 5000000000000,
+                "type_id": 5,
+                "volume": 1
+            },
             "13": {
                 "capacity": 0,
                 "description": "Gas planets are characterized by a deep, opaque upper atmosphere, usually composed primarily of light elements such as hydrogen or helium. Simple chemicals can add a range of hues and shades in the visual spectrum, and the interaction between upwellings and rapidly circulating pressure bands result in a huge variety of visible surface structures. A similar level of diversity can be found beneath the cloud-tops: the inner composition of a given gas planet might belong to any one of a dozen broad groups, with no two planets entirely alike in this regard.",
@@ -1319,6 +1399,19 @@
                 "type_id": 950,
                 "volume": 0.01
             },
+            "1376": {
+                "capacity": 0,
+                "description": "",
+                "group_id": 1,
+                "mass": 0,
+                "name": "CharacterLegacy4",
+                "packaged_volume": 1,
+                "portion_size": 1,
+                "published": false,
+                "radius": 1,
+                "type_id": 1376,
+                "volume": 1
+            },
             "1529": {
                 "capacity": 0,
                 "description": "",
@@ -1361,6 +1454,19 @@
                 "radius": 10000,
                 "type_id": 3800,
                 "volume": 1
+            },
+            "16159": {
+                "capacity": 0,
+                "description": "",
+                "group_id": 32,
+                "mass": 0,
+                "name": "Alliance",
+                "packaged_volume": 0,
+                "portion_size": 1,
+                "published": false,
+                "radius": 1,
+                "type_id": 16159,
+                "volume": 0
             },
             "21947": {
                 "capacity": 0.0,
@@ -1731,6 +1837,20 @@
                 "published": false,
                 "radius": 10000,
                 "type_id": 45038,
+                "volume": 1
+            },
+            "52678": {
+                "capacity": 0,
+                "description": "",
+                "graphic_id": 24488,
+                "group_id": 15,
+                "mass": 0,
+                "name": "Jita Trade Hub",
+                "packaged_volume": 1,
+                "portion_size": 1,
+                "published": false,
+                "radius": 100000,
+                "type_id": 52678,
                 "volume": 1
             }
         },

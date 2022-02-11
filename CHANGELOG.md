@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.12.0] - 2022-02-10
+
+### Added
+
+- core.evexml: Tools for dealing with eve links from XML
+- core.zkillboard: Generate URLs for profile pages on zKillboard
+
 ## [0.11.0] - 2022-02-02
 
 ### Added
