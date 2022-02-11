@@ -1054,7 +1054,7 @@ class EveCategoryUpdateAll(NoSocketsTestCase):
         # then
         self.assertSetEqual(
             set(EveCategory.objects.values_list("id", flat=True)),
-            {2, 3, 4, 6, 9, 17, 65, 91},
+            {1, 2, 3, 4, 6, 9, 17, 65, 91},
         )
         self.assertEqual(EveGroup.objects.count(), 0)
         self.assertEqual(EveType.objects.count(), 0)
@@ -1069,11 +1069,11 @@ class EveCategoryUpdateAll(NoSocketsTestCase):
         # then
         self.assertSetEqual(
             set(EveCategory.objects.values_list("id", flat=True)),
-            {2, 3, 4, 6, 9, 17, 65, 91},
+            {1, 2, 3, 4, 6, 9, 17, 65, 91},
         )
         self.assertSetEqual(
             set(EveGroup.objects.values_list("id", flat=True)),
-            {6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
+            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
         )
         self.assertSetEqual(
             set(EveType.objects.values_list("id", flat=True)),
@@ -1110,6 +1110,9 @@ class EveCategoryUpdateAll(NoSocketsTestCase):
                 35825,
                 626,
                 1529,
+                1376,
+                5,
+                52678,
             },
         )
 
@@ -1123,15 +1126,16 @@ class EveCategoryUpdateAll(NoSocketsTestCase):
         # then
         self.assertSetEqual(
             set(EveCategory.objects.values_list("id", flat=True)),
-            {2, 3, 4, 6, 9, 17, 65, 91},
+            {1, 2, 3, 4, 6, 9, 17, 65, 91},
         )
         self.assertSetEqual(
             set(EveGroup.objects.values_list("id", flat=True)),
-            {6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
+            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
         )
         self.assertSetEqual(
             set(EveType.objects.values_list("id", flat=True)),
             {
+                5,
                 13,
                 14,
                 15,
@@ -1143,8 +1147,9 @@ class EveCategoryUpdateAll(NoSocketsTestCase):
                 38,
                 39,
                 40,
-                34599,
                 950,
+                1376,
+                34599,
                 21947,
                 29627,
                 21949,
@@ -1164,5 +1169,6 @@ class EveCategoryUpdateAll(NoSocketsTestCase):
                 35825,
                 626,
                 1529,
+                52678,
             },
         )

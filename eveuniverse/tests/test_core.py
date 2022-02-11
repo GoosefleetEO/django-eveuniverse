@@ -16,25 +16,53 @@ from ..core import (
     evemicros,
     eveskinserver,
     evewho,
+    evexml,
+    zkillboard,
 )
+from ..models import EveEntity
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
-from .testdata.factories import create_evemicros_request
+from .testdata.factories import create_eve_entity, create_evemicros_request
 
 
-@patch("eveuniverse.core.esitools.esi")
-class TestIsEsiOnline(NoSocketsTestCase):
-    def test_is_online(self, mock_esi):
-        mock_esi.client = EsiClientStub()
-
-        self.assertTrue(esitools.is_esi_online())
-
-    def test_is_offline(self, mock_esi):
-        mock_esi.client.Status.get_status.side_effect = HTTPInternalServerError(
-            Mock(**{"response.status_code": 500})
+class TestDotlan(TestCase):
+    def test_alliance_url(self):
+        self.assertEqual(
+            dotlan.alliance_url("Wayne Enterprices"),
+            "https://evemaps.dotlan.net/alliance/Wayne_Enterprices",
         )
 
-        self.assertFalse(esitools.is_esi_online())
+    def test_corporation_url(self):
+        self.assertEqual(
+            dotlan.corporation_url("Wayne Technology"),
+            "https://evemaps.dotlan.net/corp/Wayne_Technology",
+        )
+        self.assertEqual(
+            dotlan.corporation_url("Crédit Agricole"),
+            "https://evemaps.dotlan.net/corp/Cr%C3%A9dit_Agricole",
+        )
+
+    def test_faction_url(self):
+        self.assertEqual(
+            dotlan.faction_url("Amarr Empire"),
+            "https://evemaps.dotlan.net/factionwarfare/Amarr_Empire",
+        )
+
+    def test_region_url(self):
+        self.assertEqual(
+            dotlan.region_url("Black Rise"), "https://evemaps.dotlan.net/map/Black_Rise"
+        )
+
+    def test_solar_system_url(self):
+        self.assertEqual(
+            dotlan.solar_system_url("Jita"), "https://evemaps.dotlan.net/system/Jita"
+        )
+
+    def test_station_url(self):
+        self.assertEqual(
+            dotlan.station_url("Rakapas V - Home Guard Assembly Plant"),
+            "https://evemaps.dotlan.net/station/Rakapas_V_-_Home_Guard_Assembly_Plant",
+        )
 
 
 class TestEveImageServer(TestCase):
@@ -329,35 +357,145 @@ class TestEveWho(TestCase):
         )
 
 
-class TestDotlan(TestCase):
+class TestEveXml(NoSocketsTestCase):
+    def test_should_remove_loc_tag_1(self):
+        input = "<loc>Character</loc>"
+        expected = "Character"
+        self.assertHTMLEqual(evexml.remove_loc_tag(input), expected)
+
+    def test_should_remove_loc_tag_2(self):
+        input = "Character"
+        expected = "Character"
+        self.assertHTMLEqual(evexml.remove_loc_tag(input), expected)
+
+    def test_should_detect_url(self):
+        self.assertTrue(evexml.is_url("https://www.example.com/bla"))
+
+    def test_should_detect_non_url(self):
+        self.assertFalse(evexml.is_url("no-url"))
+
+    @patch("eveuniverse.managers.esi")
+    def test_should_convert_links(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        create_eve_entity(
+            id=1001, name="Bruce Wayne", category=EveEntity.CATEGORY_CHARACTER
+        )
+        create_eve_entity(
+            id=2001, name="Wayne Technologies", category=EveEntity.CATEGORY_CORPORATION
+        )
+        create_eve_entity(
+            id=3001, name="Wayne Enterprises", category=EveEntity.CATEGORY_ALLIANCE
+        )
+        create_eve_entity(
+            id=30004984, name="Abune", category=EveEntity.CATEGORY_SOLAR_SYSTEM
+        )
+        create_eve_entity(
+            id=60003760,
+            name="Jita IV - Moon 4 - Caldari Navy Assembly Plant",
+            category=EveEntity.CATEGORY_STATION,
+        )
+        my_tests = [
+            (
+                "Alliance",
+                "showinfo:16159//3001",
+                "https://evemaps.dotlan.net/alliance/Wayne_Enterprises",
+            ),
+            ("Character", "showinfo:1376//1001", "https://evewho.com/character/1001"),
+            (
+                "Corporation",
+                "showinfo:2//2001",
+                "https://evemaps.dotlan.net/corp/Wayne_Technologies",
+            ),
+            (
+                "Killmail",
+                "killReport:84900666:9e6fe9e5392ff0cfc6ab956677dbe1deb69c4b04",
+                "https://zkillboard.com/kill/84900666/",
+            ),
+            (
+                "Solar System",
+                "showinfo:5//30004984",
+                "https://evemaps.dotlan.net/system/Abune",
+            ),
+            (
+                "Station",
+                "showinfo:52678//60003760",
+                "https://evemaps.dotlan.net/station/Jita_IV_-_Moon_4_-_Caldari_Navy_Assembly_Plant",
+            ),
+            (
+                "Inventory Type",
+                "showinfo:603",
+                "https://www.kalkoken.org/apps/eveitems/?typeId=603",
+            ),
+            ("Valid URL", "https://www.example.com", "https://www.example.com"),
+            (
+                "Not support eve link 1",
+                "fitting:11987:2048;1:1952;1:26914;2:31366;1:16487;2:31059;1:19057;2:18867;1:18710;1:18871;1:12058;1:31900;1:41155;1::",
+                "",
+            ),
+            (
+                "Not support eve link 2",
+                "hyperNet:9ff5fa81-942e-49c2-9469-623b2abcb05d",
+                "",
+            ),
+            ("Invalid URL", "not-valid", ""),
+            (
+                "Unsuported eve links",
+                'showinfo:35825//1000000000001">Amamake - Test Structure Alpha',
+                "",
+            ),
+        ]
+        for test, input, expected in my_tests:
+            with self.subTest(test=test):
+                self.assertEqual(evexml.eve_link_to_url(input), expected)
+
+
+@patch("eveuniverse.core.esitools.esi")
+class TestIsEsiOnline(NoSocketsTestCase):
+    def test_is_online(self, mock_esi):
+        mock_esi.client = EsiClientStub()
+
+        self.assertTrue(esitools.is_esi_online())
+
+    def test_is_offline(self, mock_esi):
+        mock_esi.client.Status.get_status.side_effect = HTTPInternalServerError(
+            Mock(**{"response.status_code": 500})
+        )
+
+        self.assertFalse(esitools.is_esi_online())
+
+
+class TestZkillboard(TestCase):
     def test_alliance_url(self):
         self.assertEqual(
-            dotlan.alliance_url("Wayne Enterprices"),
-            "https://evemaps.dotlan.net/alliance/Wayne_Enterprices",
+            zkillboard.alliance_url(12345678),
+            "https://zkillboard.com/alliance/12345678/",
         )
 
     def test_corporation_url(self):
         self.assertEqual(
-            dotlan.corporation_url("Wayne Technology"),
-            "https://evemaps.dotlan.net/corp/Wayne_Technology",
-        )
-        self.assertEqual(
-            dotlan.corporation_url("Crédit Agricole"),
-            "https://evemaps.dotlan.net/corp/Cr%C3%A9dit_Agricole",
+            zkillboard.corporation_url(12345678),
+            "https://zkillboard.com/corporation/12345678/",
         )
 
-    def test_faction_url(self):
+    def test_character_url(self):
         self.assertEqual(
-            dotlan.faction_url("Amarr Empire"),
-            "https://evemaps.dotlan.net/factionwarfare/Amarr_Empire",
+            zkillboard.character_url(12345678),
+            "https://zkillboard.com/character/12345678/",
+        )
+
+    def test_killmail_url(self):
+        self.assertEqual(
+            zkillboard.killmail_url(12345678), "https://zkillboard.com/kill/12345678/"
         )
 
     def test_region_url(self):
         self.assertEqual(
-            dotlan.region_url("Black Rise"), "https://evemaps.dotlan.net/map/Black_Rise"
+            zkillboard.region_url(12345678), "https://zkillboard.com/region/12345678/"
         )
 
     def test_solar_system_url(self):
         self.assertEqual(
-            dotlan.solar_system_url("Jita"), "https://evemaps.dotlan.net/system/Jita"
+            zkillboard.solar_system_url(12345678),
+            "https://zkillboard.com/system/12345678/",
         )

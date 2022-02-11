@@ -23,8 +23,8 @@ def _build_url(category: str, eve_id: int) -> str:
     }
     try:
         partial = partials[category]
-    except KeyError as ex:
-        raise ValueError(f"Invalid category: {category}") from ex
+    except KeyError:
+        raise ValueError(f"Invalid category: {category}") from None
     return urljoin(_BASE_URL, f"{partial}/{int(eve_id)}")
 
 

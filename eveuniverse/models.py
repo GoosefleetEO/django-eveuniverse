@@ -503,7 +503,7 @@ class EveEntity(EveUniverseEntityModel):
         """URL to default third party website with profile info about this entity.
 
         Supported for:
-        alliance, character, corporation, faction, region, solar system, type
+        alliance, character, corporation, faction, region, solar system, station, type
         """
         if self.is_alliance:
             return dotlan.alliance_url(self.name)
@@ -517,6 +517,8 @@ class EveEntity(EveUniverseEntityModel):
             return dotlan.region_url(self.name)
         elif self.is_solar_system:
             return dotlan.solar_system_url(self.name)
+        elif self.is_station:
+            return dotlan.station_url(self.name)
         elif self.is_type:
             return eveitems.type_url(self.id)
         return ""

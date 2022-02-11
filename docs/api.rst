@@ -56,6 +56,16 @@ evewho
 .. automodule:: eveuniverse.core.evewho
     :members:
 
+evexml
+---------------
+.. automodule:: eveuniverse.core.evexml
+    :members:
+
+zkillboard
+---------------
+.. automodule:: eveuniverse.core.zkillboard
+    :members:
+
 Eve Models
 ==========
 

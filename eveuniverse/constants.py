@@ -9,11 +9,15 @@ class EveCategoryId(IntEnum):
 
 
 class EveGroupId(IntEnum):
+    CHARACTER = 1
+    CORPORATION = 2
+    SOLAR_SYSTEM = 5
     PLANET = 7
     MOON = 8
     ASTEROID_BELT = 9
     STARGATE = 10
     STATION = 15
+    ALLIANCE = 32
 
 
 # EVE IDs (deprecated, use above enums instead)

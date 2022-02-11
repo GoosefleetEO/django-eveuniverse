@@ -18,7 +18,12 @@ pip install django-eveuniverse
 
 Next add `eveuniverse` to `INSTALLED_APPS` in your project's settings file.
 
-By default only the core models are automatically loaded on-demand. If you want to also include some of the additional models please add them to your settings. (See also  [settings](#settings) for a list of all available settings)
+By default only the core models are automatically loaded on-demand. If you want to also include some of the additional models please add them to your settings.
+
+```{eval-rst}
+.. seealso::
+    For an overview of all settings please see :ref:`operations-settings`.
+```
 
 ### Setup celery
 
