@@ -29,6 +29,7 @@ setup(
         "Framework :: Django",
         "Framework :: Django :: 2.2",
         "Framework :: Django :: 3.2",
+        "Framework :: Django :: 4.0",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
@@ -44,7 +45,7 @@ setup(
         "django>=2.2",
         "celery>=4.0.2",
         "django-esi>=2.0.4,<4",
-        "django-bitfield",
+        "django-bitfield-4-0",
         "requests",
     ],
 )
