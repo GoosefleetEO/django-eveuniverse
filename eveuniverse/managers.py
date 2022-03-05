@@ -862,15 +862,19 @@ class EveEntityManager(EveUniverseEntityModelManager):
         return self.all().update_from_esi()
 
     def resolve_name(self, id: int) -> str:
-        """return the name for the given Eve entity ID
-        or an empty string if ID is not valid
+        """Return the name for the given Eve entity ID
+        or an empty string if ID is not valid.
         """
         if id is not None:
             obj, _ = self.get_or_create_esi(id=int(id))
             if obj:
                 return obj.name
-
         return ""
+
+    def resolve_id(self, name: str) -> Optional[int]:
+        """Return ID for given name or ``None`` if not found."""
+        obj, _ = self.get_or_create_esi(name=name)
+        return obj.id if obj else None
 
     def bulk_resolve_names(self, ids: Iterable[int]) -> EveEntityNameResolver:
         """returns a map of IDs to names in a resolver object for given IDs

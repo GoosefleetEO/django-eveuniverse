@@ -961,6 +961,13 @@ class TestEveEntityEsi(NoSocketsTestCase):
         self.assertEqual(EveEntity.objects.resolve_name(999), "")
         self.assertEqual(EveEntity.objects.resolve_name(None), "")
 
+    def test_can_resolve_id(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        self.assertEqual(EveEntity.objects.resolve_id("Bruce Wayne"), 1001)
+        self.assertIsNone(EveEntity.objects.resolve_id("invalid"))
+
     def test_can_bulk_resolve_name(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
