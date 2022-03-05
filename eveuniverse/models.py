@@ -816,7 +816,7 @@ class EveDogmaEffectModifier(EveUniverseInlineModel):
         blank=True,
         related_name="modifying_effect_modifiers",
     )
-    operator = models.PositiveIntegerField(default=None, null=True)
+    operator = models.IntegerField(default=None, null=True)
 
     class Meta:
         constraints = [

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.14.1] - 2022-03-05
+
+### Fixed
+
+- Field EveDogmaEffectModifier.operator can also be negative
+
 ## [0.14.0] - 2022-03-01
 
 ### Added
