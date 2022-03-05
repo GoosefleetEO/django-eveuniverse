@@ -1930,6 +1930,20 @@
                 "name": "Enaluri V - State Protectorate Assembly Plant",
                 "category": "station"
             }
+        },
+        "post_universe_ids": {
+            "Caldari State": {
+                "factions": {
+                    "id": 500001,
+                    "name": "Caldari State"
+                }
+            },
+            "Bruce Wayne": {
+                "characters": {
+                    "id": 1001,
+                    "name": "Bruce Wayne"
+                }
+            }
         }
     }
 }

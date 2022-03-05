@@ -412,7 +412,7 @@ class EveEntity(EveUniverseEntityModel):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._CATEGORIES = {x[0] for x in self.CATEGORY_CHOICES}
+        self._CATEGORIES = self.categories()
 
     def __str__(self) -> str:
         if self.name:
@@ -557,6 +557,16 @@ class EveEntity(EveUniverseEntityModel):
         else:
             func = map_category_2_other[self.category]
             return getattr(eveimageserver, func)(self.id, size=size)
+
+    @classmethod
+    def categories(cls) -> Set[str]:
+        """Set of valid categories."""
+        return {x[0] for x in cls.CATEGORY_CHOICES}
+
+    @classmethod
+    def is_valid_category(cls, category: str) -> bool:
+        """Wether given category is valid."""
+        return category in cls.categories()
 
 
 class EveAncestry(EveUniverseEntityModel):
