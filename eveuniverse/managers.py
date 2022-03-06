@@ -697,44 +697,52 @@ class EveEntityManager(EveUniverseEntityModelManager):
     def get_queryset(self) -> models.QuerySet:
         return EveEntityQuerySet(self.model, using=self._db)
 
-    def get_or_create_esi(self, **kwargs) -> Tuple[models.Model, bool]:
+    def get_or_create_esi(
+        self,
+        *,
+        id: int,
+        include_children: bool = False,
+        wait_for_children: bool = True,
+    ) -> Tuple[models.Model, bool]:
         """gets or creates an EvEntity object.
 
         The object is automatically fetched from ESI if it does not exist (blocking)
         or if it has not yet been resolved.
 
         Args:
-            id: Eve Online ID of entitiy OR
-            name: Exact name of entity
+            id: Eve Online ID of object
 
         Returns:
             A tuple consisting of the requested EveEntity object and a created flag
             Returns a None objects if the ID is invalid
         """
-        if "id" in kwargs:
-            id = int(kwargs["id"])
-            try:
-                obj = self.exclude(name="").get(id=id)
-                created = False
-            except self.model.DoesNotExist:
-                obj, created = self.update_or_create_esi(id=id)
-            return obj, created
-        elif "name" in kwargs:
-            name = str(kwargs["name"])
-            try:
-                obj = self.get(name=name)
-                created = False
-            except self.model.DoesNotExist:
-                obj, created = self.update_or_create_esi(name=name)
-            return obj, created
-        raise ValueError("Must specify 'id' or 'name'")
+        id = int(id)
+        try:
+            obj = self.exclude(name="").get(id=id)
+            created = False
+        except self.model.DoesNotExist:
+            obj, created = self.update_or_create_esi(
+                id=id,
+                include_children=include_children,
+                wait_for_children=wait_for_children,
+            )
 
-    def update_or_create_esi(self, **kwargs) -> Tuple[Optional[models.Model], bool]:
+        return obj, created
+
+    def update_or_create_esi(
+        self,
+        *,
+        id: int,
+        include_children: bool = False,
+        wait_for_children: bool = True,
+        enabled_sections: Iterable[str] = None,
+    ) -> Tuple[Optional[models.Model], bool]:
         """updates or creates an EveEntity object by fetching it from ESI (blocking).
 
         Args:
-            id: Eve Online ID of entitiy OR
-            name: Exact name of entity
+            id: Eve Online ID of object
+            include_children: (no effect)
+            wait_for_children: (no effect)
 
         Returns:
             A tuple consisting of the requested object and a created flag
@@ -743,69 +751,21 @@ class EveEntityManager(EveUniverseEntityModelManager):
         Exceptions:
             Raises all HTTP codes of ESI endpoint /universe/names except 404
         """
-        if "id" in kwargs:
-            id = int(kwargs["id"])
-            logger.info("%s: Trying to resolve ID to EveEntity with ESI", id)
-            if id in self.model.ESI_INVALID_IDS:
-                logger.info("%s: ID is not valid", id)
-                return None, False
-            try:
-                result = esi.client.Universe.post_universe_names(ids=[id]).results()
-            except HTTPNotFound:
-                logger.info("%s: No entity found with this ID", id)
-                return None, False
-            item = result[0]
-            if not self.model.is_valid_category(item["category"]):
-                logger.info(
-                    "%s: Category of found entity is not supported: %s",
-                    id,
-                    item["category"],
-                )
-                return None, False
-            return self.update_or_create(
-                id=item["id"],
-                defaults={"name": item["name"], "category": item["category"]},
-            )
-        elif "name" in kwargs:
-            name = str(kwargs["name"])
-            logger.info("%s: Trying to resolve name to EveEntity with ESI", name)
-            result = esi.client.Universe.post_universe_ids(names=[name]).results()
-            if not result:
-                logger.info("%s: No entity found by this name", name)
-                return None, False
-            category_key = list(result.keys())[0]
-            try:
-                category = self._map_category_key_to_category(category_key)
-            except ValueError:
-                logger.info(
-                    "%s: Category of found entity is not supported: %s",
-                    name,
-                    category_key,
-                )
-                return None, False
-            item = result[category_key]
-            return self.update_or_create(
-                id=item["id"], defaults={"name": item["name"], "category": category}
-            )
-        raise ValueError("Must specify 'id' or 'name'")
-
-    def _map_category_key_to_category(self, category_key: str) -> str:
-        """Map category keys from ESI result to categories."""
-        my_map = {
-            "alliances": self.model.CATEGORY_ALLIANCE,
-            "characters": self.model.CATEGORY_CHARACTER,
-            "constellations": self.model.CATEGORY_CONSTELLATION,
-            "corporations": self.model.CATEGORY_CORPORATION,
-            "factions": self.model.CATEGORY_FACTION,
-            "inventory_types": self.model.CATEGORY_INVENTORY_TYPE,
-            "regions": self.model.CATEGORY_REGION,
-            "systems": self.model.CATEGORY_SOLAR_SYSTEM,
-            "stations": self.model.CATEGORY_STATION,
-        }
+        id = int(id)
+        logger.info("%s: Trying to resolve ID to EveEntity with ESI", id)
+        if id in self.model.ESI_INVALID_IDS:
+            logger.info("%s: ID is not valid", id)
+            return None, False
         try:
-            return my_map[category_key]
-        except KeyError:
-            raise ValueError(f"Invalid category: {category_key}") from None
+            result = esi.client.Universe.post_universe_names(ids=[id]).results()
+        except HTTPNotFound:
+            logger.info("%s: ID is not valid", id)
+            return None, False
+        item = result[0]
+        return self.update_or_create(
+            id=item.get("id"),
+            defaults={"name": item.get("name"), "category": item.get("category")},
+        )
 
     def bulk_create_esi(self, ids: Iterable[int]) -> int:
         """bulk create and resolve multiple entities from ESI.
@@ -871,10 +831,58 @@ class EveEntityManager(EveUniverseEntityModelManager):
                 return obj.name
         return ""
 
-    def resolve_id(self, name: str) -> Optional[int]:
-        """Return ID for given name or ``None`` if not found."""
-        obj, _ = self.get_or_create_esi(name=name)
-        return obj.id if obj else None
+    def fetch_by_names(
+        self, names: Iterable[str], update: bool = False
+    ) -> models.QuerySet:
+        """Fetch entities matching given names.
+        Will fetch missing entities from ESI if needed or requested.
+
+        Args:
+        - names: Names of entities to fetch
+        - update: When True will always update from ESI
+
+        Returns:
+        - query with matching entities.
+        """
+        query = self.filter(name__in=set(names))
+        if update or not query.exists():
+            logger.info("Trying to fetch EveEntities from ESI by names: ", names)
+            result = esi.client.Universe.post_universe_ids(names=names).results()
+            if result:
+                for category_key, items in result.items():
+                    try:
+                        category = self._map_category_key_to_category(category_key)
+                    except ValueError:
+                        logger.warning(
+                            "Ignoring entities with unknown category %s:",
+                            category_key,
+                            items,
+                        )
+                    else:
+                        for item in items:
+                            self.update_or_create(
+                                id=item["id"],
+                                defaults={"name": item["name"], "category": category},
+                            )
+        return query
+
+    def _map_category_key_to_category(self, category_key: str) -> str:
+        """Map category keys from ESI result to categories."""
+        my_map = {
+            "alliances": self.model.CATEGORY_ALLIANCE,
+            "characters": self.model.CATEGORY_CHARACTER,
+            "constellations": self.model.CATEGORY_CONSTELLATION,
+            "corporations": self.model.CATEGORY_CORPORATION,
+            "factions": self.model.CATEGORY_FACTION,
+            "inventory_types": self.model.CATEGORY_INVENTORY_TYPE,
+            "regions": self.model.CATEGORY_REGION,
+            "systems": self.model.CATEGORY_SOLAR_SYSTEM,
+            "stations": self.model.CATEGORY_STATION,
+        }
+        try:
+            return my_map[category_key]
+        except KeyError:
+            raise ValueError(f"Invalid category: {category_key}") from None
 
     def bulk_resolve_names(self, ids: Iterable[int]) -> EveEntityNameResolver:
         """returns a map of IDs to names in a resolver object for given IDs

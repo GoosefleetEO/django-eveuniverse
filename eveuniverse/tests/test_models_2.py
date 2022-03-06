@@ -846,49 +846,7 @@ class TestEveEntityEsi(NoSocketsTestCase):
         self.assertFalse(created)
         self.assertEqual(obj.name, "Bruce Wayne")
 
-    def test_can_create_new_from_esi_with_name(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        obj, created = EveEntity.objects.update_or_create_esi(name="Bruce Wayne")
-        # then
-        self.assertTrue(created)
-        self.assertEqual(obj.id, 1001)
-        self.assertEqual(obj.name, "Bruce Wayne")
-        self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
-
-    def test_get_or_create_esi_with_name_1(self, mock_esi):
-        """when object already exists, then just return it"""
-        # given
-        mock_esi.client = EsiClientStub()
-        obj_1 = create_eve_entity(id=1001, name="Bruce Wayne")
-        # when
-        obj_2, created = EveEntity.objects.get_or_create_esi(name="Bruce Wayne")
-        # then
-        self.assertFalse(created)
-        self.assertEqual(obj_1, obj_2)
-
-    def test_get_or_create_esi_with_name_2(self, mock_esi):
-        """when object doesn't exist, then fetch it from ESi"""
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        obj, created = EveEntity.objects.get_or_create_esi(name="Bruce Wayne")
-        # then
-        self.assertTrue(created)
-        self.assertEqual(obj.name, "Bruce Wayne")
-
-    def test_get_or_create_esi_with_name_3(self, mock_esi):
-        """when name is invalid, then return an empty object"""
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        obj, created = EveEntity.objects.get_or_create_esi(name="invalid")
-        # then
-        self.assertIsNone(obj)
-        self.assertFalse(created)
-
-    def test_can_update_existing_from_esi_with_id(self, mock_esi):
+    def test_can_update_existing_from_esi(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
         create_eve_entity(
@@ -896,20 +854,6 @@ class TestEveEntityEsi(NoSocketsTestCase):
         )
         # when
         obj, created = EveEntity.objects.update_or_create_esi(id=1001)
-        # then
-        self.assertFalse(created)
-        self.assertEqual(obj.id, 1001)
-        self.assertEqual(obj.name, "Bruce Wayne")
-        self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
-
-    def test_can_update_existing_from_esi_with_name(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        create_eve_entity(
-            id=1001, name="John Doe", category=EveEntity.CATEGORY_CORPORATION
-        )
-        # when
-        obj, created = EveEntity.objects.update_or_create_esi(name="Bruce Wayne")
         # then
         self.assertFalse(created)
         self.assertEqual(obj.id, 1001)
@@ -961,12 +905,23 @@ class TestEveEntityEsi(NoSocketsTestCase):
         self.assertEqual(EveEntity.objects.resolve_name(999), "")
         self.assertEqual(EveEntity.objects.resolve_name(None), "")
 
-    def test_can_resolve_id(self, mock_esi):
+    def test_can_fetch_entity_by_name_from_esi(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
         # when
-        self.assertEqual(EveEntity.objects.resolve_id("Bruce Wayne"), 1001)
-        self.assertIsNone(EveEntity.objects.resolve_id("invalid"))
+        result = EveEntity.objects.fetch_by_names(["Bruce Wayne"])
+        # then
+        self.assertQuerysetEqual(result, EveEntity.objects.filter(id=1001))
+
+    def test_can_fetch_entities_by_name_from_esi(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        result = EveEntity.objects.fetch_by_names(["Bruce Wayne", "Caldari State"])
+        # then
+        self.assertQuerysetEqual(
+            list(result), list(EveEntity.objects.filter(id__in=[500001, 1001]))
+        )
 
     def test_can_bulk_resolve_name(self, mock_esi):
         # given
