@@ -831,7 +831,7 @@ class EveEntityManager(EveUniverseEntityModelManager):
                 return obj.name
         return ""
 
-    def fetch_by_names(
+    def fetch_by_names_esi(
         self, names: Iterable[str], update: bool = False
     ) -> models.QuerySet:
         """Fetch entities matching given names.
@@ -844,25 +844,31 @@ class EveEntityManager(EveUniverseEntityModelManager):
         Returns:
         - query with matching entities.
         """
-        query = self.filter(name__in=set(names))
+        names = list(set(names))
+        query = self.filter(name__in=names)
         if update or not query.exists():
             logger.info("Trying to fetch EveEntities from ESI by names: ", names)
             result = esi.client.Universe.post_universe_ids(names=names).results()
             if result:
-                for category_key, items in result.items():
+                result_compressed = {
+                    category: entities
+                    for category, entities in result.items()
+                    if entities
+                }
+                for category_key, entities in result_compressed.items():
                     try:
                         category = self._map_category_key_to_category(category_key)
                     except ValueError:
                         logger.warning(
                             "Ignoring entities with unknown category %s:",
                             category_key,
-                            items,
+                            entities,
                         )
                     else:
-                        for item in items:
+                        for entity in entities:
                             self.update_or_create(
-                                id=item["id"],
-                                defaults={"name": item["name"], "category": category},
+                                id=entity["id"],
+                                defaults={"name": entity["name"], "category": category},
                             )
         return query
 

@@ -69,7 +69,18 @@ class EsiRoute:
                         raise HTTPNotFound(Mock(**{"status_code": 404}))
 
             elif self._category == "Universe" and self._method == "post_universe_ids":
-                result = dict()
+                result = {
+                    "agents": None,
+                    "alliances": None,
+                    "characters": None,
+                    "constellations": None,
+                    "corporations": None,
+                    "factions": None,
+                    "inventory_types": None,
+                    "regions": None,
+                    "stations": None,
+                    "systems": None,
+                }
                 for name in kwargs["names"]:
                     if name in esi_data[self._category][self._method]:
                         result.update(esi_data[self._category][self._method][name])
