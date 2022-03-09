@@ -1,6 +1,6 @@
 import datetime as dt
 import logging
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from typing import Iterable, List, Optional, Set, Tuple
 from urllib.parse import urljoin
 
@@ -847,8 +847,7 @@ class EveEntityManager(EveUniverseEntityModelManager):
         names = list(set(names))
         query = self.filter(name__in=names)
         if update or not query.exists():
-            logger.info("Trying to fetch EveEntities from ESI by names: ", names)
-            result = esi.client.Universe.post_universe_ids(names=names).results()
+            result = self._fetch_names_from_esi(names)
             if result:
                 result_compressed = {
                     category: entities
@@ -871,6 +870,18 @@ class EveEntityManager(EveUniverseEntityModelManager):
                                 defaults={"name": entity["name"], "category": category},
                             )
         return query
+
+    def _fetch_names_from_esi(self, names: List[str]) -> dict:
+        result = defaultdict(list)
+        for chunk_names in chunks(names, 500):
+            logger.info("Trying to fetch EveEntities from ESI by names: ", chunk_names)
+            result_chunk = esi.client.Universe.post_universe_ids(
+                names=chunk_names
+            ).results()
+            for category, entities in result_chunk.items():
+                if entities:
+                    result[category] += entities
+        return result
 
     def _map_category_key_to_category(self, category_key: str) -> str:
         """Map category keys from ESI result to categories."""
