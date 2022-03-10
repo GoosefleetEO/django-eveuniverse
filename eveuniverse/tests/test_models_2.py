@@ -911,7 +911,7 @@ class TestEveEntityEsi(NoSocketsTestCase):
         # when
         result = EveEntity.objects.fetch_by_names_esi(["Bruce Wayne"])
         # then
-        self.assertQuerysetEqual(result, EveEntity.objects.filter(id=1001))
+        self.assertListEqual(list(result), list(EveEntity.objects.filter(id=1001)))
 
     def test_can_fetch_entities_by_name_from_esi(self, mock_esi):
         # given
@@ -919,7 +919,7 @@ class TestEveEntityEsi(NoSocketsTestCase):
         # when
         result = EveEntity.objects.fetch_by_names_esi(["Bruce Wayne", "Caldari State"])
         # then
-        self.assertQuerysetEqual(
+        self.assertListEqual(
             list(result), list(EveEntity.objects.filter(id__in=[500001, 1001]))
         )
 
