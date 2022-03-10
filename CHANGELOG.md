@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.15.0] - 2022-03-10
+
 ### Added
 
 - EveEnties can now also be fetched from ESi by name, e.g. `EveEntity.objects.get_or_create_esi(name="Merlin")`
-- New method: `EveEntity.objects.resolve_id()` for resolving names to IDs
+- New method: `EveEntity.objects.fetch_by_names_esi()` for resolving names to entity objects
 
 ### Changed
 
