@@ -65,18 +65,22 @@ def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
     num = 0
     for model_spec in spec:
         num += 1
+        ids = set(model_spec.ids)
         print(
             f"Loading {num}/{len(spec)}: {model_spec.model_name} with "
-            f"{len(model_spec.ids)} objects... "
+            f"{len(ids)} objects",
+            end="",
         )
         MyModel = EveUniverseBaseModel.get_model_class(model_spec.model_name)
-        for id in model_spec.ids:
+        for id in ids:
+            print(".", end="")
             MyModel.objects.get_or_create_esi(
                 id=id,
                 include_children=model_spec.include_children,
                 wait_for_children=True,
                 enabled_sections=model_spec.enabled_sections,
             )
+        print()
 
     # dump all data into file
     data = OrderedDict()

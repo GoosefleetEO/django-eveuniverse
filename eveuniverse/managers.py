@@ -1,6 +1,6 @@
 import datetime as dt
 import logging
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from typing import Iterable, List, Optional, Set, Tuple
 from urllib.parse import urljoin
 
@@ -822,15 +822,84 @@ class EveEntityManager(EveUniverseEntityModelManager):
         return self.all().update_from_esi()
 
     def resolve_name(self, id: int) -> str:
-        """return the name for the given Eve entity ID
-        or an empty string if ID is not valid
+        """Return the name for the given Eve entity ID
+        or an empty string if ID is not valid.
         """
         if id is not None:
             obj, _ = self.get_or_create_esi(id=int(id))
             if obj:
                 return obj.name
-
         return ""
+
+    def fetch_by_names_esi(
+        self, names: Iterable[str], update: bool = False
+    ) -> models.QuerySet:
+        """Fetch entities matching given names.
+        Will fetch missing entities from ESI if needed or requested.
+
+        Args:
+        - names: Names of entities to fetch
+        - update: When True will always update from ESI
+
+        Returns:
+        - query with matching entities.
+        """
+        names = list(set(names))
+        query = self.filter(name__in=names)
+        if update or not query.exists():
+            result = self._fetch_names_from_esi(names)
+            if result:
+                result_compressed = {
+                    category: entities
+                    for category, entities in result.items()
+                    if entities
+                }
+                for category_key, entities in result_compressed.items():
+                    try:
+                        category = self._map_category_key_to_category(category_key)
+                    except ValueError:
+                        logger.warning(
+                            "Ignoring entities with unknown category %s:",
+                            category_key,
+                            entities,
+                        )
+                    else:
+                        for entity in entities:
+                            self.update_or_create(
+                                id=entity["id"],
+                                defaults={"name": entity["name"], "category": category},
+                            )
+        return query
+
+    def _fetch_names_from_esi(self, names: List[str]) -> dict:
+        result = defaultdict(list)
+        for chunk_names in chunks(names, 500):
+            logger.info("Trying to fetch EveEntities from ESI by names: ", chunk_names)
+            result_chunk = esi.client.Universe.post_universe_ids(
+                names=chunk_names
+            ).results()
+            for category, entities in result_chunk.items():
+                if entities:
+                    result[category] += entities
+        return result
+
+    def _map_category_key_to_category(self, category_key: str) -> str:
+        """Map category keys from ESI result to categories."""
+        my_map = {
+            "alliances": self.model.CATEGORY_ALLIANCE,
+            "characters": self.model.CATEGORY_CHARACTER,
+            "constellations": self.model.CATEGORY_CONSTELLATION,
+            "corporations": self.model.CATEGORY_CORPORATION,
+            "factions": self.model.CATEGORY_FACTION,
+            "inventory_types": self.model.CATEGORY_INVENTORY_TYPE,
+            "regions": self.model.CATEGORY_REGION,
+            "systems": self.model.CATEGORY_SOLAR_SYSTEM,
+            "stations": self.model.CATEGORY_STATION,
+        }
+        try:
+            return my_map[category_key]
+        except KeyError:
+            raise ValueError(f"Invalid category: {category_key}") from None
 
     def bulk_resolve_names(self, ids: Iterable[int]) -> EveEntityNameResolver:
         """returns a map of IDs to names in a resolver object for given IDs

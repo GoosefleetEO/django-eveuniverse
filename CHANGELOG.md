@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.15.0] - 2022-03-10
+
+### Added
+
+- EveEnties can now also be fetched from ESi by name, e.g. `EveEntity.objects.get_or_create_esi(name="Merlin")`
+- New method: `EveEntity.objects.fetch_by_names_esi()` for resolving names to entity objects
+
+### Changed
+
+- Unused parameters removed from `EveEntity.objects.get_or_create_esi()` and `EveEntity.objects.update_or_create_esi()`
+
+### Fixed
+
+- Field EveDogmaEffectModifier.operator can also be negative
+
 ## [0.14.0] - 2022-03-01
 
 ### Added

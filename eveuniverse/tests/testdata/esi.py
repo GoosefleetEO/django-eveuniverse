@@ -68,6 +68,23 @@ class EsiRoute:
                     else:
                         raise HTTPNotFound(Mock(**{"status_code": 404}))
 
+            elif self._category == "Universe" and self._method == "post_universe_ids":
+                result = {
+                    "agents": None,
+                    "alliances": None,
+                    "characters": None,
+                    "constellations": None,
+                    "corporations": None,
+                    "factions": None,
+                    "inventory_types": None,
+                    "regions": None,
+                    "stations": None,
+                    "systems": None,
+                }
+                for name in kwargs["names"]:
+                    if name in esi_data[self._category][self._method]:
+                        result.update(esi_data[self._category][self._method][name])
+
             else:
                 if len(kwargs) > 0:
                     raise ValueError(
@@ -133,6 +150,7 @@ class EsiClientStub:
             EsiEndpoint("Universe", "get_universe_types_type_id", "type_id"),
             EsiEndpoint("Universe", "get_universe_types", None),
             EsiEndpoint("Universe", "post_universe_names", None),
+            EsiEndpoint("Universe", "post_universe_ids", None),
         ]
         for endpoint in esi_endpoints:
             if not hasattr(cls, endpoint.category):
