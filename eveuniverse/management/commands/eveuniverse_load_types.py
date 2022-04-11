@@ -61,7 +61,15 @@ class Command(BaseCommand):
             help="Disables checking that ESI is online",
         )
 
+    def write_to_be_loaded(self, name, *items):
+        items_count = sum_items(*items)
+        if items_count:
+            self.stdout.write(f"{name} to be loaded: {items_count}")
+
     def handle(self, *args, **options):
+        self.stdout.write("Eve Universe - Types Loader")
+        self.stdout.write("===========================")
+
         app_name = options["app_name"]
         category_ids = options["category_id"]
         category_ids_with_dogma = options["category_id_with_dogma"]
@@ -81,19 +89,20 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("No IDs specified. Nothing to do."))
             return
 
-        self.stdout.write("Eve Universe - Types Loader")
-        self.stdout.write("===========================")
-
+        self.stdout.write("Checking ESI...", ending="")
         if not options["disable_esi_check"] and not is_esi_online():
             self.stdout.write(
                 "ESI does not appear to be online at this time. Please try again later."
             )
             self.stdout.write(self.style.WARNING("Aborted"))
             return
-
+        self.stdout.write("ONLINE")
         self.stdout.write(
             f"This command will start loading data for the app: {app_name}."
         )
+        self.write_to_be_loaded("Categories", category_ids, category_ids_with_dogma)
+        self.write_to_be_loaded("Groups", group_ids, group_ids)
+        self.write_to_be_loaded("Types", type_ids, type_ids_with_dogma)
         additional_objects = _eve_object_names_to_be_loaded()
         if additional_objects:
             self.stdout.write(
@@ -121,3 +130,13 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Data loading has been started!"))
         else:
             self.stdout.write(self.style.WARNING("Aborted"))
+
+
+def sum_items(*items) -> len:
+    total = 0
+    for item in items:
+        try:
+            total += len(item)
+        except TypeError:
+            pass
+    return total

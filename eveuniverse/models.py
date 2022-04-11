@@ -1475,6 +1475,7 @@ class EveType(EveUniverseEntityModel):
         TYPE_MATERIALS = "type_materials"  #:
 
     capacity = models.FloatField(default=None, null=True)
+    description = models.TextField(default="")
     eve_group = models.ForeignKey(
         "EveGroup",
         on_delete=models.CASCADE,
@@ -1499,7 +1500,7 @@ class EveType(EveUniverseEntityModel):
     packaged_volume = models.FloatField(default=None, null=True)
     portion_size = models.PositiveIntegerField(default=None, null=True)
     radius = models.FloatField(default=None, null=True)
-    published = models.BooleanField()  # TODO: Add index
+    published = models.BooleanField()
     volume = models.FloatField(default=None, null=True)
     enabled_sections = BitField(
         flags=tuple(Section.values()),

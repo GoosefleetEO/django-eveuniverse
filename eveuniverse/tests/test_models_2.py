@@ -42,6 +42,10 @@ class TestEveType(NoSocketsTestCase):
         self.assertTrue(created)
         self.assertEqual(obj.id, 603)
         self.assertEqual(obj.name, "Merlin")
+        self.assertEqual(
+            obj.description,
+            """The Merlin is the most powerful combat frigate of the Caldari. Its role has evolved through the years, and while its defenses have always remained exceptionally strong for a Caldari vessel, its offensive capabilities have evolved from versatile, jack-of-all-trades attack patterns into focused and deadly gunfire tactics. The Merlin's primary aim is to have its turrets punch holes in opponents' hulls.""",
+        )
         self.assertEqual(obj.capacity, 150)
         self.assertEqual(obj.eve_group, EveGroup.objects.get(id=25))
         self.assertEqual(obj.mass, 997000)
