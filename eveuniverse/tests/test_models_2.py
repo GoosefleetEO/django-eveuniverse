@@ -638,6 +638,7 @@ class TestEsiMapping(NoSocketsTestCase):
             {
                 "id",
                 "name",
+                "description",
                 "capacity",
                 "eve_group",
                 "eve_graphic",
