@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-### Added
+## [0.16.1] - 2022-06-07
 
-- Included test data in egg (#9)
+### Fixed
+
+- Added missing test data in egg (#9)
 
 ## [0.16.0] - 2022-04-11
 
