@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## Changes
+
+- Automatic dark or light theme for Sphinx docs
+
 ## [0.16.1] - 2022-06-07
 
 ### Fixed
