@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Automatic dark or light theme for Sphinx docs
 - Switch to local swagger spec file
 - Add wheel to PyPI deployments
+- Disabled cache for `esitools.is_esi_online()`
 
 ## [0.16.1] - 2022-06-07
 
