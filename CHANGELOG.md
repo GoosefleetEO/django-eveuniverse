@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.16.2] - 2022-06-18
+
 ## Changes
 
 - Automatic dark or light theme for Sphinx docs
+- Switch to local swagger spec file
+- Add wheel to PyPI deployments
 
 ## [0.16.1] - 2022-06-07
 

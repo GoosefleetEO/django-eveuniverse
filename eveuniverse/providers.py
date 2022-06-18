@@ -1,9 +1,10 @@
-import logging
+from pathlib import Path
 
 from esi.clients import EsiClientProvider
 
-from . import __title__, __version__
-from .utils import LoggerAddTag
+from . import __version__
 
-logger = LoggerAddTag(logging.getLogger(__name__), __title__)
-esi = EsiClientProvider(app_info_text=f"django-eveuniverse v{__version__}")
+spec_file = Path(__file__).parent / "swagger.json"
+esi = EsiClientProvider(
+    app_info_text=f"django-eveuniverse v{__version__}", spec_file=spec_file
+)
