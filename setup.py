@@ -37,6 +37,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
@@ -45,7 +46,7 @@ setup(
         "django>=2.2",
         "celery>=4.0.2",
         "django-esi>=4,<5",
-        "django-bitfield-4-0",
+        "django-bitfield>=2.2",
         "requests",
     ],
 )
