@@ -96,9 +96,10 @@ Our example for Jita would then look like this:
 (EveSolarSystem(eve_constellation_id=20000020, eve_star_id=None, id=30000142, name='Jita', position_x=-1.2906486173487826e+17, position_y=6.075530690996363e+16, position_z=1.1746922706009029e+17, security_status=0.9459131360054016), False)
 ```
 
-```{hint}
-Please see :ref:`api-manager-methods` for an overview of all available methods.
-
+```{eval-rst}
+.. hint::
+    Please see :ref:`api-manager-methods` for an overview of all available methods.
+```
 
 ### Fetching parent and child objects
 
