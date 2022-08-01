@@ -7,6 +7,7 @@ from ..models import (
     EveCategory,
     EveConstellation,
     EveDogmaAttribute,
+    EveEntity,
     EveGroup,
     EveRegion,
     EveSolarSystem,
@@ -26,11 +27,12 @@ from ..tasks import (
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
 
-MODULE_PATH = "eveuniverse.tasks"
+TASKS_PATH = "eveuniverse.tasks"
+MANAGERS_PATH = "eveuniverse.managers"
 
 
 class TestTasks(NoSocketsTestCase):
-    @patch("eveuniverse.managers.esi")
+    @patch(MANAGERS_PATH + ".esi")
     def test_load_eve_object(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -40,7 +42,7 @@ class TestTasks(NoSocketsTestCase):
 
         self.assertTrue(EveRegion.objects.filter(id=10000002).exists())
 
-    @patch("eveuniverse.managers.esi")
+    @patch(MANAGERS_PATH + ".esi")
     def test_update_or_create_eve_object(self, mock_esi):
         mock_esi.client = EsiClientStub()
         obj, _ = EveRegion.objects.update_or_create_esi(id=10000002)
@@ -54,7 +56,7 @@ class TestTasks(NoSocketsTestCase):
         obj.refresh_from_db()
         self.assertNotEqual(obj.name, "Dummy")
 
-    @patch("eveuniverse.managers.esi")
+    @patch(MANAGERS_PATH + ".esi")
     def test_update_or_create_inline_object(self, mock_esi):
         mock_esi.client = EsiClientStub()
         eve_type, _ = EveType.objects.update_or_create_esi(id=603)
@@ -77,27 +79,42 @@ class TestTasks(NoSocketsTestCase):
         ).first()
         self.assertEqual(dogma_attribute_1.value, 5)
 
-    @patch(MODULE_PATH + ".EveEntity.objects.bulk_create_esi")
+    @patch(TASKS_PATH + ".EveEntity.objects.bulk_create_esi")
     def test_create_eve_entities(self, mock_bulk_create_esi):
         create_eve_entities([1, 2, 3])
         self.assertTrue(mock_bulk_create_esi.called)
         args, _ = mock_bulk_create_esi.call_args
         self.assertListEqual(args[0], [1, 2, 3])
 
-    @patch(MODULE_PATH + ".EveEntity.objects.bulk_update_new_esi")
-    def test_update_unresolved_eve_entities(self, mock_bulk_update_new_esi):
-        update_unresolved_eve_entities()
-        self.assertTrue(mock_bulk_update_new_esi.called)
-
-    @patch(MODULE_PATH + ".EveMarketPrice.objects.update_from_esi")
+    @patch(TASKS_PATH + ".EveMarketPrice.objects.update_from_esi")
     def test_update_market_prices(self, mock_update_from_esi):
         update_market_prices()
         self.assertTrue(mock_update_from_esi.called)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
-@patch(MODULE_PATH + ".esi")
-@patch("eveuniverse.managers.esi")
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+@patch(MANAGERS_PATH + ".esi")
+class TestTasks2(TestCase):
+    def test_update_unresolved_eve_entities(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        obj_1 = EveEntity.objects.create(id=1001)
+        obj_2 = EveEntity.objects.create(id=1002)
+        obj_3 = EveEntity.objects.create(id=2001)
+        # when
+        update_unresolved_eve_entities.delay()
+        # then
+        obj_1.refresh_from_db()
+        self.assertEqual(obj_1.category, EveEntity.CATEGORY_CHARACTER)
+        obj_2.refresh_from_db()
+        self.assertEqual(obj_2.category, EveEntity.CATEGORY_CHARACTER)
+        obj_3.refresh_from_db()
+        self.assertEqual(obj_3.category, EveEntity.CATEGORY_CORPORATION)
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+@patch(TASKS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".esi")
 class TestLoadData(TestCase):
     def test_load_map(self, mock_esi_1, mock_esi_2):
         mock_esi_1.client = EsiClientStub()

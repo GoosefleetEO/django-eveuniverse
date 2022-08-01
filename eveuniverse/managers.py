@@ -14,6 +14,7 @@ from django.utils.timezone import now
 
 from . import __title__
 from .app_settings import EVEUNIVERSE_BULK_METHODS_BATCH_SIZE
+from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS
 from .helpers import EveEntityNameResolver, get_or_create_esi_or_none
 from .providers import esi
 from .utils import LoggerAddTag, chunks, make_logger_prefix
@@ -518,7 +519,7 @@ class EvePlanetChildrenManager(EveUniverseEntityModelManager):
         from .models import EveSolarSystem
 
         if not self._my_property_name:
-            raise RuntimeWarning("my_property_name not initialzed")
+            raise RuntimeWarning("my_property_name not initialized")
 
         esi_data = super()._fetch_from_esi(id=id)
         if "system_id" not in esi_data:
@@ -648,51 +649,23 @@ class EveTypeManager(EveUniverseEntityModelManager):
 class EveEntityQuerySet(models.QuerySet):
     """Custom queryset for EveEntity"""
 
-    MAX_DEPTH = 5
-
     def update_from_esi(self) -> int:
-        """Updates all Eve entity objects in this queryset from ESI"""
-        ids = list(
+        """Updates all Eve entity objects in this queryset from ESI."""
+        from .models import EveEntity
+
+        return EveEntity.objects.update_from_esi_by_id(self.valid_ids())
+
+    def valid_ids(self) -> Set[int]:
+        """Determine valid Ids in this Queryset."""
+        return set(
             self.exclude(id__in=self.model.ESI_INVALID_IDS).values_list("id", flat=True)
         )
-        if not ids:
-            return 0
-        logger.info("Updating %d entities from ESI", len(ids))
-        resolved_counter = 0
-        for chunk_ids in chunks(ids, 1000):
-            logger.debug("Trying to resolve the following IDs from ESI:\n%s", chunk_ids)
-            resolved_counter = self._resolve_entities_from_esi(chunk_ids)
-        return resolved_counter
-
-    def _resolve_entities_from_esi(self, ids: list, depth: int = 1):
-        resolved_counter = 0
-        try:
-            items = esi.client.Universe.post_universe_names(ids=ids).results()
-        except HTTPNotFound:
-            # if API fails to resolve all IDs, we divide and conquer,
-            # trying to resolve each half of the ids seperately
-            if len(ids) > 1 and depth < self.MAX_DEPTH:
-                resolved_counter += self._resolve_entities_from_esi(ids[::2], depth + 1)
-                resolved_counter += self._resolve_entities_from_esi(
-                    ids[1::2], depth + 1
-                )
-            else:
-                logger.warning("Failed to resolve invalid IDs: %s", ids)
-        else:
-            resolved_counter += len(items)
-            for item in items:
-                try:
-                    self.update_or_create(
-                        id=item["id"],
-                        defaults={"name": item["name"], "category": item["category"]},
-                    )
-                except IntegrityError:
-                    pass
-        return resolved_counter
 
 
 class EveEntityManager(EveUniverseEntityModelManager):
     """Custom manager for EveEntity"""
+
+    MAX_DEPTH = 5
 
     def get_queryset(self) -> models.QuerySet:
         return EveEntityQuerySet(self.model, using=self._db)
@@ -919,6 +892,44 @@ class EveEntityManager(EveUniverseEntityModelManager):
                 for row in self.filter(id__in=ids).values_list("id", "name")
             }
         )
+
+    def update_from_esi_by_id(self, ids: Iterable[int]) -> int:
+        """Updates all Eve entity objects by id from ESI."""
+        if not ids:
+            return 0
+        ids = list(set([int(id) for id in ids if id not in self.model.ESI_INVALID_IDS]))
+        logger.info("Updating %d entities from ESI", len(ids))
+        resolved_counter = 0
+        for chunk_ids in chunks(ids, POST_UNIVERSE_NAMES_MAX_ITEMS):
+            logger.debug("Trying to resolve the following IDs from ESI:\n%s", chunk_ids)
+            resolved_counter = self._resolve_entities_from_esi(chunk_ids)
+        return resolved_counter
+
+    def _resolve_entities_from_esi(self, ids: list, depth: int = 1):
+        resolved_counter = 0
+        try:
+            items = esi.client.Universe.post_universe_names(ids=ids).results()
+        except HTTPNotFound:
+            # if API fails to resolve all IDs, we divide and conquer,
+            # trying to resolve each half of the ids separately
+            if len(ids) > 1 and depth < self.MAX_DEPTH:
+                resolved_counter += self._resolve_entities_from_esi(ids[::2], depth + 1)
+                resolved_counter += self._resolve_entities_from_esi(
+                    ids[1::2], depth + 1
+                )
+            else:
+                logger.warning("Failed to resolve invalid IDs: %s", ids)
+        else:
+            resolved_counter += len(items)
+            for item in items:
+                try:
+                    self.update_or_create(
+                        id=item["id"],
+                        defaults={"name": item["name"], "category": item["category"]},
+                    )
+                except IntegrityError:
+                    pass
+        return resolved_counter
 
 
 class EveMarketPriceManager(models.Manager):

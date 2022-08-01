@@ -46,7 +46,7 @@ class TestLoadCommand(NoSocketsTestCase):
         self.assertFalse(mock_load_map.delay.called)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch("eveuniverse.managers.esi")
 @patch(PACKAGE_PATH + ".eveuniverse_load_types.is_esi_online", lambda: True)
 @patch(PACKAGE_PATH + ".eveuniverse_load_types.get_input")
@@ -131,7 +131,7 @@ class TestLoadTypes(NoSocketsTestCase):
         self.assertEqual(obj.dogma_effects.count(), 2)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch("eveuniverse.managers.esi")
 @patch(PACKAGE_PATH + ".eveuniverse_load_types.is_esi_online")
 @patch(PACKAGE_PATH + ".eveuniverse_load_types.get_input")
