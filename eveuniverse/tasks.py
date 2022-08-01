@@ -132,6 +132,7 @@ def update_unresolved_eve_entities() -> None:
     Will resolve entities in parallel to speed up resolving large sets.
     """
     ids = list(EveEntity.objects.filter(name="").valid_ids())
+    logger.info("Updating %d unresolved entities from ESI", len(ids))
     for chunk_ids in chunks(ids, POST_UNIVERSE_NAMES_MAX_ITEMS):
         _update_unresolved_eve_entities_for_page.delay(chunk_ids)
 

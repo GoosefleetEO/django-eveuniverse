@@ -29,13 +29,12 @@ By default only the core models are automatically loaded on-demand. If you want 
 
 This app uses [Celery](https://docs.celeryproject.org/en/stable/index.html) for loading large sets of data, e.g. with the load commands. Please make sure celery is setup and working for your Django project.
 
-```{eval-rst}
-.. note::
-    **Note on celery worker setup**
+```{note}
+**Note on celery worker setup**
 
-    For an efficient loading of large amounts of data from ESI we recommend a thread based setup of celery workers with at least 10 concurrent workers.
+For an efficient loading of large amounts of data from ESI we recommend a thread based setup of celery workers with at least 10 concurrent workers.
 
-    For example on our test system with 20 `gevent <http://www.gevent.org/>`_ threads the loading of the complete Eve Online map (with the command: **eveuniverse_load_data map**) consisting of all regions, constellation and solar systems took only about 15 minutes.
+For example on our test system with 20 `gevent <http://www.gevent.org/>`_ threads the loading of the complete Eve Online map (with the command: **eveuniverse_load_data map**) consisting of all regions, constellation and solar systems took only about 15 minutes.
 ```
 
 ### Finalize installation

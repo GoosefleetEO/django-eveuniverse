@@ -6,11 +6,10 @@ The developer guide describes how to develop apps with *django-eveuniverse*.
 
 *django-eveuniverse* provides you with ready-made Django models for all Eve Universe classes. These models can be used like any other Django model in queries or included as related models in your app's own models.
 
-```{eval-rst}
-.. note::
-    The "Eve Universe" classes are the classes from the Universe category in ESI plus the related classes for dogma and market groups. The objects of those classes change rarely and most changes are just adding new objects (e.g. new types). They are therefore well suited to be stored and cached locally for a longer period of time.
+```{note}
+The "Eve Universe" classes are the classes from the Universe category in ESI plus the related classes for dogma and market groups. The objects of those classes change rarely and most changes are just adding new objects (e.g. new types). They are therefore well suited to be stored and cached locally for a longer period of time.
 
-    The Eve Universe classes consist mostly of the same objects as the `Static Data Export <https://wiki.eveuniversity.org/Static_Data_Export>`_ (SDE).
+The Eve Universe classes consist mostly of the same objects as the `Static Data Export <https://wiki.eveuniversity.org/Static_Data_Export>`_ (SDE).
 ```
 
 ```{eval-rst}
@@ -97,10 +96,9 @@ Our example for Jita would then look like this:
 (EveSolarSystem(eve_constellation_id=20000020, eve_star_id=None, id=30000142, name='Jita', position_x=-1.2906486173487826e+17, position_y=6.075530690996363e+16, position_z=1.1746922706009029e+17, security_status=0.9459131360054016), False)
 ```
 
-```{eval-rst}
-.. hint::
-    Please see :ref:`api-manager-methods` for an overview of all available methods.
-```
+```{hint}
+Please see :ref:`api-manager-methods` for an overview of all available methods.
+
 
 ### Fetching parent and child objects
 
@@ -153,18 +151,16 @@ There are two solutions for loading disabled models incl. their relations:
 - Globally enabling disabled models
 - Enabling disabled models on-demand
 
-```{eval-rst}
-.. note::
-    Related models that are disabled by default are also called sections.
+```{note}
+Related models that are disabled by default are also called sections.
 ```
 
 #### Globally enabling models
 
 One solution here is to offer developers control over which related models are loaded through configuration. Each disabled model therefore as a corresponding setting that can be used to globally enable that model.
 
-```{eval-rst}
-.. hint::
-    When turning on loading of related models you usually want to reload related eve objects that already exist in the database to make sure all relations are created correctly. e.g. after turning on ``EveStargate`` you want to reload all solar systems.
+```{hint}
+    When turning on loading of related models you usually want to reload related eve objects that already exist in the database to make sure all relations are created correctly. e.g. after turning on `EveStargate` you want to reload all solar systems.
 ```
 
 ```{eval-rst}
@@ -256,9 +252,8 @@ Here is a simple example for resolving the ID of the Jita solar system:
 'Jita'
 ```
 
-```{eval-rst}
-.. note::
-    Eve IDs have unique ranged for the supported categories, which means they can be safely resolved without having to specify a category.
+```{note}
+Eve IDs have unique ranged for the supported categories, which means they can be safely resolved without having to specify a category.
 ```
 
 This examples show how to resolve a list of IDs in bulk and using a resolver object to access the results:
@@ -277,18 +272,21 @@ This examples show how to resolve a list of IDs in bulk and using a resolver obj
 
 Another approach is to bulk create EveEntity objects with the ID only and then resolve all "new" objects with `EveEntity.objects.bulk_update_new_esi()`. This approach works well when using EveEntity objects as property in you app's models.
 
-```{eval-rst}
-.. hint::
-    If you need to test that an ID is valid you can use ``get_or_create_esi()`` or ``update_or_create_esi()``. Both will return  ``None`` instead of an ``EveEntity`` object if the given ID was not valid. You can also use ``resolve_name()``, which will return an empty string for invalid IDs.
+```{hint}
+If you need to test that an ID is valid you can use ``get_or_create_esi()`` or ``update_or_create_esi()``. Both will return  ``None`` instead of an ``EveEntity`` object if the given ID was not valid. You can also use ``resolve_name()``, which will return an empty string for invalid IDs.
 
-    However, calling ESI with an invalid ID will also count against the error rate limit, so use with care.
+However, calling ESI with an invalid ID will also count against the error rate limit, so use with care.
+```
 
+```{hint}
+There also are tasks for resolving eve entities. Those are often the better choice if you need to resolve a large number of eve entities.
+
+For more information see: `eveuniverse.tasks.update_unresolved_eve_entities`
 ```
 
 ```{eval-rst}
 .. seealso::
     For more features and details please see :ref:`api-managers-eve-entity`.
-
 ```
 
 ```{eval-rst}
