@@ -174,7 +174,9 @@ class TestEveType(NoSocketsTestCase):
             {1816, 1817},
         )
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(
+        CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True
+    )
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
