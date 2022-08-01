@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.16.3] - 2022-08-01
+
+## Changes
+
+- `tasks.update_unresolved_eve_entities()` will now run multiple updates in parallel to speed up resolving large number of entity sets.
+- `retry_backoff` reset to default for all tasks. Previous value was too large resulting in huge delays for retries.
+
 ## [0.16.2] - 2022-06-18
 
 ## Changes

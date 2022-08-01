@@ -7,6 +7,7 @@ from ..models import (
     EveCategory,
     EveConstellation,
     EveDogmaAttribute,
+    EveEntity,
     EveGroup,
     EveRegion,
     EveSolarSystem,
@@ -85,11 +86,6 @@ class TestTasks(NoSocketsTestCase):
         args, _ = mock_bulk_create_esi.call_args
         self.assertListEqual(args[0], [1, 2, 3])
 
-    @patch(TASKS_PATH + ".EveEntity.objects.bulk_update_new_esi")
-    def test_update_unresolved_eve_entities(self, mock_bulk_update_new_esi):
-        update_unresolved_eve_entities()
-        self.assertTrue(mock_bulk_update_new_esi.called)
-
     @patch(TASKS_PATH + ".EveMarketPrice.objects.update_from_esi")
     def test_update_market_prices(self, mock_update_from_esi):
         update_market_prices()
@@ -97,10 +93,23 @@ class TestTasks(NoSocketsTestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch(TASKS_PATH + ".esi")
 @patch(MANAGERS_PATH + ".esi")
 class TestTasks2(TestCase):
-    ...
+    def test_update_unresolved_eve_entities(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        obj_1 = EveEntity.objects.create(id=1001)
+        obj_2 = EveEntity.objects.create(id=1002)
+        obj_3 = EveEntity.objects.create(id=2001)
+        # when
+        update_unresolved_eve_entities.delay()
+        # then
+        obj_1.refresh_from_db()
+        self.assertEqual(obj_1.category, EveEntity.CATEGORY_CHARACTER)
+        obj_2.refresh_from_db()
+        self.assertEqual(obj_2.category, EveEntity.CATEGORY_CHARACTER)
+        obj_3.refresh_from_db()
+        self.assertEqual(obj_3.category, EveEntity.CATEGORY_CORPORATION)
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)

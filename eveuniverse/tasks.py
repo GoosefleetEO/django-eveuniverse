@@ -17,10 +17,14 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_STATIONS,
     EVEUNIVERSE_TASKS_TIME_LIMIT,
 )
-from .constants import EVE_CATEGORY_ID_SHIP, EveCategoryId
+from .constants import (
+    EVE_CATEGORY_ID_SHIP,
+    POST_UNIVERSE_NAMES_MAX_ITEMS,
+    EveCategoryId,
+)
 from .models import EveEntity, EveMarketPrice, EveUniverseEntityModel
 from .providers import esi
-from .utils import LoggerAddTag
+from .utils import LoggerAddTag, chunks
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 # logging.getLogger("esi").setLevel(logging.INFO)
@@ -42,7 +46,7 @@ TASK_ESI_KWARGS = {
             HTTPServiceUnavailable,
         ),
         "retry_kwargs": {"max_retries": 3},
-        "retry_backoff": 30,
+        "retry_backoff": True,
     },
 }
 
@@ -123,8 +127,19 @@ def create_eve_entities(ids: Iterable[int]) -> None:
 
 @shared_task(**TASK_ESI_KWARGS)
 def update_unresolved_eve_entities() -> None:
-    """Task for bulk updating all unresolved EveEntity objects in the database from ESI."""
-    EveEntity.objects.bulk_update_new_esi()
+    """Update all unresolved EveEntity objects from ESI.
+
+    Will resolve entities in parallel to speed up resolving large sets.
+    """
+    ids = list(EveEntity.objects.filter(name="").valid_ids())
+    for chunk_ids in chunks(ids, POST_UNIVERSE_NAMES_MAX_ITEMS):
+        _update_unresolved_eve_entities_for_page.delay(chunk_ids)
+
+
+@shared_task(**TASK_ESI_KWARGS)
+def _update_unresolved_eve_entities_for_page(ids: Iterable[int]) -> None:
+    """Update unresolved EveEntity objects for given ids from ESI."""
+    EveEntity.objects.update_from_esi_by_id(ids)
 
 
 # Object loaders
