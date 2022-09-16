@@ -60,6 +60,12 @@ class Command(BaseCommand):
             action="store_true",
             help="Disables checking that ESI is online",
         )
+        parser.add_argument(
+            "--noinput",
+            "--no-input",
+            action="store_true",
+            help="Do NOT prompt the user for input of any kind.",
+        )
 
     def write_to_be_loaded(self, name, *items):
         items_count = sum_items(*items)
@@ -114,7 +120,10 @@ class Command(BaseCommand):
             "Note that this process can take a while to complete "
             "and may cause some significant load to your system."
         )
-        user_input = get_input("Are you sure you want to proceed? (Y/n)?")
+        if not options["noinput"]:
+            user_input = get_input("Are you sure you want to proceed? (Y/n)? ")
+        else:
+            user_input = "y"
         if user_input.lower() != "n":
             if category_ids or group_ids or type_ids:
                 load_eve_types.delay(

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.17.0] - 2022-09-16
+
+## Added
+
+- Command `eveuniverse_load_types` runs without user interaction via `--no-input` flag
+
 ## [0.16.3] - 2022-08-01
 
 ## Changes
