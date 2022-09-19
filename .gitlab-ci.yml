@@ -37,6 +37,11 @@ pre-commit-check:
   needs: []
   image: python:3.9-bullseye
 
+.test-py310:
+  stage: test
+  needs: []
+  image: python:3.10-bullseye
+
 test-docs:
   extends: .test-py38
   script:
@@ -79,13 +84,13 @@ test-39-django41:
   - bash <(curl -s https://codecov.io/bash)
 
 test-310-django40:
-  extends: .test-py39
+  extends: .test-py310
   script:
   - tox -e py310-django40
   - bash <(curl -s https://codecov.io/bash)
 
 test-310-django41:
-  extends: .test-py39
+  extends: .test-py310
   script:
   - tox -e py310-django41
   - bash <(curl -s https://codecov.io/bash)
