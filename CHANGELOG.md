@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.18.0] - 2022-09-19
+
+## Added
+
+- Command `eveuniverse_load_data` runs without user interaction via `--no-input` flag
+
+## Changed
+
+- Removed support for Django 2.2
+- Added support for Django 4.1
+
 ## [0.17.0] - 2022-09-16
 
 ## Added

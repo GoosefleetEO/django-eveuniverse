@@ -42,18 +42,6 @@ test-docs:
   script:
   - tox -e docs
 
-test-37-django22:
-  extends: .test-py37
-  script:
-  - tox -e py37-django22
-  - bash <(curl -s https://codecov.io/bash)
-
-test-38-django22:
-  extends: .test-py38
-  script:
-  - tox -e py38-django22
-  - bash <(curl -s https://codecov.io/bash)
-
 test-38-django32:
   extends: .test-py38
   script:
@@ -66,10 +54,10 @@ test-38-django40:
   - tox -e py38-django40
   - bash <(curl -s https://codecov.io/bash)
 
-test-39-django22:
-  extends: .test-py39
+test-38-django41:
+  extends: .test-py38
   script:
-  - tox -e py39-django22
+  - tox -e py38-django41
   - bash <(curl -s https://codecov.io/bash)
 
 test-39-django32:
@@ -84,10 +72,22 @@ test-39-django40:
   - tox -e py39-django40
   - bash <(curl -s https://codecov.io/bash)
 
+test-39-django41:
+  extends: .test-py39
+  script:
+  - tox -e py39-django41
+  - bash <(curl -s https://codecov.io/bash)
+
 test-310-django40:
   extends: .test-py39
   script:
-  - tox -e py39-django40
+  - tox -e py310-django40
+  - bash <(curl -s https://codecov.io/bash)
+
+test-310-django41:
+  extends: .test-py39
+  script:
+  - tox -e py310-django41
   - bash <(curl -s https://codecov.io/bash)
 
 deploy-pypi:
