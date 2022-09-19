@@ -21,6 +21,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("area", choices=["map", "ships", "structures"])
+        parser.add_argument(
+            "--noinput",
+            "--no-input",
+            action="store_true",
+            help="Do NOT prompt the user for input of any kind.",
+        )
 
     def handle(self, *args, **options):
         self.stdout.write("Eve Universe - Data Loader")
@@ -66,7 +72,10 @@ class Command(BaseCommand):
             "Note that this process can take a while to complete "
             "and may cause some significant load to your system."
         )
-        user_input = get_input("Are you sure you want to proceed? (Y/n)?")
+        if not options["noinput"]:
+            user_input = get_input("Are you sure you want to proceed? (Y/n)? ")
+        else:
+            user_input = "y"
         if user_input.lower() != "n":
             self.stdout.write("Starting update. Please stand by.")
             my_task.delay()
