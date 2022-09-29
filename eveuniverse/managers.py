@@ -811,11 +811,11 @@ class EveEntityManager(EveUniverseEntityModelManager):
         Will fetch missing entities from ESI if needed or requested.
 
         Args:
-        - names: Names of entities to fetch
-        - update: When True will always update from ESI
+            names: Names of entities to fetch
+            update: When True will always update from ESI
 
         Returns:
-        - query with matching entities.
+            query with matching entities.
         """
         names = list(set(names))
         query = self.filter(name__in=names)
