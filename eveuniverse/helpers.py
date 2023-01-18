@@ -1,4 +1,6 @@
-from typing import Dict, Optional
+import hashlib
+import json
+from typing import Any, Dict, Optional
 
 from django.db import models
 
@@ -51,3 +53,11 @@ class EveEntityNameResolver:
             name = ""
 
         return name
+
+
+def dict_hash(dictionary: Dict[str, Any]) -> str:
+    """SHA256 hash of a dictionary."""
+    my_hash = hashlib.sha256()
+    encoded = json.dumps(dictionary, sort_keys=True).encode(encoding="utf8")
+    my_hash.update(encoded)
+    return my_hash.hexdigest()

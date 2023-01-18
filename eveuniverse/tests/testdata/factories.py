@@ -1,6 +1,6 @@
 from ...models import EveEntity
 
-items = {
+_items = {
     40170698: {
         "itemID": 40170698,
         "itemName": "Colelie VI - Asteroid Belt 1",
@@ -106,14 +106,14 @@ items = {
 }
 
 
-def create_evemicros_item(item_id):
-    return items[item_id]
+def _create_evemicros_item(item_id):
+    return _items[item_id]
 
 
-def create_evemicros_request(*item_ids, ok=True):
+def create_evemicros_response(*item_ids, ok=True):
     return {
         "ok": ok,
-        "result": [create_evemicros_item(item_id) for item_id in item_ids],
+        "result": [_create_evemicros_item(item_id) for item_id in item_ids],
     }
 
 
@@ -121,3 +121,25 @@ def create_eve_entity(**kwargs):
     if "category" not in kwargs:
         kwargs["category"] = EveEntity.CATEGORY_CHARACTER
     return EveEntity.objects.create(**kwargs)
+
+
+def create_evesdeapi_response(*item_ids):
+    return [_create_evesdeapi_item(item_id) for item_id in item_ids]
+
+
+def _create_evesdeapi_item(item_id):
+    item = _items[item_id]
+    return {
+        "distance": item["distanceKm"],
+        "group_id": item["groupID"],
+        "group_name": item["groupName"],
+        "item_id": item["itemID"],
+        "name": item["itemName"],
+        "position": {
+            "x": item["x"],
+            "y": item["y"],
+            "z": item["z"],
+        },
+        "type_id": item["typeID"],
+        "type_name": item["typeName"],
+    }
