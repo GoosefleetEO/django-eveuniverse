@@ -7,14 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.19.0] - 2023-01-18
+
 ## Added
 
 - `EveSolarSystem.nearest_celestial` can now also returns stars
 
 ## Changed
 
-- Switch from evemicros to evesdeapi for calculating nearest celestials
-- Drop support for Python 3.7
+- Switched from evemicros to evesdeapi for calculating nearest celestials
+- Dropped support for Python 3.7. Now requires Python 3.8 or higher.
 
 ## [0.18.0] - 2022-09-19
 
