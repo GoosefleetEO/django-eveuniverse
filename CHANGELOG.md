@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## Changed
+
+- Switch from evemicros to evesdeapi for calculating nearest celestials
+
 ## [0.18.0] - 2022-09-19
 
 ## Added

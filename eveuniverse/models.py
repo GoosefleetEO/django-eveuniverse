@@ -25,7 +25,7 @@ from .app_settings import (
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
 from .constants import EveCategoryId, EveGroupId
-from .core import dotlan, eveimageserver, eveitems, evemicros, eveskinserver, evewho
+from .core import dotlan, eveimageserver, eveitems, evesdeapi, eveskinserver, evewho
 from .managers import (
     EveAsteroidBeltManager,
     EveEntityManager,
@@ -1276,7 +1276,7 @@ class EveSolarSystem(EveUniverseEntityModel):
         Returns:
             Eve item or None if none is found
         """
-        item = evemicros.nearest_celestial(
+        item = evesdeapi.nearest_celestial(
             solar_system_id=self.id, x=x, y=y, z=z, group_id=group_id
         )
         if not item:

@@ -5,7 +5,7 @@ import requests_mock
 from django.test.utils import override_settings
 
 from ..constants import EveGroupId
-from ..core import evemicros
+from ..core import evesdeapi
 from ..models import (
     EveAsteroidBelt,
     EveCategory,
@@ -910,13 +910,13 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.moons)
 
 
-@patch(MODELS_PATH + ".evemicros")
+@patch(MODELS_PATH + ".evesdeapi")
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
     def test_should_return_stargate(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evesdeapi.EveItem(
             id=50016284, name="Stargate (Akidagi)", type_id=16, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -932,7 +932,7 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
     def test_should_return_planet(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evesdeapi.EveItem(
             id=40349471, name="Enaluri III", type_id=13, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -948,7 +948,7 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
     def test_should_return_station(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evesdeapi.EveItem(
             id=60015068,
             name="Enaluri V - State Protectorate Assembly Plant",
             type_id=1529,
@@ -967,7 +967,7 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
     def test_should_return_asteroid_belt(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evesdeapi.EveItem(
             id=40349487, name="Enaluri III - Asteroid Belt 1", type_id=15, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -986,7 +986,7 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
     def test_should_return_moon(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evesdeapi.EveItem(
             id=40349472, name="Enaluri III - Moon 1", type_id=14, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -1002,7 +1002,7 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
     def test_should_return_none_if_unknown_type(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evesdeapi.EveItem(
             id=99, name="Merlin", type_id=603, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
@@ -1024,7 +1024,7 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
     def test_should_return_moon_by_group(self, mock_esi, mock_evemicros):
         # given
         mock_esi.client = EsiClientStub()
-        mock_evemicros.nearest_celestial.return_value = evemicros.EveItem(
+        mock_evemicros.nearest_celestial.return_value = evesdeapi.EveItem(
             id=40349472, name="Enaluri III - Moon 1", type_id=14, distance=1000
         )
         enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
