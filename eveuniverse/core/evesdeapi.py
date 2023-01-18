@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import requests
+
 from django.core.cache import cache
 from eveuniverse.helpers import dict_hash
 

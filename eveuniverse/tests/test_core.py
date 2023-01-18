@@ -14,9 +14,9 @@ from ..core import (
     eveimageserver,
     eveitems,
     evemicros,
+    evesdeapi,
     eveskinserver,
     evewho,
-    evesdeapi,
     evexml,
     zkillboard,
 )
