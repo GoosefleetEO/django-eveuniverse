@@ -1,4 +1,4 @@
-from ..helpers import EveEntityNameResolver, meters_to_au, meters_to_ly
+from ..helpers import EveEntityNameResolver, dict_hash, meters_to_au, meters_to_ly
 from ..utils import NoSocketsTestCase
 
 
@@ -21,3 +21,18 @@ class TestEveEntityNameResolver(NoSocketsTestCase):
         resolver = EveEntityNameResolver({1: "alpha", 2: "bravo", 3: "charlie"})
         self.assertEqual(resolver.to_name(2), "bravo")
         self.assertEqual(resolver.to_name(4), "")
+
+
+class TestDictHash(NoSocketsTestCase):
+    def test_should_create_string(self):
+        # given
+        d1 = {"a": 1, "b": 2, "c": 3}
+        d2 = {"a": 1, "b": 2, "c": 4}
+        # when
+        hash_1a = dict_hash(d1)
+        hash_1b = dict_hash(d1)
+        hash_2 = dict_hash(d2)
+        # then
+        self.assertIsInstance(hash_1a, str)
+        self.assertEqual(hash_1a, hash_1b)
+        self.assertNotEqual(hash_1a, hash_2)

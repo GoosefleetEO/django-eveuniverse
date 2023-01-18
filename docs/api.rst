@@ -46,6 +46,11 @@ evemicros
 .. automodule:: eveuniverse.core.evemicros
     :members:
 
+evesdeapi
+----------------
+.. automodule:: eveuniverse.core.evesdeapi
+    :members:
+
 eveskinserver
 ----------------
 .. automodule:: eveuniverse.core.eveskinserver

@@ -25,7 +25,7 @@ from .app_settings import (
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
 from .constants import EveCategoryId, EveGroupId
-from .core import dotlan, eveimageserver, eveitems, evemicros, eveskinserver, evewho
+from .core import dotlan, eveimageserver, eveitems, evesdeapi, eveskinserver, evewho
 from .managers import (
     EveAsteroidBeltManager,
     EveEntityManager,
@@ -1276,23 +1276,23 @@ class EveSolarSystem(EveUniverseEntityModel):
         Returns:
             Eve item or None if none is found
         """
-        item = evemicros.nearest_celestial(
+        item = evesdeapi.nearest_celestial(
             solar_system_id=self.id, x=x, y=y, z=z, group_id=group_id
         )
         if not item:
             return None
         eve_type, _ = EveType.objects.get_or_create_esi(id=item.type_id)
-        if eve_type.eve_group_id == EveGroupId.ASTEROID_BELT:
-            MyClass = EveAsteroidBelt
-        elif eve_type.eve_group_id == EveGroupId.MOON:
-            MyClass = EveMoon
-        elif eve_type.eve_group_id == EveGroupId.PLANET:
-            MyClass = EvePlanet
-        elif eve_type.eve_group_id == EveGroupId.STARGATE:
-            MyClass = EveStargate
-        elif eve_type.eve_group_id == EveGroupId.STATION:
-            MyClass = EveStation
-        else:
+        class_mapping = {
+            EveGroupId.ASTEROID_BELT: EveAsteroidBelt,
+            EveGroupId.MOON: EveMoon,
+            EveGroupId.PLANET: EvePlanet,
+            EveGroupId.STAR: EveStar,
+            EveGroupId.STARGATE: EveStargate,
+            EveGroupId.STATION: EveStation,
+        }
+        try:
+            MyClass = class_mapping[eve_type.eve_group_id]
+        except KeyError:
             return None
         obj, _ = MyClass.objects.get_or_create_esi(id=item.id)
         return self.NearestCelestial(

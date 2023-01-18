@@ -1,6 +1,6 @@
 """Wrapper to access evemicros API."""
 
-from collections import namedtuple
+from dataclasses import dataclass
 from typing import Optional
 from urllib.parse import urlencode
 
@@ -11,7 +11,15 @@ from django.core.cache import cache
 _CACHE_TIMEOUT = 3_600 * 12
 _BASE_URL = "https://www.kalkoken.org/apps/evemicros/eveUniverse.php"
 
-EveItem = namedtuple("EveItem", ["id", "name", "type_id", "distance"])
+
+@dataclass
+class EveItem:
+    """A celestial item."""
+
+    id: int
+    name: str
+    type_id: int
+    distance: float
 
 
 def nearest_celestial(

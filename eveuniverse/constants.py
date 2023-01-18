@@ -12,6 +12,7 @@ class EveGroupId(IntEnum):
     CHARACTER = 1
     CORPORATION = 2
     SOLAR_SYSTEM = 5
+    STAR = 6
     PLANET = 7
     MOON = 8
     ASTEROID_BELT = 9
