@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## Added
+
+- `EveSolarSystem.nearest_celestial` can now also returns stars
+
 ## Changed
 
 - Switch from evemicros to evesdeapi for calculating nearest celestials

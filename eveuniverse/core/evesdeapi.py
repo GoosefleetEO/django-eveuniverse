@@ -1,5 +1,6 @@
-"""Wrapper to access evesdeapi."""
+"""Wrapper to access evesdeapi website."""
 
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
@@ -10,6 +11,8 @@ from eveuniverse.helpers import dict_hash
 
 _CACHE_TIMEOUT = 3_600 * 12
 _BASE_URL = "https://evesdeapi.kalkoken.net/latest"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -68,10 +71,9 @@ def _fetch_items_from_endpoint_cached(
     cache_key = f"eveuniverse_nearest_celestial_{dict_hash(params)}"
     result = cache.get(key=cache_key)
     if not result:
-        r = requests.get(
-            f"{_BASE_URL}/universe/systems/{solar_system_id}/nearest_celestials",
-            params=params,
-        )
+        url = f"{_BASE_URL}/universe/systems/{solar_system_id}/nearest_celestials"
+        logger.info(f"Sending request: {url}")
+        r = requests.get(url, params=params)
         r.raise_for_status()
         result = r.json()
         cache.set(key=cache_key, value=result, timeout=_CACHE_TIMEOUT)
