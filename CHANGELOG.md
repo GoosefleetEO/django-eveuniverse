@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Changed
 
 - Switch from evemicros to evesdeapi for calculating nearest celestials
+- Drop support for Python 3.7
 
 ## [0.18.0] - 2022-09-19
 
