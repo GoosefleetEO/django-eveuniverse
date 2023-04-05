@@ -3,9 +3,14 @@ from .utils import clean_setting
 EVEUNIVERSE_BULK_METHODS_BATCH_SIZE = clean_setting(
     "EVEUNIVERSE_BULK_METHODS_BATCH_SIZE", 500
 )
-# Technical parameter defining the maximum number of objects processed per run
-# of Django batch methods, e.g. bulk_create and bulk_update
+"""Technical parameter defining the maximum number of objects processed per run
+of Django batch methods, e.g. bulk_create and bulk_update.
+"""
 
+EVEUNIVERSE_ZZEVE_SDE_URL = clean_setting(
+    "EVEUNIVERSE_ZZEVE_SDE_URL", "https://sde.eve-o.tech/latest"
+)
+"""URL to a web site providing the SDE tables as JSON files."""
 
 EVEUNIVERSE_LOAD_ASTEROID_BELTS = clean_setting(
     "EVEUNIVERSE_LOAD_ASTEROID_BELTS", False

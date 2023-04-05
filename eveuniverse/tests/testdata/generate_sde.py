@@ -6,7 +6,7 @@ import requests
 print("Generating SDE data...")
 
 # fetch type materials from SDE bridge
-r = requests.get("https://sde.zzeve.com/invTypeMaterials.json")
+r = requests.get("https://sde.eve-o.tech/latest/invTypeMaterials.json")
 r.raise_for_status()
 data_all = r.json()
 

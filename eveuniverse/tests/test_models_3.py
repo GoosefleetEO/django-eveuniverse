@@ -27,6 +27,7 @@ MODELS_PATH = "eveuniverse.models"
 MANAGERS_PATH = "eveuniverse.managers"
 
 
+@patch(MANAGERS_PATH + ".EVEUNIVERSE_ZZEVE_SDE_URL", "https://sde.eve-o.tech/latest")
 @patch(MANAGERS_PATH + ".cache")
 @patch(MANAGERS_PATH + ".esi")
 @requests_mock.Mocker()
@@ -38,7 +39,7 @@ class TestEveTypeMaterial(NoSocketsTestCase):
         mock_cache.set.return_value = None
         requests_mocker.register_uri(
             "GET",
-            url="https://sde.zzeve.com/invTypeMaterials.json",
+            url="https://sde.eve-o.tech/latest/invTypeMaterials.json",
             json=sde_data["type_materials"],
         )
         with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False):
@@ -78,7 +79,7 @@ class TestEveTypeMaterial(NoSocketsTestCase):
         mock_cache.set.return_value = None
         requests_mocker.register_uri(
             "GET",
-            url="https://sde.zzeve.com/invTypeMaterials.json",
+            url="https://sde.eve-o.tech/latest/invTypeMaterials.json",
             json=sde_data["type_materials"],
         )
         with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False):
@@ -106,7 +107,7 @@ class TestEveTypeMaterial(NoSocketsTestCase):
         mock_cache.set.return_value = None
         requests_mocker.register_uri(
             "GET",
-            url="https://sde.zzeve.com/invTypeMaterials.json",
+            url="https://sde.eve-o.tech/latest/invTypeMaterials.json",
             json=sde_data["type_materials"],
         )
         with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False):
@@ -134,7 +135,7 @@ class TestEveTypeMaterial(NoSocketsTestCase):
         mock_cache.set.return_value = None
         requests_mocker.register_uri(
             "GET",
-            url="https://sde.zzeve.com/invTypeMaterials.json",
+            url="https://sde.eve-o.tech/latest/invTypeMaterials.json",
             json=sde_data["type_materials"],
         )
         # when
@@ -161,7 +162,7 @@ class TestEveTypeMaterial(NoSocketsTestCase):
         mock_cache.set.return_value = None
         requests_mocker.register_uri(
             "GET",
-            url="https://sde.zzeve.com/invTypeMaterials.json",
+            url="https://sde.eve-o.tech/latest/invTypeMaterials.json",
             json=sde_data["type_materials"],
         )
         # when

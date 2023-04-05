@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.19.1] - 2023-04-05
+
+### Fixed
+
+- 403 error when trying to fetch type materials from ZZEVE (#14)
+
 ## [0.19.0] - 2023-01-18
 
 ## Added
