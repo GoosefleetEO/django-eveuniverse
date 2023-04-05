@@ -2,7 +2,6 @@ import datetime as dt
 import logging
 from collections import defaultdict, namedtuple
 from typing import Iterable, List, Optional, Set, Tuple
-from urllib.parse import urljoin
 
 import requests
 from bravado.exception import HTTPNotFound
@@ -13,7 +12,7 @@ from django.db.utils import IntegrityError
 from django.utils.timezone import now
 
 from . import __title__
-from .app_settings import EVEUNIVERSE_BULK_METHODS_BATCH_SIZE
+from .app_settings import EVEUNIVERSE_BULK_METHODS_BATCH_SIZE, EVEUNIVERSE_ZZEVE_SDE_URL
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS
 from .helpers import EveEntityNameResolver, get_or_create_esi_or_none
 from .providers import esi
@@ -22,8 +21,6 @@ from .utils import LoggerAddTag, chunks, make_logger_prefix
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
 FakeResponse = namedtuple("FakeResponse", ["status_code"])
-
-SDE_ZZEVE_URL = "https://sde.zzeve.com"
 
 
 class EveUniverseBaseModelManager(models.Manager):
@@ -1015,7 +1012,8 @@ class EveTypeMaterialManager(models.Manager):
     def _fetch_sde_data_cached(cls) -> dict:
         type_material_data_all = cache.get(cls.SDE_CACHE_KEY)
         if not type_material_data_all:
-            r = requests.get(urljoin(SDE_ZZEVE_URL, cls.SDE_ZZEVE_ROUTE))
+            url = EVEUNIVERSE_ZZEVE_SDE_URL.rstrip("/") + "/" + cls.SDE_ZZEVE_ROUTE
+            r = requests.get(url)
             r.raise_for_status()
             type_material_data_all = dict()
             for row in r.json():
