@@ -99,11 +99,12 @@ The following management commands are available:
 
 ### eveuniverse_load_data
 
-This command will load a complete set of data form ESI and store it locally. Useful to optimize performance or when you want to provide the user with drop-down lists. Available sets:
+This command will load large sets of data from ESI into local database for selected topics. This is useful to optimize performance or when you want to provide the user with drop-down lists covering all values in a topic (e.g. ship types). Available topics are:
 
 - **map**: All regions, constellations and solar systems
 - **ships**: All ship types
 - **structures**: All structures types
+- **types**: All types
 
 ### eveuniverse_purge_all
 

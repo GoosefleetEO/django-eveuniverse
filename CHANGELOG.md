@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.20.0] - tbd
 
+### Added
+
+- Ability to load all types with load_data command and also specify sections if needed
+
 ### Changes
 
 - Allow loading data from multiple areas with the same load_data command

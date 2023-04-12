@@ -5,7 +5,6 @@ from typing import Iterable, List, Optional, Set, Tuple
 
 import requests
 from bravado.exception import HTTPNotFound
-
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.utils import IntegrityError
@@ -842,9 +841,9 @@ class EveEntityManager(EveUniverseEntityModelManager):
         return query
 
     def _fetch_names_from_esi(self, names: List[str]) -> dict:
+        logger.info("Trying to fetch EveEntities from ESI by name")
         result = defaultdict(list)
         for chunk_names in chunks(names, 500):
-            logger.info("Trying to fetch EveEntities from ESI by names: ", chunk_names)
             result_chunk = esi.client.Universe.post_universe_ids(
                 names=chunk_names
             ).results()

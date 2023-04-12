@@ -291,7 +291,10 @@ Object loader tasks
 
 .. autofunction:: eveuniverse.tasks.load_map
 
+.. autofunction:: eveuniverse.tasks.load_all_types
+
 .. autofunction:: eveuniverse.tasks.load_eve_types
+
 
 Other tasks
 -------------------
