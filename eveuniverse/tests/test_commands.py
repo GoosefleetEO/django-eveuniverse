@@ -22,8 +22,8 @@ class TestLoadDataCommand(NoSocketsTestCase):
         call_command("eveuniverse_load_data", "map", stdout=StringIO())
         # then
         args, _ = mock_chain.call_args
-        tasks = [o.task for o in args[0]]
-        self.assertIn("eveuniverse.tasks.load_map", tasks)
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_map"}, tasks)
 
     def test_load_data_ship_types(self, mock_chain, mock_get_input):
         # given
@@ -32,8 +32,8 @@ class TestLoadDataCommand(NoSocketsTestCase):
         call_command("eveuniverse_load_data", "ships", stdout=StringIO())
         # then
         args, _ = mock_chain.call_args
-        tasks = [o.task for o in args[0]]
-        self.assertIn("eveuniverse.tasks.load_ship_types", tasks)
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_ship_types"}, tasks)
 
     def test_load_data_structure_types(self, mock_chain, mock_get_input):
         # given
@@ -42,8 +42,18 @@ class TestLoadDataCommand(NoSocketsTestCase):
         call_command("eveuniverse_load_data", "structures", stdout=StringIO())
         # then
         args, _ = mock_chain.call_args
-        tasks = [o.task for o in args[0]]
-        self.assertIn("eveuniverse.tasks.load_structure_types", tasks)
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_structure_types"}, tasks)
+
+    def test_should_load_all_types(self, mock_chain, mock_get_input):
+        # given
+        mock_get_input.return_value = "y"
+        # when
+        call_command("eveuniverse_load_data", "types", stdout=StringIO())
+        # then
+        args, _ = mock_chain.call_args
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_all_types"}, tasks)
 
     def test_can_abort(self, mock_chain, mock_get_input):
         # given
@@ -60,8 +70,24 @@ class TestLoadDataCommand(NoSocketsTestCase):
         call_command("eveuniverse_load_data", "map", "--noinput", stdout=StringIO())
         # then
         args, _ = mock_chain.call_args
-        tasks = [o.task for o in args[0]]
-        self.assertIn("eveuniverse.tasks.load_map", tasks)
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_map"}, tasks)
+
+    def test_should_load_structures_and_ships(self, mock_chain, mock_get_input):
+        # given
+        mock_get_input.return_value = "y"
+        # when
+        call_command("eveuniverse_load_data", "structures", "ships", stdout=StringIO())
+        # then
+        args, _ = mock_chain.call_args
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual(
+            {
+                "eveuniverse.tasks.load_structure_types",
+                "eveuniverse.tasks.load_ship_types",
+            },
+            tasks,
+        )
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)

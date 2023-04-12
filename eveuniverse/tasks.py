@@ -168,11 +168,11 @@ def _eve_object_names_to_be_loaded() -> list:
 
 @shared_task(**TASK_ESI_KWARGS)
 def load_map() -> None:
-    """loads the complete Eve map with all regions, constellation and solarsystems
-    and additional related entities if they are enabled
+    """Load the complete Eve map with all regions, constellation and solar systems
+    and additional related entities if they are enabled.
     """
     logger.info(
-        "Loading complete map with all regions, constellations, solarsystems "
+        "Loading complete map with all regions, constellations, solar systems "
         "and the following additional entities if related to the map: %s",
         ", ".join(_eve_object_names_to_be_loaded()),
     )
@@ -182,6 +182,28 @@ def load_map() -> None:
         update_or_create_eve_object.delay(
             model_name="EveRegion",
             id=id,
+            include_children=True,
+            wait_for_children=False,
+        )
+
+
+@shared_task(**TASK_ESI_KWARGS)
+def load_all_types() -> None:
+    """Load all eve types."""
+    logger.info(
+        "Loading all eve types from ESI plus potentially these additional objects: %s",
+        ", ".join(_eve_object_names_to_be_loaded()),
+    )
+    category, method = models.EveCategory._esi_path_list()
+    result = getattr(getattr(esi.client, category), method)().results()
+    if not result:
+        raise ValueError("Did not receive category IDs from ESI.")
+    category_ids = sorted(result)
+    logger.debug("Fetching categories for IDs: %s", category_ids)
+    for category_id in category_ids:
+        update_or_create_eve_object.delay(
+            model_name="EveCategory",
+            id=category_id,
             include_children=True,
             wait_for_children=False,
         )

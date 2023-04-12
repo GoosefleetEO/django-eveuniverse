@@ -21,17 +21,14 @@ class Area(str, Enum):
     MAP = "map"
     SHIPS = "ships"
     STRUCTURES = "structures"
+    TYPES = "types"
 
 
 class Command(BaseCommand):
     help = "Loads large sets of data from ESI into local database"
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            TOKEN_AREA,
-            nargs="+",
-            choices=[Area.MAP.value, Area.SHIPS.value, Area.STRUCTURES.value],
-        )
+        parser.add_argument(TOKEN_AREA, nargs="+", choices=[o.value for o in Area])
         parser.add_argument(
             "--noinput",
             "--no-input",
@@ -59,13 +56,21 @@ class Command(BaseCommand):
             self.stdout.write("- all regions, constellations and solar systems")
             my_tasks.append(tasks.load_map.si())
 
-        if Area.SHIPS in options[TOKEN_AREA]:
-            self.stdout.write("- all ship types")
-            my_tasks.append(tasks.load_ship_types.si())
+        if Area.TYPES in options[TOKEN_AREA]:
+            self.stdout.write("- all types")
+            my_tasks.append(tasks.load_all_types.si())
 
-        if Area.STRUCTURES in options[TOKEN_AREA]:
-            self.stdout.write("- all structure types")
-            my_tasks.append(tasks.load_structure_types.si())
+        else:  # TYPES is a superset which includes SHIPS and STRUCTURES
+            if Area.SHIPS in options[TOKEN_AREA]:
+                self.stdout.write("- all ship types")
+                my_tasks.append(tasks.load_ship_types.si())
+
+            if Area.STRUCTURES in options[TOKEN_AREA]:
+                self.stdout.write("- all structure types")
+                my_tasks.append(tasks.load_structure_types.si())
+
+        if not my_tasks:
+            raise NotImplementedError("No implemented area selected.")
 
         additional_objects = tasks._eve_object_names_to_be_loaded()
         if additional_objects:
