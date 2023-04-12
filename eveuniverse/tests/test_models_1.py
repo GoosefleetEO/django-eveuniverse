@@ -3,7 +3,6 @@ import unittest
 from unittest.mock import Mock, patch
 
 from bravado.exception import HTTPNotFound
-
 from django.utils.timezone import now
 
 from ..helpers import meters_to_ly

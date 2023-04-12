@@ -5,7 +5,6 @@ from typing import Optional
 from urllib.parse import urlencode
 
 import requests
-
 from django.core.cache import cache
 
 _CACHE_TIMEOUT = 3_600 * 12

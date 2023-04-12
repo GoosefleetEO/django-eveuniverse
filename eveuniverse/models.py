@@ -7,7 +7,6 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from bitfield import BitField
 from bravado.exception import HTTPNotFound
-
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 

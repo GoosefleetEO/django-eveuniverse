@@ -5,6 +5,7 @@ from copy import deepcopy
 from typing import Iterable, List
 
 from django.core.serializers.json import DjangoJSONEncoder
+
 from eveuniverse.models import EveSolarSystem, EveStargate, EveUniverseBaseModel
 
 from .. import __title__

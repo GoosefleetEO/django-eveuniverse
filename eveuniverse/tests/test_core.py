@@ -2,10 +2,9 @@ from unittest.mock import Mock, patch
 
 import requests_mock
 from bravado.exception import HTTPInternalServerError
-from requests.exceptions import HTTPError
-
 from django.core.cache import cache
 from django.test import TestCase
+from requests.exceptions import HTTPError
 
 from ..constants import EveGroupId
 from ..core import (

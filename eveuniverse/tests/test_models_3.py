@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import requests_mock
-
 from django.test.utils import override_settings
 
 from ..constants import EveGroupId
