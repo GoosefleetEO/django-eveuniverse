@@ -13,11 +13,11 @@ from . import get_input
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
-TOKEN_AREA = "area"
+TOKEN_TOPIC = "topic"
 
 
-class Area(str, Enum):
-    """Area to load data for."""
+class Topic(str, Enum):
+    """Topic to load data for."""
 
     MAP = "map"
     SHIPS = "ships"
@@ -26,14 +26,14 @@ class Area(str, Enum):
 
 
 class Command(BaseCommand):
-    help = "Loads large sets of data from ESI into local database"
+    help = "Load large sets of data from ESI into local database for selected topics"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            TOKEN_AREA,
+            TOKEN_TOPIC,
             nargs="+",
-            choices=[o.value for o in Area],
-            help="Area to load data for",
+            choices=[o.value for o in Topic],
+            help="Topic(s) to load data for",
         )
         parser.add_argument(
             "--noinput",
@@ -46,7 +46,7 @@ class Command(BaseCommand):
             nargs="+",
             default=None,
             choices=[o.value for o in EveType.Section],
-            help="List of enabled sections for types",
+            help="List of enabled sections for types topic",
         )
 
     def handle(self, *args, **options):
@@ -63,13 +63,13 @@ class Command(BaseCommand):
 
         my_tasks = []
         self.stdout.write(
-            "This command will load the following from ESI and store it locally::"
+            "This command will fetch the following data from ESI and store it locally:"
         )
-        if Area.MAP in options[TOKEN_AREA]:
+        if Topic.MAP in options[TOKEN_TOPIC]:
             self.stdout.write("- all regions, constellations and solar systems")
             my_tasks.append(tasks.load_map.si())
 
-        if Area.TYPES in options[TOKEN_AREA]:
+        if Topic.TYPES in options[TOKEN_TOPIC]:
             text = "- all types"
             enabled_sections = options["types_enabled_sections"]
             if enabled_sections:
@@ -78,16 +78,16 @@ class Command(BaseCommand):
             my_tasks.append(tasks.load_all_types.si(enabled_sections=enabled_sections))
 
         else:  # TYPES is a superset which includes SHIPS and STRUCTURES
-            if Area.SHIPS in options[TOKEN_AREA]:
+            if Topic.SHIPS in options[TOKEN_TOPIC]:
                 self.stdout.write("- ship types")
                 my_tasks.append(tasks.load_ship_types.si())
 
-            if Area.STRUCTURES in options[TOKEN_AREA]:
+            if Topic.STRUCTURES in options[TOKEN_TOPIC]:
                 self.stdout.write("- structure types")
                 my_tasks.append(tasks.load_structure_types.si())
 
         if not my_tasks:
-            raise NotImplementedError("No implemented area selected.")
+            raise NotImplementedError("No implemented topic selected.")
 
         additional_objects = tasks._eve_object_names_to_be_loaded()
         if additional_objects:
