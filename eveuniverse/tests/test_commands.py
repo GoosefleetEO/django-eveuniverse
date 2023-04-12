@@ -45,7 +45,7 @@ class TestLoadDataCommand(NoSocketsTestCase):
         tasks = {o.task for o in args[0]}
         self.assertSetEqual({"eveuniverse.tasks.load_structure_types"}, tasks)
 
-    def test_should_load_all_types(self, mock_chain, mock_get_input):
+    def test_should_load_all_types_with_sections(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "y"
         # when
@@ -54,6 +54,29 @@ class TestLoadDataCommand(NoSocketsTestCase):
         args, _ = mock_chain.call_args
         tasks = {o.task for o in args[0]}
         self.assertSetEqual({"eveuniverse.tasks.load_all_types"}, tasks)
+
+    def test_should_load_all_types(self, mock_chain, mock_get_input):
+        # given
+        mock_get_input.return_value = "y"
+        # when
+        call_command(
+            "eveuniverse_load_data",
+            "types",
+            "--types-enabled-sections",
+            "dogmas",
+            "type_materials",
+            stdout=StringIO(),
+        )
+        # then
+        args, _ = mock_chain.call_args
+        tasks = {o.task: {"kwargs": o.kwargs, "args": o.args} for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_all_types"}, set(tasks.keys()))
+        self.assertSetEqual(
+            set(
+                tasks["eveuniverse.tasks.load_all_types"]["kwargs"]["enabled_sections"]
+            ),
+            {"dogmas", "type_materials"},
+        )
 
     def test_can_abort(self, mock_chain, mock_get_input):
         # given

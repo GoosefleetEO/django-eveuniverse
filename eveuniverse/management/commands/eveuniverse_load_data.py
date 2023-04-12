@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 
 from eveuniverse import __title__, tasks
 from eveuniverse.core.esitools import is_esi_online
+from eveuniverse.models import EveType
 from eveuniverse.utils import LoggerAddTag
 
 from . import get_input
@@ -28,12 +29,24 @@ class Command(BaseCommand):
     help = "Loads large sets of data from ESI into local database"
 
     def add_arguments(self, parser):
-        parser.add_argument(TOKEN_AREA, nargs="+", choices=[o.value for o in Area])
+        parser.add_argument(
+            TOKEN_AREA,
+            nargs="+",
+            choices=[o.value for o in Area],
+            help="Area to load data for",
+        )
         parser.add_argument(
             "--noinput",
             "--no-input",
             action="store_true",
             help="Do NOT prompt the user for input of any kind.",
+        )
+        parser.add_argument(
+            "--types-enabled-sections",
+            nargs="+",
+            default=None,
+            choices=[o.value for o in EveType.Section],
+            help="List of enabled sections for types",
         )
 
     def handle(self, *args, **options):
@@ -57,16 +70,20 @@ class Command(BaseCommand):
             my_tasks.append(tasks.load_map.si())
 
         if Area.TYPES in options[TOKEN_AREA]:
-            self.stdout.write("- all types")
-            my_tasks.append(tasks.load_all_types.si())
+            text = "- all types"
+            enabled_sections = options["types_enabled_sections"]
+            if enabled_sections:
+                text += f" including {', '.join(sorted(enabled_sections))}"
+            self.stdout.write(text)
+            my_tasks.append(tasks.load_all_types.si(enabled_sections=enabled_sections))
 
         else:  # TYPES is a superset which includes SHIPS and STRUCTURES
             if Area.SHIPS in options[TOKEN_AREA]:
-                self.stdout.write("- all ship types")
+                self.stdout.write("- ship types")
                 my_tasks.append(tasks.load_ship_types.si())
 
             if Area.STRUCTURES in options[TOKEN_AREA]:
-                self.stdout.write("- all structure types")
+                self.stdout.write("- structure types")
                 my_tasks.append(tasks.load_structure_types.si())
 
         if not my_tasks:
