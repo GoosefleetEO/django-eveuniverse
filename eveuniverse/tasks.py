@@ -15,6 +15,7 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_STARGATES,
     EVEUNIVERSE_LOAD_STARS,
     EVEUNIVERSE_LOAD_STATIONS,
+    EVEUNIVERSE_LOAD_TYPE_MATERIALS,
     EVEUNIVERSE_TASKS_TIME_LIMIT,
 )
 from .constants import (
@@ -157,15 +158,16 @@ def _update_unresolved_eve_entities_for_page(ids: Iterable[int]) -> None:
 def _eve_object_names_to_be_loaded() -> list:
     """returns a list of eve object that are loaded"""
     config_map = [
-        (EVEUNIVERSE_LOAD_DOGMAS, "dogmas"),
-        (EVEUNIVERSE_LOAD_MARKET_GROUPS, "market groups"),
         (EVEUNIVERSE_LOAD_ASTEROID_BELTS, "asteroid belts"),
+        (EVEUNIVERSE_LOAD_DOGMAS, "dogmas"),
         (EVEUNIVERSE_LOAD_GRAPHICS, "graphics"),
+        (EVEUNIVERSE_LOAD_MARKET_GROUPS, "market groups"),
         (EVEUNIVERSE_LOAD_MOONS, "moons"),
         (EVEUNIVERSE_LOAD_PLANETS, "planets"),
         (EVEUNIVERSE_LOAD_STARGATES, "stargates"),
         (EVEUNIVERSE_LOAD_STARS, "stars"),
         (EVEUNIVERSE_LOAD_STATIONS, "stations"),
+        (EVEUNIVERSE_LOAD_TYPE_MATERIALS, "type materials"),
     ]
     names_to_be_loaded = []
     for setting, entity_name in config_map:
