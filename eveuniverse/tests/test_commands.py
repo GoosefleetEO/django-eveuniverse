@@ -13,47 +13,55 @@ PACKAGE_PATH = "eveuniverse.management.commands"
 
 @patch(PACKAGE_PATH + ".eveuniverse_load_data.is_esi_online", lambda: True)
 @patch(PACKAGE_PATH + ".eveuniverse_load_data.get_input")
-@patch(PACKAGE_PATH + ".eveuniverse_load_data.tasks")
+@patch(PACKAGE_PATH + ".eveuniverse_load_data.chain")
 class TestLoadDataCommand(NoSocketsTestCase):
-    def test_load_data_map(self, mock_tasks, mock_get_input):
+    def test_load_data_map(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "y"
         # when
         call_command("eveuniverse_load_data", "map", stdout=StringIO())
         # then
-        self.assertTrue(mock_tasks.load_map.delay.called)
+        args, _ = mock_chain.call_args
+        tasks = [o.task for o in args[0]]
+        self.assertIn("eveuniverse.tasks.load_map", tasks)
 
-    def test_load_data_ship_types(self, mock_tasks, mock_get_input):
+    def test_load_data_ship_types(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "y"
         # when
         call_command("eveuniverse_load_data", "ships", stdout=StringIO())
         # then
-        self.assertTrue(mock_tasks.load_ship_types.delay.called)
+        args, _ = mock_chain.call_args
+        tasks = [o.task for o in args[0]]
+        self.assertIn("eveuniverse.tasks.load_ship_types", tasks)
 
-    def test_load_data_structure_types(self, mock_tasks, mock_get_input):
+    def test_load_data_structure_types(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "y"
         # when
         call_command("eveuniverse_load_data", "structures", stdout=StringIO())
         # then
-        self.assertTrue(mock_tasks.load_structure_types.delay.called)
+        args, _ = mock_chain.call_args
+        tasks = [o.task for o in args[0]]
+        self.assertIn("eveuniverse.tasks.load_structure_types", tasks)
 
-    def test_can_abort(self, mock_tasks, mock_get_input):
+    def test_can_abort(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "n"
         # when
         call_command("eveuniverse_load_data", "map", stdout=StringIO())
         # then
-        self.assertFalse(mock_tasks.load_map.delay.called)
+        self.assertFalse(mock_chain.called)
 
-    def test_should_skip_confirmation_question(self, mock_tasks, mock_get_input):
+    def test_should_skip_confirmation_question(self, mock_chain, mock_get_input):
         # given
         mock_get_input.side_effect = RuntimeError
         # when
         call_command("eveuniverse_load_data", "map", "--noinput", stdout=StringIO())
         # then
-        self.assertTrue(mock_tasks.load_map.delay.called)
+        args, _ = mock_chain.call_args
+        tasks = [o.task for o in args[0]]
+        self.assertIn("eveuniverse.tasks.load_map", tasks)
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)

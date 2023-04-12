@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.20.0] - tbd
+
+### Changes
+
+- Allow loading data from multiple areas with the same load_data command
+
 ## [0.19.1] - 2023-04-05
 
 ### Fixed

@@ -1,7 +1,9 @@
 import logging
 from enum import Enum
 
+from celery import chain
 from django.core.management.base import BaseCommand
+
 from eveuniverse import __title__, tasks
 from eveuniverse.core.esitools import is_esi_online
 from eveuniverse.utils import LoggerAddTag
@@ -27,6 +29,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             TOKEN_AREA,
+            nargs="+",
             choices=[Area.MAP.value, Area.SHIPS.value, Area.STRUCTURES.value],
         )
         parser.add_argument(
@@ -48,45 +51,40 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Aborted"))
             return
 
-        if options[TOKEN_AREA] == Area.MAP:
-            text = (
-                "This command will start loading the entire Eve Universe map with "
-                "regions, constellations and solar systems from ESI and store it "
-                "locally. "
-            )
-            my_task = tasks.load_map
+        my_tasks = []
+        self.stdout.write(
+            "This command will load the following from ESI and store it locally::"
+        )
+        if Area.MAP in options[TOKEN_AREA]:
+            self.stdout.write("- all regions, constellations and solar systems")
+            my_tasks.append(tasks.load_map.si())
 
-        elif options[TOKEN_AREA] == Area.SHIPS:
-            text = "This command will load all ship types from ESI."
-            my_task = tasks.load_ship_types
+        if Area.SHIPS in options[TOKEN_AREA]:
+            self.stdout.write("- all ship types")
+            my_tasks.append(tasks.load_ship_types.si())
 
-        elif options[TOKEN_AREA] == Area.STRUCTURES:
-            text = "This command will load all structure types from ESI."
-            my_task = tasks.load_structure_types
-
-        else:
-            raise RuntimeError("This exception should be unreachable")
-
-        self.stdout.write(text)
+        if Area.STRUCTURES in options[TOKEN_AREA]:
+            self.stdout.write("- all structure types")
+            my_tasks.append(tasks.load_structure_types.si())
 
         additional_objects = tasks._eve_object_names_to_be_loaded()
         if additional_objects:
             self.stdout.write(
-                "It will also load the following additional entities when related to "
-                "objects loaded for the app: "
-                f"{','.join(additional_objects)}"
+                f"- the following related entities: {','.join(additional_objects)}"
             )
+        self.stdout.write("")
         self.stdout.write(
-            "Note that this process can take a while to complete "
-            "and may cause some significant load to your system."
+            "Note that this process can take some time to complete. "
+            "It will create many tasks to load the data and "
+            "you can watch the progress on the dashboard. "
+            "It is likely finished as soon as the task queue is empty again."
         )
         if not options["noinput"]:
             user_input = get_input("Are you sure you want to proceed? (Y/n)? ")
         else:
             user_input = "y"
         if user_input.lower() != "n":
-            self.stdout.write("Starting update. Please stand by.")
-            my_task.delay()
-            self.stdout.write(self.style.SUCCESS("Load started!"))
+            chain(my_tasks).delay()
+            self.stdout.write(self.style.SUCCESS("Data load started!"))
         else:
             self.stdout.write(self.style.WARNING("Aborted"))
