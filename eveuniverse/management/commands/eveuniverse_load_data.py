@@ -1,26 +1,34 @@
 import logging
+from enum import Enum
 
 from django.core.management.base import BaseCommand
+from eveuniverse import __title__, tasks
+from eveuniverse.core.esitools import is_esi_online
+from eveuniverse.utils import LoggerAddTag
 
-from ... import __title__
-from ...core.esitools import is_esi_online
-from ...tasks import (
-    _eve_object_names_to_be_loaded,
-    load_map,
-    load_ship_types,
-    load_structure_types,
-)
-from ...utils import LoggerAddTag
 from . import get_input
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
+
+TOKEN_AREA = "area"
+
+
+class Area(str, Enum):
+    """Area to load data for."""
+
+    MAP = "map"
+    SHIPS = "ships"
+    STRUCTURES = "structures"
 
 
 class Command(BaseCommand):
     help = "Loads large sets of data from ESI into local database"
 
     def add_arguments(self, parser):
-        parser.add_argument("area", choices=["map", "ships", "structures"])
+        parser.add_argument(
+            TOKEN_AREA,
+            choices=[Area.MAP.value, Area.SHIPS.value, Area.STRUCTURES.value],
+        )
         parser.add_argument(
             "--noinput",
             "--no-input",
@@ -40,28 +48,28 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Aborted"))
             return
 
-        if options["area"] == "map":
+        if options[TOKEN_AREA] == Area.MAP:
             text = (
                 "This command will start loading the entire Eve Universe map with "
                 "regions, constellations and solar systems from ESI and store it "
                 "locally. "
             )
-            my_task = load_map
+            my_task = tasks.load_map
 
-        elif options["area"] == "ships":
+        elif options[TOKEN_AREA] == Area.SHIPS:
             text = "This command will load all ship types from ESI."
-            my_task = load_ship_types
+            my_task = tasks.load_ship_types
 
-        elif options["area"] == "structures":
+        elif options[TOKEN_AREA] == Area.STRUCTURES:
             text = "This command will load all structure types from ESI."
-            my_task = load_structure_types
+            my_task = tasks.load_structure_types
 
         else:
             raise RuntimeError("This exception should be unreachable")
 
         self.stdout.write(text)
 
-        additional_objects = _eve_object_names_to_be_loaded()
+        additional_objects = tasks._eve_object_names_to_be_loaded()
         if additional_objects:
             self.stdout.write(
                 "It will also load the following additional entities when related to "
