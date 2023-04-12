@@ -75,7 +75,15 @@ def update_or_create_eve_object(
     wait_for_children=True,
     enabled_sections: List[str] = None,
 ) -> None:
-    """Task for updating or creating an eve object from ESI"""
+    """Update or create an eve object from ESI.
+
+    Args:
+        model_name: Name of the respective Django model, e.g. ``"EveType"``
+        id: Eve Online ID of object
+        include_children: if child objects should be updated/created as well (only when a new object is created)
+        wait_for_children: when true child objects will be updated/created blocking (if any), else async (only when a new object is created)
+        enabled_sections: Sections to load regardless of current settings, e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
+    """
     logger.info("Updating/Creating %s with ID %s", model_name, id)
     ModelClass = EveUniverseEntityModel.get_model_class(model_name)
     ModelClass.objects.update_or_create_esi(
@@ -188,8 +196,12 @@ def load_map() -> None:
 
 
 @shared_task(**TASK_ESI_KWARGS)
-def load_all_types() -> None:
-    """Load all eve types."""
+def load_all_types(enabled_sections: List[str] = None) -> None:
+    """Load all eve types.
+
+    Args:
+        enabled_sections: Sections to load regardless of current settings
+    """
     logger.info(
         "Loading all eve types from ESI plus potentially these additional objects: %s",
         ", ".join(_eve_object_names_to_be_loaded()),
@@ -206,6 +218,7 @@ def load_all_types() -> None:
             id=category_id,
             include_children=True,
             wait_for_children=False,
+            enabled_sections=enabled_sections,
         )
 
 

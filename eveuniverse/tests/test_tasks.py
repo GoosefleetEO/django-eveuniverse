@@ -180,3 +180,16 @@ class TestLoadAllTypes(NoSocketsTestCase):
         # when/then
         with self.assertRaises(ValueError):
             load_all_types()
+
+    def test_should_load_all_types_with_enabled_sections(
+        self, mock_esi, mock_update_or_create_eve_object
+    ):
+        # given
+        mock_esi.client.Universe.get_universe_categories.return_value = (
+            BravadoOperationStub([1])
+        )
+        # when
+        load_all_types(["alpha", "bravo"])
+        # then
+        _, kwargs = mock_update_or_create_eve_object.delay.call_args
+        self.assertEqual(kwargs["enabled_sections"], ["alpha", "bravo"])
