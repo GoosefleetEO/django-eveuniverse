@@ -8,7 +8,7 @@ from django.db.utils import OperationalError
 from . import __title__, models
 from .app_settings import EVEUNIVERSE_TASKS_TIME_LIMIT
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS, EveCategoryId
-from .models import EveEntity, EveMarketPrice, EveUniverseEntityModel
+from .models import EveEntity, EveMarketPrice, EveType, EveUniverseEntityModel
 from .providers import esi
 from .utils import LoggerAddTag, chunks
 
@@ -171,8 +171,10 @@ def load_all_types(enabled_sections: List[str] = None) -> None:
         enabled_sections: Sections to load regardless of current settings
     """
     logger.info(
-        "Loading all eve types from ESI plus potentially these additional objects: %s",
-        ", ".join(EveUniverseEntityModel.determine_effective_sections()),
+        "Loading all eve types from ESI including these sections: %s",
+        ", ".join(
+            EveUniverseEntityModel.determine_effective_sections(enabled_sections)
+        ),
     )
     category, method = models.EveCategory._esi_path_list()
     result = getattr(getattr(esi.client, category), method)().results()
@@ -181,20 +183,18 @@ def load_all_types(enabled_sections: List[str] = None) -> None:
     category_ids = sorted(result)
     logger.debug("Fetching categories for IDs: %s", category_ids)
     for category_id in category_ids:
-        update_or_create_eve_object.delay(
-            model_name="EveCategory",
-            id=category_id,
-            include_children=True,
-            wait_for_children=False,
-            enabled_sections=enabled_sections,
-        )
+        _load_category_with_children(id=category_id, enabled_sections=enabled_sections)
 
 
-def _load_category(category_id: int, force_loading_dogma: bool = False) -> None:
-    """Starts a task for loading a category incl. all it's children from ESI via"""
-    enabled_sections = (
-        [EveUniverseEntityModel.LOAD_DOGMAS] if force_loading_dogma else None
-    )
+def _load_category_with_children(
+    category_id: int,
+    force_loading_dogma: bool = False,
+    enabled_sections: List[str] = None,
+) -> None:
+    """Start loading a category async incl. all it's children from ESI."""
+    enabled_sections = enabled_sections or []
+    if force_loading_dogma:
+        enabled_sections.append(EveType.Section.DOGMAS.value)
     update_or_create_eve_object.delay(
         model_name="EveCategory",
         id=category_id,
@@ -204,11 +204,9 @@ def _load_category(category_id: int, force_loading_dogma: bool = False) -> None:
     )
 
 
-def _load_group(group_id: int, force_loading_dogma: bool = False) -> None:
+def _load_group_with_children(group_id: int, force_loading_dogma: bool = False) -> None:
     """Starts a task for loading a group incl. all it's children from ESI"""
-    enabled_sections = (
-        [EveUniverseEntityModel.LOAD_DOGMAS] if force_loading_dogma else None
-    )
+    enabled_sections = [EveType.Section.DOGMAS.value] if force_loading_dogma else None
     update_or_create_eve_object.delay(
         model_name="EveGroup",
         id=group_id,
@@ -218,11 +216,9 @@ def _load_group(group_id: int, force_loading_dogma: bool = False) -> None:
     )
 
 
-def _load_type(type_id: int, force_loading_dogma: bool = False) -> None:
+def _load_type_with_children(type_id: int, force_loading_dogma: bool = False) -> None:
     """Starts a task for loading a type incl. all it's children from ESI"""
-    enabled_sections = (
-        [EveUniverseEntityModel.LOAD_DOGMAS] if force_loading_dogma else None
-    )
+    enabled_sections = [EveType.Section.DOGMAS.value] if force_loading_dogma else None
     update_or_create_eve_object.delay(
         model_name="EveType",
         id=type_id,
@@ -236,14 +232,14 @@ def _load_type(type_id: int, force_loading_dogma: bool = False) -> None:
 def load_ship_types() -> None:
     """Loads all ship types"""
     logger.info("Started loading all ship types into eveuniverse")
-    _load_category(EveCategoryId.SHIP.value)
+    _load_category_with_children(EveCategoryId.SHIP.value)
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
 def load_structure_types() -> None:
     """Loads all structure types"""
     logger.info("Started loading all structure types into eveuniverse")
-    _load_category(EveCategoryId.STRUCTURE.value)
+    _load_category_with_children(EveCategoryId.STRUCTURE.value)
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
@@ -264,15 +260,15 @@ def load_eve_types(
     logger.info("Started loading several eve types into eveuniverse")
     if category_ids:
         for category_id in category_ids:
-            _load_category(category_id, force_loading_dogma)
+            _load_category_with_children(category_id, force_loading_dogma)
 
     if group_ids:
         for group_id in group_ids:
-            _load_group(group_id, force_loading_dogma)
+            _load_group_with_children(group_id, force_loading_dogma)
 
     if type_ids:
         for type_id in type_ids:
-            _load_type(type_id, force_loading_dogma)
+            _load_type_with_children(type_id, force_loading_dogma)
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
