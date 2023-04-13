@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Remove autoretry on common ESI errors, which are already covered by django-esi
 - Add autoretry for operational DB errors as attempts to survive occasional deadlocks when loading lots of data from ESI
 
+### Fix
+
+- eveuniverse_load_data does not do anything when called for structures
+
 ## [0.19.1] - 2023-04-05
 
 ### Fixed

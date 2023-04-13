@@ -2,7 +2,7 @@ import logging
 from typing import Iterable, List
 
 from celery import current_app, shared_task
-from celery_once import QueueOnce as BaseTask
+from celery_once import QueueOnce as BaseQueueOnce
 from django.db.utils import OperationalError
 
 from . import __title__, models
@@ -19,11 +19,7 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_TYPE_MATERIALS,
     EVEUNIVERSE_TASKS_TIME_LIMIT,
 )
-from .constants import (
-    EVE_CATEGORY_ID_SHIP,
-    POST_UNIVERSE_NAMES_MAX_ITEMS,
-    EveCategoryId,
-)
+from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS, EveCategoryId
 from .models import EveEntity, EveMarketPrice, EveUniverseEntityModel
 from .providers import esi
 from .utils import LoggerAddTag, chunks
@@ -38,17 +34,15 @@ current_app.conf.ONCE = {
 }
 
 
-class QueueOnce(BaseTask):
-    """Make sure all tasks will abort gracefully."""
+class QueueOnce(BaseQueueOnce):
+    """Make sure all redundant tasks will abort gracefully."""
 
-    once = BaseTask.once
+    once = BaseQueueOnce.once
     once["graceful"] = True
 
 
 # params for all tasks
-TASK_DEFAULTS = {
-    "time_limit": EVEUNIVERSE_TASKS_TIME_LIMIT,
-}
+TASK_DEFAULTS = {"time_limit": EVEUNIVERSE_TASKS_TIME_LIMIT}
 
 # params for tasks that make ESI calls
 TASK_ESI_DEFAULTS = {
@@ -281,14 +275,14 @@ def _load_type(type_id: int, force_loading_dogma: bool = False) -> None:
 def load_ship_types() -> None:
     """Loads all ship types"""
     logger.info("Started loading all ship types into eveuniverse")
-    _load_category(EVE_CATEGORY_ID_SHIP)
+    _load_category(EveCategoryId.SHIP.value)
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
 def load_structure_types() -> None:
     """Loads all structure types"""
     logger.info("Started loading all structure types into eveuniverse")
-    _load_category(EveCategoryId.STRUCTURE)
+    _load_category(EveCategoryId.STRUCTURE.value)
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
