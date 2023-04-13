@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.20.0] - tbd
 
+- Enhanced functionality of eveuniverse_load_data command
+- Improved stability when loading large amounts of data
+- Fixes
+
 ### Added
 
 - Ability to load all types with load_data command and also specify sections if needed
@@ -20,9 +24,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Remove autoretry on common ESI errors, which are already covered by django-esi
 - Add autoretry for operational DB errors as attempts to survive occasional deadlocks when loading lots of data from ESI
 
-### Fix
+### Fixed
 
 - eveuniverse_load_data does not do anything when called for structures
+- IDs can be 0 (e.g. category ID)
 
 ## [0.19.1] - 2023-04-05
 

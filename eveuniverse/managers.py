@@ -183,7 +183,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         """make request to ESI and return response data.
         Can handle raw ESI response from both list and normal endpoints.
         """
-        if id and not self.model._is_list_only_endpoint():
+        if id is not None and not self.model._is_list_only_endpoint():
             args = {self.model._esi_pk(): id}
         else:
             args = dict()
