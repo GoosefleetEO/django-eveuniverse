@@ -123,8 +123,8 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Aborted"))
 
     def _text_with_enabled_sections(self, text, enabled_sections=None):
-        effective_sections = EveUniverseEntityModel.determine_effective_sections(
-            enabled_sections
+        effective_sections = list(
+            EveUniverseEntityModel.determine_effective_sections(enabled_sections)
         )
         if effective_sections:
             new_text = f"{text} including these sections: {', '.join(sorted(effective_sections))}"

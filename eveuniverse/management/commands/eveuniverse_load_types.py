@@ -2,10 +2,9 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from eveuniverse import __title__
+from eveuniverse import __title__, tasks
 from eveuniverse.core.esitools import is_esi_online
 from eveuniverse.models import EveUniverseEntityModel
-from eveuniverse.tasks import load_eve_types
 from eveuniverse.utils import LoggerAddTag
 
 from . import get_input
@@ -128,11 +127,11 @@ class Command(BaseCommand):
             user_input = "y"
         if user_input.lower() != "n":
             if category_ids or group_ids or type_ids:
-                load_eve_types.delay(
+                tasks.load_eve_types.delay(
                     category_ids=category_ids, group_ids=group_ids, type_ids=type_ids
                 )
             if category_ids_with_dogma or group_ids_with_dogma or type_ids_with_dogma:
-                load_eve_types.delay(
+                tasks.load_eve_types.delay(
                     category_ids=category_ids_with_dogma,
                     group_ids=group_ids_with_dogma,
                     type_ids=type_ids_with_dogma,

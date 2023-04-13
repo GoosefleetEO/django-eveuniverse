@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Ability to load all types with load_data command and also specify sections for all load topics
 - Mechanism preventing the same task running more then once (celery_once)
 - Show copy button for code snippets in docs
+- Ability to specify priority of child tasks when fetching objects from ESI
 
 ### Changes
 
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Allow loading data from multiple areas with the same load_data command
 - Remove autoretry on common ESI errors, which are already covered by django-esi
 - Add autoretry for operational DB errors as attempts to survive occasional deadlocks when loading lots of data from ESI
+- Load tasks run with a lower task by default and priority can be configured by setting
 
 ### Fixed
 

@@ -46,8 +46,14 @@ EVEUNIVERSE_LOAD_TYPE_MATERIALS = clean_setting(
 )
 """When true will automatically load type materials be with every type."""
 
+EVEUNIVERSE_LOAD_TASKS_PRIORITY = clean_setting("EVEUNIVERSE_LOAD_TASKS_PRIORITY", 6)
+"""Priority of tasks for data loads.
+This priority should be below 5 to not interfere with normal task operation.
+"""
+
 EVEUNIVERSE_TASKS_TIME_LIMIT = clean_setting("EVEUNIVERSE_TASKS_TIME_LIMIT", 7200)
 """Global timeout for tasks in seconds to reduce task accumulation during outages."""
+
 
 EVEUNIVERSE_USE_EVESKINSERVER = clean_setting("EVEUNIVERSE_USE_EVESKINSERVER", True)
 """When True a call to EveType.icon_url for a SKIN type will return a eveskinserver URL

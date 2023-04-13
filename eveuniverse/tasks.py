@@ -6,7 +6,7 @@ from celery_once import QueueOnce as BaseQueueOnce
 from django.db.utils import OperationalError
 
 from . import __title__, models
-from .app_settings import EVEUNIVERSE_TASKS_TIME_LIMIT
+from .app_settings import EVEUNIVERSE_LOAD_TASKS_PRIORITY, EVEUNIVERSE_TASKS_TIME_LIMIT
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS, EveCategoryId
 from .models import EveEntity, EveMarketPrice, EveType, EveUniverseEntityModel
 from .providers import esi
@@ -62,6 +62,7 @@ def update_or_create_eve_object(
     include_children=False,
     wait_for_children=True,
     enabled_sections: List[str] = None,
+    task_priority: int = None,
 ) -> None:
     """Update or create an eve object from ESI.
 
@@ -71,6 +72,7 @@ def update_or_create_eve_object(
         include_children: if child objects should be updated/created as well (only when a new object is created)
         wait_for_children: when true child objects will be updated/created blocking (if any), else async (only when a new object is created)
         enabled_sections: Sections to load regardless of current settings, e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
+        task_priority: priority of started tasks
     """
     logger.info("Updating/Creating %s with ID %s", model_name, id)
     ModelClass = EveUniverseEntityModel.get_model_class(model_name)
@@ -79,6 +81,7 @@ def update_or_create_eve_object(
         include_children=include_children,
         wait_for_children=wait_for_children,
         enabled_sections=enabled_sections,
+        task_priority=task_priority,
     )
 
 
@@ -166,6 +169,7 @@ def load_map(enabled_sections: List[str] = None) -> None:
             include_children=True,
             wait_for_children=False,
             enabled_sections=enabled_sections,
+            task_priority=EVEUNIVERSE_LOAD_TASKS_PRIORITY,
         )
 
 
@@ -209,6 +213,7 @@ def _load_category_with_children(
         include_children=True,
         wait_for_children=False,
         enabled_sections=enabled_sections,
+        task_priority=EVEUNIVERSE_LOAD_TASKS_PRIORITY,
     )
 
 
@@ -221,6 +226,7 @@ def _load_group_with_children(group_id: int, force_loading_dogma: bool = False) 
         include_children=True,
         wait_for_children=False,
         enabled_sections=enabled_sections,
+        task_priority=EVEUNIVERSE_LOAD_TASKS_PRIORITY,
     )
 
 
@@ -233,6 +239,7 @@ def _load_type_with_children(type_id: int, force_loading_dogma: bool = False) ->
         include_children=False,
         wait_for_children=False,
         enabled_sections=enabled_sections,
+        task_priority=EVEUNIVERSE_LOAD_TASKS_PRIORITY,
     )
 
 
