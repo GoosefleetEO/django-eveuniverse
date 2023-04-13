@@ -143,14 +143,19 @@ def _update_unresolved_eve_entities_for_page(ids: Iterable[int]) -> None:
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
-def load_map() -> None:
+def load_map(enabled_sections: List[str] = None) -> None:
     """Load the complete Eve map with all regions, constellation and solar systems
     and additional related entities if they are enabled.
+
+    Args:
+        enabled_sections: Sections to load regardless of current settings
     """
     logger.info(
         "Loading complete map with all regions, constellations, solar systems "
         "and the following additional entities if related to the map: %s",
-        ", ".join(EveUniverseEntityModel.determine_effective_sections()),
+        ", ".join(
+            EveUniverseEntityModel.determine_effective_sections(enabled_sections)
+        ),
     )
     category, method = models.EveRegion._esi_path_list()
     all_ids = getattr(getattr(esi.client, category), method)().results()
@@ -160,6 +165,7 @@ def load_map() -> None:
             id=id,
             include_children=True,
             wait_for_children=False,
+            enabled_sections=enabled_sections,
         )
 
 
@@ -183,7 +189,9 @@ def load_all_types(enabled_sections: List[str] = None) -> None:
     category_ids = sorted(result)
     logger.debug("Fetching categories for IDs: %s", category_ids)
     for category_id in category_ids:
-        _load_category_with_children(id=category_id, enabled_sections=enabled_sections)
+        _load_category_with_children(
+            category_id=category_id, enabled_sections=enabled_sections
+        )
 
 
 def _load_category_with_children(
@@ -229,17 +237,29 @@ def _load_type_with_children(type_id: int, force_loading_dogma: bool = False) ->
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
-def load_ship_types() -> None:
-    """Loads all ship types"""
+def load_ship_types(enabled_sections: List[str] = None) -> None:
+    """Load all ship types.
+
+    Args:
+        enabled_sections: Sections to load regardless of current settings
+    """
     logger.info("Started loading all ship types into eveuniverse")
-    _load_category_with_children(EveCategoryId.SHIP.value)
+    _load_category_with_children(
+        category_id=EveCategoryId.SHIP.value, enabled_sections=enabled_sections
+    )
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
-def load_structure_types() -> None:
-    """Loads all structure types"""
+def load_structure_types(enabled_sections: List[str] = None) -> None:
+    """Load all structure types.
+
+    Args:
+        enabled_sections: Sections to load regardless of current settings
+    """
     logger.info("Started loading all structure types into eveuniverse")
-    _load_category_with_children(EveCategoryId.STRUCTURE.value)
+    _load_category_with_children(
+        category_id=EveCategoryId.STRUCTURE.value, enabled_sections=enabled_sections
+    )
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)

@@ -90,9 +90,7 @@ class TestLoadDataCommand(NoSocketsTestCase):
         tasks = {o.task: {"kwargs": o.kwargs, "args": o.args} for o in args[0]}
         self.assertSetEqual({"eveuniverse.tasks.load_all_types"}, set(tasks.keys()))
         self.assertSetEqual(
-            set(
-                tasks["eveuniverse.tasks.load_all_types"]["kwargs"]["enabled_sections"]
-            ),
+            set(tasks["eveuniverse.tasks.load_all_types"]["args"][0]),
             {"dogmas", "type_materials"},
         )
 

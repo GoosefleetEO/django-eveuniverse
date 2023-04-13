@@ -46,7 +46,14 @@ class Command(BaseCommand):
             nargs="+",
             default=None,
             choices=[o.value for o in EveType.Section],
-            help="List of enabled sections for types topic",
+            help="List of enabled sections for types, ships and structures topics",
+        )
+        parser.add_argument(
+            "--map-enabled-sections",
+            nargs="+",
+            default=None,
+            choices=[o.value for o in EveType.Section],
+            help="List of enabled sections for map topic",
         )
 
     def handle(self, *args, **options):
@@ -70,30 +77,30 @@ class Command(BaseCommand):
                 "- all types", options["types_enabled_sections"]
             )
             self.stdout.write(text)
-            my_tasks.append(tasks.load_all_types.si(enabled_sections=enabled_sections))
+            my_tasks.append(tasks.load_all_types.si(enabled_sections))
 
         else:  # TYPES is a superset which includes SHIPS and STRUCTURES
             if Topic.SHIPS in options[TOKEN_TOPIC]:
                 text, enabled_sections = self._text_with_enabled_sections(
-                    "- ship types"
+                    "- ship types", options["types_enabled_sections"]
                 )
                 self.stdout.write(text)
-                my_tasks.append(tasks.load_ship_types.si())
+                my_tasks.append(tasks.load_ship_types.si(enabled_sections))
 
             if Topic.STRUCTURES in options[TOKEN_TOPIC]:
                 text, enabled_sections = self._text_with_enabled_sections(
-                    "- structure types"
+                    "- structure types", options["types_enabled_sections"]
                 )
                 self.stdout.write(text)
-                my_tasks.append(tasks.load_structure_types.si())
+                my_tasks.append(tasks.load_structure_types.si(enabled_sections))
 
         if Topic.MAP in options[TOKEN_TOPIC]:
             text, enabled_sections = self._text_with_enabled_sections(
-                "- all regions, constellations and solar systems"
+                "- all regions, constellations and solar systems",
+                options["map_enabled_sections"],
             )
             self.stdout.write(text)
-
-            my_tasks.append(tasks.load_map.si())
+            my_tasks.append(tasks.load_map.si(enabled_sections))
 
         if not my_tasks:
             raise NotImplementedError("No implemented topic selected.")
