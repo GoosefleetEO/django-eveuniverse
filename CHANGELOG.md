@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [0.20.0] - tbd
+## [1.0.0] - tbd
 
 - Enhanced functionality of eveuniverse_load_data command
 - Improved stability when loading large amounts of data
+- Requires a mandatory configuration update for celery_once (except for Alliance Auth installations)
 - Fixes
 
 ### Added
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changes
 
+- **Breaking change**: Requires the celery app to have a celery once configuration. Please see section "Installation / Setup celery" in the operation manual for details. Note for Alliance Auth users: This setup is fully compatible with how Alliance Auth uses celery_once.
 - Allow loading data from multiple areas with the same load_data command
 - Remove autoretry on common ESI errors, which are already covered by django-esi
 - Add autoretry for operational DB errors as attempts to survive occasional deadlocks when loading lots of data from ESI

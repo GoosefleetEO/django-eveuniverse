@@ -1,7 +1,7 @@
 import logging
 from typing import Iterable, List
 
-from celery import current_app, shared_task
+from celery import shared_task
 from celery_once import QueueOnce as BaseQueueOnce
 from django.db.utils import OperationalError
 
@@ -26,12 +26,6 @@ from .utils import LoggerAddTag, chunks
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 # logging.getLogger("esi").setLevel(logging.INFO)
-
-# configure celery once
-current_app.conf.ONCE = {
-    "backend": "eveuniverse.backends.DjangoBackend",
-    "settings": {},
-}
 
 
 class QueueOnce(BaseQueueOnce):
