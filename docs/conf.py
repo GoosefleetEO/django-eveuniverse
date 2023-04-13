@@ -45,6 +45,7 @@ extensions = [
     "myst_parser",
     "sphinx_rtd_theme",
     "sphinxcontrib_django2",
+    "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

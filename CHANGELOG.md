@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Ability to load all types with load_data command and also specify sections if needed
 - Mechanism preventing the same task running more then once (celery_once)
+- Show copy button for code snippets in docs
 
 ### Changes
 
