@@ -1,8 +1,8 @@
 import logging
 from typing import Iterable, List
 
-from bravado.exception import HTTPBadGateway, HTTPGatewayTimeout, HTTPServiceUnavailable
 from celery import shared_task
+from django.db.utils import OperationalError
 
 from . import __title__, models
 from .app_settings import (
@@ -40,12 +40,7 @@ TASK_DEFAULT_KWARGS = {
 TASK_ESI_KWARGS = {
     **TASK_DEFAULT_KWARGS,
     **{
-        "autoretry_for": (
-            OSError,
-            HTTPBadGateway,
-            HTTPGatewayTimeout,
-            HTTPServiceUnavailable,
-        ),
+        "autoretry_for": [OperationalError],
         "retry_kwargs": {"max_retries": 3},
         "retry_backoff": True,
     },

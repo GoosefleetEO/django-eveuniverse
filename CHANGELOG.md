@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changes
 
 - Allow loading data from multiple areas with the same load_data command
+- Remove autoretry on common ESI errors, which are already covered by django-esi
+- Add autoretry for operational DB errors as attempts to survive occasional deadlocks when loading lots of data from ESI
 
 ## [0.19.1] - 2023-04-05
 
