@@ -98,7 +98,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             A tuple consisting of the requested object and a created flag
         """
         id = int(id)
-        enabled_sections = self.model._enabled_sections_union(enabled_sections)
+        enabled_sections = self.model.determine_effective_sections(enabled_sections)
         try:
             enabled_sections_filter = self._enabled_sections_filter(enabled_sections)
             obj = self.filter(**enabled_sections_filter).get(id=id)
@@ -139,7 +139,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             A tuple consisting of the requested object and a created flag
         """
         id = int(id)
-        enabled_sections = self.model._enabled_sections_union(enabled_sections)
+        enabled_sections = self.model.determine_effective_sections(enabled_sections)
         eve_data_obj = self._transform_esi_response_for_list_endpoints(
             id, self._fetch_from_esi(id=id, enabled_sections=enabled_sections)
         )
@@ -387,7 +387,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         from .tasks import update_or_create_eve_object
 
         add_prefix = make_logger_prefix(f"{self.model.__name__}")
-        enabled_sections = self.model._enabled_sections_union(enabled_sections)
+        enabled_sections = self.model.determine_effective_sections(enabled_sections)
         if self.model._is_list_only_endpoint():
             try:
                 esi_pk = self.model._esi_pk()
@@ -455,7 +455,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             Queryset with all requested eve objects
         """
         ids = set(map(int, ids))
-        enabled_sections = self.model._enabled_sections_union(enabled_sections)
+        enabled_sections = self.model.determine_effective_sections(enabled_sections)
         enabled_sections_filter = self._enabled_sections_filter(enabled_sections)
         existing_ids = set(
             self.filter(id__in=ids)
@@ -633,7 +633,7 @@ class EveTypeManager(EveUniverseEntityModelManager):
             wait_for_children=wait_for_children,
             enabled_sections=enabled_sections,
         )
-        enabled_sections = self.model._enabled_sections_union(enabled_sections)
+        enabled_sections = self.model.determine_effective_sections(enabled_sections)
         if enabled_sections and self.model.Section.TYPE_MATERIALS in enabled_sections:
             from .models import EveTypeMaterial
 

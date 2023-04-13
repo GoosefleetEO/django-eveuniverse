@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from eveuniverse import __title__, tasks
 from eveuniverse.core.esitools import is_esi_online
-from eveuniverse.models import EveType
+from eveuniverse.models import EveType, EveUniverseEntityModel
 from eveuniverse.utils import LoggerAddTag
 
 from . import get_input
@@ -65,35 +65,39 @@ class Command(BaseCommand):
         self.stdout.write(
             "This command will fetch the following data from ESI and store it locally:"
         )
-        if Topic.MAP in options[TOKEN_TOPIC]:
-            self.stdout.write("- all regions, constellations and solar systems")
-            my_tasks.append(tasks.load_map.si())
-
         if Topic.TYPES in options[TOKEN_TOPIC]:
-            text = "- all types"
-            enabled_sections = options["types_enabled_sections"]
-            if enabled_sections:
-                text += f" including {', '.join(sorted(enabled_sections))}"
+            text, enabled_sections = self._text_with_enabled_sections(
+                "- all types", options["types_enabled_sections"]
+            )
             self.stdout.write(text)
             my_tasks.append(tasks.load_all_types.si(enabled_sections=enabled_sections))
 
         else:  # TYPES is a superset which includes SHIPS and STRUCTURES
             if Topic.SHIPS in options[TOKEN_TOPIC]:
-                self.stdout.write("- ship types")
+                text, enabled_sections = self._text_with_enabled_sections(
+                    "- ship types"
+                )
+                self.stdout.write(text)
                 my_tasks.append(tasks.load_ship_types.si())
 
             if Topic.STRUCTURES in options[TOKEN_TOPIC]:
-                self.stdout.write("- structure types")
+                text, enabled_sections = self._text_with_enabled_sections(
+                    "- structure types"
+                )
+                self.stdout.write(text)
                 my_tasks.append(tasks.load_structure_types.si())
+
+        if Topic.MAP in options[TOKEN_TOPIC]:
+            text, enabled_sections = self._text_with_enabled_sections(
+                "- all regions, constellations and solar systems"
+            )
+            self.stdout.write(text)
+
+            my_tasks.append(tasks.load_map.si())
 
         if not my_tasks:
             raise NotImplementedError("No implemented topic selected.")
 
-        additional_objects = tasks._eve_object_names_to_be_loaded()
-        if additional_objects:
-            self.stdout.write(
-                f"- the following related entities: {','.join(additional_objects)}"
-            )
         self.stdout.write("")
         self.stdout.write(
             "Note that this process can take some time to complete. "
@@ -110,3 +114,13 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Data load started!"))
         else:
             self.stdout.write(self.style.WARNING("Aborted"))
+
+    def _text_with_enabled_sections(self, text, enabled_sections=None):
+        effective_sections = EveUniverseEntityModel.determine_effective_sections(
+            enabled_sections
+        )
+        if effective_sections:
+            new_text = f"{text} including these sections: {', '.join(sorted(effective_sections))}"
+        else:
+            new_text = text
+        return new_text, effective_sections

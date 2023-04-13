@@ -8,6 +8,7 @@ from ..models import EveCategory, EveGroup, EveType
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
 
+MODELS_PATH = "eveuniverse.models"
 PACKAGE_PATH = "eveuniverse.management.commands"
 
 
@@ -59,14 +60,31 @@ class TestLoadDataCommand(NoSocketsTestCase):
         # given
         mock_get_input.return_value = "y"
         # when
-        call_command(
-            "eveuniverse_load_data",
-            "types",
-            "--types-enabled-sections",
-            "dogmas",
-            "type_materials",
-            stdout=StringIO(),
-        )
+        with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False
+        ), patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
+        ):
+            call_command(
+                "eveuniverse_load_data",
+                "types",
+                "--types-enabled-sections",
+                "dogmas",
+                "type_materials",
+                stdout=StringIO(),
+            )
         # then
         args, _ = mock_chain.call_args
         tasks = {o.task: {"kwargs": o.kwargs, "args": o.args} for o in args[0]}

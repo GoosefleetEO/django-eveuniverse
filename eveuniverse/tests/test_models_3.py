@@ -911,6 +911,16 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.moons)
 
 
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False)
 @patch(MODELS_PATH + ".evesdeapi")
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):

@@ -265,32 +265,32 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     def __str__(self) -> str:
         return self.name
 
-    @classmethod
-    def _enabled_sections_union(cls, enabled_sections: Iterable[str] = None) -> set:
-        """returns union of global and given enabled sections.
-        Needs to be overloaded by sub class using sections
-        """
+    @staticmethod
+    def determine_effective_sections(
+        enabled_sections: Iterable[str] = None,
+    ) -> Set[str]:
+        """Determine currently effective sections."""
         enabled_sections = set(enabled_sections) if enabled_sections else set()
         if EVEUNIVERSE_LOAD_ASTEROID_BELTS:
-            enabled_sections.add(EvePlanet.Section.ASTEROID_BELTS)
+            enabled_sections.add(EvePlanet.Section.ASTEROID_BELTS.value)
         if EVEUNIVERSE_LOAD_DOGMAS:
-            enabled_sections.add(EveType.Section.DOGMAS)
+            enabled_sections.add(EveType.Section.DOGMAS.value)
         if EVEUNIVERSE_LOAD_GRAPHICS:
-            enabled_sections.add(EveType.Section.GRAPHICS)
+            enabled_sections.add(EveType.Section.GRAPHICS.value)
         if EVEUNIVERSE_LOAD_MARKET_GROUPS:
-            enabled_sections.add(EveType.Section.MARKET_GROUPS)
+            enabled_sections.add(EveType.Section.MARKET_GROUPS.value)
         if EVEUNIVERSE_LOAD_MOONS:
-            enabled_sections.add(EvePlanet.Section.MOONS)
+            enabled_sections.add(EvePlanet.Section.MOONS.value)
         if EVEUNIVERSE_LOAD_PLANETS:
-            enabled_sections.add(EveSolarSystem.Section.PLANETS)
+            enabled_sections.add(EveSolarSystem.Section.PLANETS.value)
         if EVEUNIVERSE_LOAD_STARGATES:
-            enabled_sections.add(EveSolarSystem.Section.STARGATES)
+            enabled_sections.add(EveSolarSystem.Section.STARGATES.value)
         if EVEUNIVERSE_LOAD_STARS:
-            enabled_sections.add(EveSolarSystem.Section.STARS)
+            enabled_sections.add(EveSolarSystem.Section.STARS.value)
         if EVEUNIVERSE_LOAD_STATIONS:
-            enabled_sections.add(EveSolarSystem.Section.STATIONS)
+            enabled_sections.add(EveSolarSystem.Section.STATIONS.value)
         if EVEUNIVERSE_LOAD_TYPE_MATERIALS:
-            enabled_sections.add(EveType.Section.TYPE_MATERIALS)
+            enabled_sections.add(EveType.Section.TYPE_MATERIALS.value)
         return enabled_sections
 
     @classmethod
@@ -1060,7 +1060,7 @@ class EvePlanet(EveUniverseEntityModel):
 
     @classmethod
     def _children(cls, enabled_sections: Iterable[str] = None) -> dict:
-        enabled_sections = cls._enabled_sections_union(enabled_sections)
+        enabled_sections = cls.determine_effective_sections(enabled_sections)
         children = dict()
         if cls.Section.ASTEROID_BELTS in enabled_sections:
             children["asteroid_belts"] = "EveAsteroidBelt"
@@ -1300,7 +1300,7 @@ class EveSolarSystem(EveUniverseEntityModel):
 
     @classmethod
     def _children(cls, enabled_sections: Iterable[str] = None) -> dict:
-        enabled_sections = cls._enabled_sections_union(enabled_sections)
+        enabled_sections = cls.determine_effective_sections(enabled_sections)
         children = dict()
         if cls.Section.PLANETS in enabled_sections:
             children["planets"] = "EvePlanet"
@@ -1312,7 +1312,7 @@ class EveSolarSystem(EveUniverseEntityModel):
 
     @classmethod
     def _disabled_fields(cls, enabled_sections: Set[str] = None) -> set:
-        enabled_sections = cls._enabled_sections_union(enabled_sections)
+        enabled_sections = cls.determine_effective_sections(enabled_sections)
         if cls.Section.STARS not in enabled_sections:
             return {"eve_star"}
         return {}
@@ -1602,7 +1602,7 @@ class EveType(EveUniverseEntityModel):
 
     @classmethod
     def _disabled_fields(cls, enabled_sections: Set[str] = None) -> set:
-        enabled_sections = cls._enabled_sections_union(enabled_sections)
+        enabled_sections = cls.determine_effective_sections(enabled_sections)
         disabled_fields = set()
         if cls.Section.GRAPHICS not in enabled_sections:
             disabled_fields.add("eve_graphic")
