@@ -47,5 +47,6 @@ setup(
         "django-esi>=4,<5",
         "django-bitfield>=2.2",
         "requests",
+        "celery_once>=3.0.1",
     ],
 )
