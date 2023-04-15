@@ -11,7 +11,11 @@ from django.db.utils import IntegrityError
 from django.utils.timezone import now
 
 from . import __title__
-from .app_settings import EVEUNIVERSE_BULK_METHODS_BATCH_SIZE, EVEUNIVERSE_ZZEVE_SDE_URL
+from .app_settings import (
+    EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
+    EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT,
+    EVEUNIVERSE_ZZEVE_SDE_URL,
+)
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS
 from .helpers import EveEntityNameResolver, get_or_create_esi_or_none
 from .providers import esi
@@ -703,6 +707,8 @@ class EveEntityManager(EveUniverseEntityModelManager):
         id: int,
         include_children: bool = False,
         wait_for_children: bool = True,
+        enabled_sections: Iterable[str] = None,
+        task_priority: int = None,
     ) -> Tuple[models.Model, bool]:
         """gets or creates an EvEntity object.
 
@@ -801,6 +807,8 @@ class EveEntityManager(EveUniverseEntityModelManager):
         *,
         include_children: bool = False,
         wait_for_children: bool = True,
+        enabled_sections: Iterable[str] = None,
+        task_priority: int = None,
     ) -> None:
         """not implemented - do not use"""
         raise NotImplementedError()
@@ -1043,7 +1051,7 @@ class EveTypeMaterialManager(models.Manager):
         type_material_data_all = cache.get(cls.SDE_CACHE_KEY)
         if not type_material_data_all:
             url = EVEUNIVERSE_ZZEVE_SDE_URL.rstrip("/") + "/" + cls.SDE_ZZEVE_ROUTE
-            r = requests.get(url)
+            r = requests.get(url, timeout=EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT)
             r.raise_for_status()
             type_material_data_all = dict()
             for row in r.json():

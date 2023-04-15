@@ -144,7 +144,7 @@ class EveUniverseBaseModel(models.Model):
         try:
             return classes[model_name]
         except KeyError:
-            raise ValueError("Unknown model_name: %s" % model_name)
+            raise ValueError("Unknown model_name: %s" % model_name) from None
 
     @classmethod
     def _esi_mapping(cls, enabled_sections: Set[str] = None) -> dict:
@@ -223,7 +223,7 @@ class EveUniverseBaseModel(models.Model):
                 raise ValueError(
                     "Mandatory attribute EveUniverseMeta.%s not defined "
                     "for class %s" % (attr_name, cls.__name__)
-                )
+                ) from None
 
         return value
 

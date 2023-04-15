@@ -3,6 +3,8 @@ from pathlib import Path
 
 import requests
 
+from eveuniverse.app_settings import EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT
+
 TYPE_IDS = [
     34,
     35,
@@ -30,7 +32,10 @@ category_ids = set()
 group_ids = set()
 print("Fetching types...")
 for type_id in TYPE_IDS:
-    r = requests.get(f"https://esi.evetech.net/latest/universe/types/{type_id}/")
+    r = requests.get(
+        f"https://esi.evetech.net/latest/universe/types/{type_id}/",
+        timeout=EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT,
+    )
     r.raise_for_status()
     info = r.json()
     esi_data["types"][type_id] = info
@@ -38,7 +43,10 @@ for type_id in TYPE_IDS:
 
 print("Fetching groups...")
 for group_id in group_ids:
-    r = requests.get(f"https://esi.evetech.net/latest/universe/groups/{group_id}/")
+    r = requests.get(
+        f"https://esi.evetech.net/latest/universe/groups/{group_id}/",
+        timeout=EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT,
+    )
     r.raise_for_status()
     info = r.json()
     esi_data["groups"][group_id] = info
@@ -47,7 +55,8 @@ for group_id in group_ids:
 print("Fetching categories...")
 for category_id in category_ids:
     r = requests.get(
-        f"https://esi.evetech.net/latest/universe/categories/{category_id}/"
+        f"https://esi.evetech.net/latest/universe/categories/{category_id}/",
+        timeout=EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT,
     )
     r.raise_for_status()
     info = r.json()

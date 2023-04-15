@@ -51,6 +51,12 @@ EVEUNIVERSE_LOAD_TASKS_PRIORITY = clean_setting("EVEUNIVERSE_LOAD_TASKS_PRIORITY
 This priority should be below 5 to not interfere with normal task operation.
 """
 
+EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT = clean_setting(
+    "EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT", 5
+)
+"""Default timeout for HTTP GET requests in seconds."""
+
+
 EVEUNIVERSE_TASKS_TIME_LIMIT = clean_setting("EVEUNIVERSE_TASKS_TIME_LIMIT", 7200)
 """Global timeout for tasks in seconds to reduce task accumulation during outages."""
 
