@@ -15,7 +15,7 @@ from .app_settings import EVEUNIVERSE_BULK_METHODS_BATCH_SIZE, EVEUNIVERSE_ZZEVE
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS
 from .helpers import EveEntityNameResolver, get_or_create_esi_or_none
 from .providers import esi
-from .utils import LoggerAddTag, chunks, make_logger_prefix
+from .utils import LoggerAddTag, chunks
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
@@ -410,24 +410,17 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             update_or_create_eve_object as task_update_or_create_eve_object,
         )
 
-        add_prefix = make_logger_prefix(f"{self.model.__name__}")
         enabled_sections = self.model.determine_effective_sections(enabled_sections)
-        if self.model._is_list_only_endpoint():
-            try:
-                esi_pk = self.model._esi_pk()
-                for eve_data_obj in self._fetch_from_esi():
-                    args = {"id": eve_data_obj[esi_pk]}
-                    args["defaults"] = self._defaults_from_esi_obj(
-                        eve_data_obj=eve_data_obj, enabled_sections=enabled_sections
-                    )
-                    self.update_or_create(**args)
 
-            except Exception as ex:
-                logger.warn(
-                    add_prefix("Failed to update or create: %s" % ex),
-                    exc_info=True,
+        if self.model._is_list_only_endpoint():
+            esi_pk = self.model._esi_pk()
+            for eve_data_obj in self._fetch_from_esi():
+                args = {"id": eve_data_obj[esi_pk]}
+                args["defaults"] = self._defaults_from_esi_obj(
+                    eve_data_obj=eve_data_obj, enabled_sections=enabled_sections
                 )
-                raise ex
+                self.update_or_create(**args)
+
         else:
             if self.model._has_esi_path_list():
                 category, method = self.model._esi_path_list()

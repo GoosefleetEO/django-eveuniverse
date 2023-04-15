@@ -149,6 +149,10 @@ class TestEveAsteroidBelt(NoSocketsTestCase):
 @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", True)
 @patch(MANAGERS_PATH + ".esi")
 class TestEveCategory(NoSocketsTestCase):
+    """These tests are also covering the manager functionality shared among
+    all entity models.
+    """
+
     def test_when_not_exists_load_object_from_esi(self, mock_esi):
         mock_esi.client = EsiClientStub()
 

@@ -411,7 +411,7 @@ class TestEveTypeWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.type_materials)
 
 
-class EveTypeSection(NoSocketsTestCase):
+class TestEveTypeSection(NoSocketsTestCase):
     def test_should_return_value_as_str(self):
         self.assertEqual(str(EveType.Section.DOGMAS), "dogmas")
 
@@ -1070,7 +1070,7 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
 @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
 @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
 @patch(MANAGERS_PATH + ".esi")
-class EveCategoryUpdateAll(NoSocketsTestCase):
+class TestEveCategoryUpdateAll(NoSocketsTestCase):
     def test_should_update_without_children_and_sync(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -1085,6 +1085,30 @@ class EveCategoryUpdateAll(NoSocketsTestCase):
         )
         self.assertEqual(EveGroup.objects.count(), 0)
         self.assertEqual(EveType.objects.count(), 0)
+
+    def test_should_update_without_children_and_sync_task_priority(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveCategory.objects.update_or_create_all_esi(
+            include_children=False, wait_for_children=True, task_priority=7
+        )
+        # then
+        self.assertSetEqual(
+            set(EveCategory.objects.values_list("id", flat=True)),
+            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+        )
+        self.assertEqual(EveGroup.objects.count(), 0)
+        self.assertEqual(EveType.objects.count(), 0)
+
+    def test_should_raise_exception_on_error(self, mock_esi):
+        # given
+        mock_esi.client.Universe.get_universe_categories.side_effect = OSError
+        # when/then
+        with self.assertRaises(OSError):
+            EveCategory.objects.update_or_create_all_esi(
+                include_children=False, wait_for_children=True
+            )
 
     def test_should_update_with_children_and_sync(self, mock_esi):
         # given
@@ -1148,7 +1172,7 @@ class EveCategoryUpdateAll(NoSocketsTestCase):
         mock_esi.client = EsiClientStub()
         # when
         EveCategory.objects.update_or_create_all_esi(
-            include_children=True, wait_for_children=False
+            include_children=True, wait_for_children=False, task_priority=7
         )
         # then
         self.assertSetEqual(

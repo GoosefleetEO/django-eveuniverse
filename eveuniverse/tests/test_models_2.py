@@ -181,11 +181,47 @@ class TestEveType(NoSocketsTestCase):
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
     def test_can_create_type_from_esi_including_children_as_task(self, mock_esi):
+        # given
         mock_esi.client = EsiClientStub()
-
+        # when
         eve_type, created = EveType.objects.update_or_create_esi(
             id=603, wait_for_children=False, enabled_sections=[EveType.LOAD_DOGMAS]
         )
+        # then
+        self.assertTrue(created)
+        self.assertEqual(eve_type.id, 603)
+        self.assertSetEqual(
+            set(
+                eve_type.dogma_attributes.values_list(
+                    "eve_dogma_attribute_id", flat=True
+                )
+            ),
+            {588, 129},
+        )
+        self.assertSetEqual(
+            set(eve_type.dogma_effects.values_list("eve_dogma_effect_id", flat=True)),
+            {1816, 1817},
+        )
+
+    @override_settings(
+        CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True
+    )
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    def test_can_create_type_from_esi_including_children_as_task_with_priority(
+        self, mock_esi
+    ):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        eve_type, created = EveType.objects.update_or_create_esi(
+            id=603,
+            wait_for_children=False,
+            enabled_sections=[EveType.LOAD_DOGMAS],
+            task_priority=7,
+        )
+        # then
         self.assertTrue(created)
         self.assertEqual(eve_type.id, 603)
         self.assertSetEqual(
@@ -377,7 +413,6 @@ class TestEveUnit(NoSocketsTestCase):
 
 
 class TestEsiMapping(NoSocketsTestCase):
-
     maxDiff = None
 
     def test_single_pk(self):
