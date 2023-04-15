@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from bravado.exception import HTTPNotFound
+from django.test.utils import override_settings
 from django.utils.timezone import now
 
 from ..helpers import meters_to_ly
@@ -149,8 +150,8 @@ class TestEveAsteroidBelt(NoSocketsTestCase):
 @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", True)
 @patch(MANAGERS_PATH + ".esi")
 class TestEveCategory(NoSocketsTestCase):
-    """These tests are also covering the manager functionality shared among
-    all entity models.
+    """These tests also cover the manager functionality shared among
+    all entity models. (1/2)
     """
 
     def test_when_not_exists_load_object_from_esi(self, mock_esi):
@@ -221,6 +222,170 @@ class TestEveCategory(NoSocketsTestCase):
         self.assertSetEqual(
             set(eve_type.dogma_effects.values_list("eve_dogma_effect_id", flat=True)),
             {1816, 1817},
+        )
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+@patch(MANAGERS_PATH + ".esi")
+class TestEveCategoryUpdateAll(NoSocketsTestCase):
+    """These tests also cover the manager functionality shared among
+    all entity models. (2/2)
+    """
+
+    def test_should_update_without_children_and_sync(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveCategory.objects.update_or_create_all_esi(
+            include_children=False, wait_for_children=True
+        )
+        # then
+        self.assertSetEqual(
+            set(EveCategory.objects.values_list("id", flat=True)),
+            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+        )
+        self.assertEqual(EveGroup.objects.count(), 0)
+        self.assertEqual(EveType.objects.count(), 0)
+
+    def test_should_update_without_children_and_sync_task_priority(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveCategory.objects.update_or_create_all_esi(
+            include_children=False, wait_for_children=True, task_priority=7
+        )
+        # then
+        self.assertSetEqual(
+            set(EveCategory.objects.values_list("id", flat=True)),
+            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+        )
+        self.assertEqual(EveGroup.objects.count(), 0)
+        self.assertEqual(EveType.objects.count(), 0)
+
+    def test_should_raise_exception_on_error(self, mock_esi):
+        # given
+        mock_esi.client.Universe.get_universe_categories.side_effect = OSError
+        # when/then
+        with self.assertRaises(OSError):
+            EveCategory.objects.update_or_create_all_esi(
+                include_children=False, wait_for_children=True
+            )
+
+    def test_should_update_with_children_and_sync(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveCategory.objects.update_or_create_all_esi(
+            include_children=True, wait_for_children=True
+        )
+        # then
+        self.assertSetEqual(
+            set(EveCategory.objects.values_list("id", flat=True)),
+            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+        )
+        self.assertSetEqual(
+            set(EveGroup.objects.values_list("id", flat=True)),
+            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
+        )
+        self.assertSetEqual(
+            set(EveType.objects.values_list("id", flat=True)),
+            {
+                13,
+                14,
+                15,
+                16,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                34599,
+                950,
+                21947,
+                29627,
+                21949,
+                21951,
+                21953,
+                21955,
+                21957,
+                21959,
+                21961,
+                21967,
+                3800,
+                603,
+                608,
+                2016,
+                621,
+                45038,
+                35825,
+                626,
+                1529,
+                1376,
+                5,
+                52678,
+            },
+        )
+
+    def test_should_update_with_children_and_async(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveCategory.objects.update_or_create_all_esi(
+            include_children=True, wait_for_children=False, task_priority=7
+        )
+        # then
+        self.assertSetEqual(
+            set(EveCategory.objects.values_list("id", flat=True)),
+            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+        )
+        self.assertSetEqual(
+            set(EveGroup.objects.values_list("id", flat=True)),
+            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
+        )
+        self.assertSetEqual(
+            set(EveType.objects.values_list("id", flat=True)),
+            {
+                5,
+                13,
+                14,
+                15,
+                16,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                950,
+                1376,
+                34599,
+                21947,
+                29627,
+                21949,
+                21951,
+                21953,
+                21955,
+                21957,
+                21959,
+                21961,
+                21967,
+                3800,
+                603,
+                608,
+                2016,
+                621,
+                45038,
+                35825,
+                626,
+                1529,
+                52678,
+            },
         )
 
 
