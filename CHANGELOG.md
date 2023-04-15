@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Load tasks run with a lower task by default and priority can be configured by setting
 - Removed support for Django 4.0 (removed from CI pipeline)
 - Updated build process to PEP 518 specs (pyproject.toml)
+- Moved configuration for isort and pylint to pyproject.toml
 
 ### Fixed
 

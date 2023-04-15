@@ -51,3 +51,17 @@ include = [
 
 [tool.isort]
 profile = "black"
+
+[tool.pylint.'MASTER']
+ignore-patterns="test_.*.py,__init__.py,generate_.*.py"
+
+[tool.pylint.'BASIC']
+# Good variable names which should always be accepted, separated by a comma
+good-names="i,j,k,x,f,ex"
+
+[tool.pylint.'FORMAT']
+# Maximum number of characters on a single line.
+max-line-length=100
+
+[tool.pylint.'MESSAGES CONTROL']
+disable="R,C"
