@@ -9,17 +9,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.0.0] - tbd
 
+### Highlights
+
 - Enhanced functionality of eveuniverse_load_data command
-- Improved stability when loading large amounts of data
-- Requires a mandatory configuration update for celery_once (except for Alliance Auth installations)
-- Fixes
+- Improved stability for loading large amounts of data
+- Adds support for Python 3.11
+- Minimum required Django version increased to Django 3.2
 
 ### Breaking changes
 
-- Requires the celery app to have a celery once configuration. Please see section "Installation / Setup celery" in the operation manual for details. Note for Alliance Auth users: This setup is fully compatible with how Alliance Auth uses celery_once.
+The following is a list of potential breaking changes introduced with this release:
+
+- Introduced celery_once, which requires the celery app of every installation to have a celery once configuration. Please see section "Installation / Setup celery" in the operation manual for details. Note for Alliance Auth users: This setup is fully compatible with how Alliance Auth uses celery_once.
 - Removed deprecated constants: `EVE_CATEGORY_ID_SHIP`, `EVE_CATEGORY_ID_BLUEPRINT`, `EVE_CATEGORY_ID_STRUCTURE`, `EVE_CATEGORY_ID_SKIN`, `EVE_GROUP_ID_PLANET`, `EVE_GROUP_ID_MOON`, `EVE_GROUP_ID_ASTEROID_BELT`, `EVE_GROUP_ID_STARGATE`, `EVE_GROUP_ID_STATION`. Please use `EveCategoryId` or `EveGroupId` instead.
 - Removed support for Django 2.2 (hard dependency change)
-- Removed `eveuniverse.utils.make_logger_prefix`
+- Removed: `eveuniverse.utils.make_logger_prefix`
 
 ### Added
 
