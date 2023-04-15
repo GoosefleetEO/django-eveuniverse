@@ -9,7 +9,7 @@ from eveuniverse.core.esitools import is_esi_online
 from eveuniverse.models import EveType, EveUniverseEntityModel
 from eveuniverse.utils import LoggerAddTag
 
-from . import get_input
+from . import EXPECTATION_TEXT, get_input
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
@@ -106,12 +106,7 @@ class Command(BaseCommand):
             raise NotImplementedError("No implemented topic selected.")
 
         self.stdout.write("")
-        self.stdout.write(
-            "Note that this process can take some time to complete. "
-            "It will create many tasks to load the data and "
-            "you can watch the progress on the dashboard. "
-            "It is likely finished as soon as the task queue is empty again."
-        )
+        self.stdout.write(EXPECTATION_TEXT)
         if not options["noinput"]:
             user_input = get_input("Are you sure you want to proceed? (Y/n)? ")
         else:

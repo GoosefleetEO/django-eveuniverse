@@ -1,3 +1,5 @@
+"""Backend for Celery Once."""
+
 from celery_once import AlreadyQueued
 from django.core.cache import cache
 
