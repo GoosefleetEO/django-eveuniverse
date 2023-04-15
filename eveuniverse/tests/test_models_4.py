@@ -237,8 +237,8 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
     def test_can_bulk_update_new_from_esi(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
-        EveEntity.objects.create(id=1001)
-        EveEntity.objects.create(id=2001)
+        create_eve_entity(id=1001)
+        create_eve_entity(id=2001)
         # when
         result = EveEntity.objects.bulk_update_new_esi()
         # then
@@ -255,8 +255,8 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
     def test_bulk_update_all_esi(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
-        e1 = EveEntity.objects.create(id=1001)
-        e2 = EveEntity.objects.create(id=2001)
+        e1 = create_eve_entity(id=1001)
+        e2 = create_eve_entity(id=2001)
         # when
         EveEntity.objects.bulk_update_all_esi()
         # then
@@ -548,7 +548,7 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
 class TestEveEntityProfileUrl(NoSocketsTestCase):
     def test_should_handle_alliance(self):
         # given
-        obj = EveEntity.objects.create(
+        obj = create_eve_entity(
             id=3001, name="Wayne Enterprises", category=EveEntity.CATEGORY_ALLIANCE
         )
         # when/then
@@ -558,7 +558,7 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
     def test_should_handle_character(self):
         # given
-        obj = EveEntity.objects.create(
+        obj = create_eve_entity(
             id=1001, name="Bruce Wayne", category=EveEntity.CATEGORY_CHARACTER
         )
         # when/then
@@ -566,7 +566,7 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
     def test_should_handle_corporation(self):
         # given
-        obj = EveEntity.objects.create(
+        obj = create_eve_entity(
             id=2001, name="Wayne Technologies", category=EveEntity.CATEGORY_CORPORATION
         )
         # when/then
@@ -576,7 +576,7 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
     def test_should_handle_faction(self):
         # given
-        obj = EveEntity.objects.create(
+        obj = create_eve_entity(
             id=99, name="Amarr Empire", category=EveEntity.CATEGORY_FACTION
         )
         # when/then
@@ -586,7 +586,7 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
     def test_should_handle_inventory_type(self):
         # given
-        obj = EveEntity.objects.create(
+        obj = create_eve_entity(
             id=603, name="Merlin", category=EveEntity.CATEGORY_INVENTORY_TYPE
         )
         # when/then
@@ -596,7 +596,7 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
     def test_should_handle_solar_system(self):
         # given
-        obj = EveEntity.objects.create(
+        obj = create_eve_entity(
             id=30004984, name="Abune", category=EveEntity.CATEGORY_SOLAR_SYSTEM
         )
         # when/then
@@ -604,7 +604,7 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
     def test_should_handle_station(self):
         # given
-        obj = EveEntity.objects.create(
+        obj = create_eve_entity(
             id=60003760,
             name="Jita IV - Moon 4 - Caldari Navy Assembly Plant",
             category=EveEntity.CATEGORY_STATION,
@@ -617,7 +617,7 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
     def test_should_return_empty_string_for_undefined_category(self):
         # given
-        obj = EveEntity.objects.create(
+        obj = create_eve_entity(
             id=99, name="Wayne Technologies", category=EveEntity.CATEGORY_CONSTELLATION
         )
         self.assertEqual(obj.profile_url, "")
@@ -647,7 +647,7 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
     def test_create_only_non_existing_entities(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
-        EveEntity.objects.create(
+        create_eve_entity(
             id=1001, name="Bruce Wayne", category=EveEntity.CATEGORY_CHARACTER
         )
         result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
@@ -666,7 +666,7 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
     def test_entities_without_name_will_be_refetched(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
-        EveEntity.objects.create(id=1001, category=EveEntity.CATEGORY_CORPORATION)
+        create_eve_entity(id=1001, category=EveEntity.CATEGORY_CORPORATION)
         result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
         self.assertEqual(result, 2)
 
@@ -681,12 +681,41 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
         self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
 
-# @patch(MANAGERS_PATH + ".esi")
-# class TestEveEntityUpdateFromEsiById(NoSocketsTestCase):
-#     def test_create_new_entities(self, mock_esi):
-#         # given
-#         mock_esi.client = EsiClientStub()
-#         # when
-#         result = EveEntity.objects.update_from_esi_by_id(ids=[1001, 2001])
-#         # then
-#         self.assertEqual(result,)
+@patch(MANAGERS_PATH + ".esi")
+class TestEveEntityUpdateFromEsiById(NoSocketsTestCase):
+    def test_should_update_entity(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        obj = create_eve_entity(
+            id=1001, name="Bruce Wayne", category=EveEntity.CATEGORY_CORPORATION
+        )
+        # when
+        result = EveEntity.objects.update_from_esi_by_id(ids=[1001])
+        # then
+        self.assertEqual(result, 1)
+        obj.refresh_from_db()
+        self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
+
+    def test_should_return_0_when_no_id_given(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        result = EveEntity.objects.update_from_esi_by_id(ids=[])
+        # then
+        self.assertEqual(result, 0)
+
+    def test_should_ignore_invalid_ids(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        result = EveEntity.objects.update_from_esi_by_id(ids=[1])
+        # then
+        self.assertEqual(result, 0)
+
+    def test_should_handle_none(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        result = EveEntity.objects.update_from_esi_by_id(ids=None)
+        # then
+        self.assertEqual(result, 0)
