@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changes
 
 - **Breaking change**: Requires the celery app to have a celery once configuration. Please see section "Installation / Setup celery" in the operation manual for details. Note for Alliance Auth users: This setup is fully compatible with how Alliance Auth uses celery_once.
+- **Breaking change**: Removed deprecated constants: `EVE_CATEGORY_ID_SHIP`, `EVE_CATEGORY_ID_BLUEPRINT`, `EVE_CATEGORY_ID_STRUCTURE`, `EVE_CATEGORY_ID_SKIN`, `EVE_GROUP_ID_PLANET`, `EVE_GROUP_ID_MOON`, `EVE_GROUP_ID_ASTEROID_BELT`, `EVE_GROUP_ID_STARGATE`, `EVE_GROUP_ID_STATION`. Please use `EveCategoryId` or `EveGroupId` instead.
 - Allow loading data from multiple areas with the same load_data command
 - Remove autoretry on common ESI errors, which are already covered by django-esi
 - Add autoretry for operational DB errors as attempts to survive occasional deadlocks when loading lots of data from ESI
