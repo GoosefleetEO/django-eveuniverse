@@ -34,6 +34,7 @@ django.setup()
 import logging
 
 from django.core.cache import cache
+
 from eveuniverse.models import *
 from eveuniverse.providers import esi
 
@@ -42,7 +43,6 @@ logger = logging.getLogger("__name__")
 
 
 def main():
-
     # EveType.objects.update_or_create_esi(603)
     # EveType.objects.update_or_create_esi(608)
     EveStation.objects.update_or_create(id=60015068)

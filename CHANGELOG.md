@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.0.0] - tbd
+
+### Highlights
+
+- Enhanced functionality of eveuniverse_load_data command
+- Improved stability for loading large amounts of data
+- Adds support for Python 3.11
+- Minimum required Django version increased to Django 3.2
+
+### Breaking changes
+
+The following is a list of potential breaking changes introduced with this release:
+
+- Introduced celery_once, which requires the celery app of every installation to have a celery once configuration. Please see section "Installation / Setup celery" in the operation manual for details. Note for Alliance Auth users: This setup is fully compatible with how Alliance Auth uses celery_once.
+- Removed deprecated constants: `EVE_CATEGORY_ID_SHIP`, `EVE_CATEGORY_ID_BLUEPRINT`, `EVE_CATEGORY_ID_STRUCTURE`, `EVE_CATEGORY_ID_SKIN`, `EVE_GROUP_ID_PLANET`, `EVE_GROUP_ID_MOON`, `EVE_GROUP_ID_ASTEROID_BELT`, `EVE_GROUP_ID_STARGATE`, `EVE_GROUP_ID_STATION`. Please use `EveCategoryId` or `EveGroupId` instead.
+- Removed support for Django 2.2 (hard dependency change)
+- Removed: `eveuniverse.utils.make_logger_prefix`
+
+### Added
+
+- Ability to load all types with load_data command and also specify sections for all load topics
+- Mechanism preventing the same task running more then once (celery_once)
+- Show copy button for code snippets in docs
+- Ability to specify priority of child tasks when fetching objects from ESI
+- Added support for Django 4.2
+- Added support for Python 3.11
+
+### Changes
+
+- Allow loading data from multiple areas with the same load_data command
+- Remove autoretry on common ESI errors, which are already covered by django-esi
+- Add autoretry for operational DB errors as attempts to survive occasional deadlocks when loading lots of data from ESI
+- Load tasks run with a lower task by default and priority can be configured by setting
+- Removed support for Django 4.0 (removed from CI pipeline)
+- Updated build process to PEP 518 specs (pyproject.toml)
+- Moved configuration for isort and pylint to pyproject.toml
+
+### Fixed
+
+- eveuniverse_load_data does not do anything when called for structures
+- IDs can be 0 (e.g. category ID)
+
 ## [0.19.1] - 2023-04-05
 
 ### Fixed

@@ -29,12 +29,23 @@ By default only the core models are automatically loaded on-demand. If you want 
 
 This app uses [Celery](https://docs.celeryproject.org/en/stable/index.html) for loading large sets of data, e.g. with the load commands. Please make sure celery is setup and working for your Django project.
 
+In addition you need to configure celery_once for celery. Eve Universe comes with generic Django backend, which should work with most Django installations and which can be setup like so:
+
+```python
+celery_app.conf.ONCE = {
+    "backend": "eveuniverse.backends.DjangoBackend",
+    "settings": {},
+}
+```
+
+Or you can use one of the backends provided with celery_once. See [here](https://github.com/cameronmaske/celery-once#backends) for more information.
+
 ```{note}
 **Note on celery worker setup**
 
-For an efficient loading of large amounts of data from ESI we recommend a thread based setup of celery workers with at least 10 concurrent workers.
+For an efficient loading of large amounts of data from ESI we recommend a thread based setup of celery workers with at least 10 concurrent workers. (e.g. `celery -A myapp worker --pool threads --concurrency 10` )
 
-For example on our test system with 20 `gevent <http://www.gevent.org/>`_ threads the loading of the complete Eve Online map (with the command: **eveuniverse_load_data map**) consisting of all regions, constellation and solar systems took only about 15 minutes.
+For example on our test system with 20 threads the loading of the complete Eve Online map (with the command: **eveuniverse_load_data map**) consisting of all regions, constellation and solar systems took only about 15 minutes.
 ```
 
 ### Finalize installation
@@ -99,11 +110,12 @@ The following management commands are available:
 
 ### eveuniverse_load_data
 
-This command will load a complete set of data form ESI and store it locally. Useful to optimize performance or when you want to provide the user with drop-down lists. Available sets:
+This command will load large sets of data from ESI into local database for selected topics. This is useful to optimize performance or when you want to provide the user with drop-down lists covering all values in a topic (e.g. ship types). Available topics are:
 
 - **map**: All regions, constellations and solar systems
 - **ships**: All ship types
 - **structures**: All structures types
+- **types**: All types
 
 ### eveuniverse_purge_all
 

@@ -2,11 +2,12 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from ... import __title__
-from ...core.esitools import is_esi_online
-from ...tasks import _eve_object_names_to_be_loaded, load_eve_types
-from ...utils import LoggerAddTag
-from . import get_input
+from eveuniverse import __title__, tasks
+from eveuniverse.core.esitools import is_esi_online
+from eveuniverse.models import EveUniverseEntityModel
+from eveuniverse.utils import LoggerAddTag
+
+from . import EXPECTATION_TEXT, get_input
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
@@ -109,34 +110,31 @@ class Command(BaseCommand):
         self.write_to_be_loaded("Categories", category_ids, category_ids_with_dogma)
         self.write_to_be_loaded("Groups", group_ids, group_ids)
         self.write_to_be_loaded("Types", type_ids, type_ids_with_dogma)
-        additional_objects = _eve_object_names_to_be_loaded()
+        additional_objects = list(EveUniverseEntityModel.determine_effective_sections())
         if additional_objects:
             self.stdout.write(
                 "It will also load the following additional entities when related to "
                 "objects loaded for the app: "
                 f"{','.join(additional_objects)}"
             )
-        self.stdout.write(
-            "Note that this process can take a while to complete "
-            "and may cause some significant load to your system."
-        )
+        self.stdout.write(EXPECTATION_TEXT)
         if not options["noinput"]:
             user_input = get_input("Are you sure you want to proceed? (Y/n)? ")
         else:
             user_input = "y"
         if user_input.lower() != "n":
             if category_ids or group_ids or type_ids:
-                load_eve_types.delay(
+                tasks.load_eve_types.delay(
                     category_ids=category_ids, group_ids=group_ids, type_ids=type_ids
                 )
             if category_ids_with_dogma or group_ids_with_dogma or type_ids_with_dogma:
-                load_eve_types.delay(
+                tasks.load_eve_types.delay(
                     category_ids=category_ids_with_dogma,
                     group_ids=group_ids_with_dogma,
                     type_ids=type_ids_with_dogma,
                     force_loading_dogma=True,
                 )
-            self.stdout.write(self.style.SUCCESS("Data loading has been started!"))
+            self.stdout.write(self.style.SUCCESS("Data load started!"))
         else:
             self.stdout.write(self.style.WARNING("Aborted"))
 

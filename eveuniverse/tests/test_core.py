@@ -2,10 +2,9 @@ from unittest.mock import Mock, patch
 
 import requests_mock
 from bravado.exception import HTTPInternalServerError
-from requests.exceptions import HTTPError
-
 from django.core.cache import cache
 from django.test import TestCase
+from requests.exceptions import HTTPError
 
 from ..constants import EveGroupId
 from ..core import (
@@ -450,9 +449,26 @@ class TestEveXml(NoSocketsTestCase):
                 "",
             ),
         ]
-        for test, input, expected in my_tests:
-            with self.subTest(test=test):
-                self.assertEqual(evexml.eve_link_to_url(input), expected)
+        with patch("eveuniverse.models.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
+            "eveuniverse.models.EVEUNIVERSE_LOAD_DOGMAS", False
+        ), patch("eveuniverse.models.EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
+            "eveuniverse.models.EVEUNIVERSE_LOAD_MARKET_GROUPS", False
+        ), patch(
+            "eveuniverse.models.EVEUNIVERSE_LOAD_MOONS", False
+        ), patch(
+            "eveuniverse.models.EVEUNIVERSE_LOAD_PLANETS", False
+        ), patch(
+            "eveuniverse.models.EVEUNIVERSE_LOAD_STARGATES", False
+        ), patch(
+            "eveuniverse.models.EVEUNIVERSE_LOAD_STARS", False
+        ), patch(
+            "eveuniverse.models.EVEUNIVERSE_LOAD_STATIONS", False
+        ), patch(
+            "eveuniverse.models.EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
+        ):
+            for test, input, expected in my_tests:
+                with self.subTest(test=test):
+                    self.assertEqual(evexml.eve_link_to_url(input), expected)
 
 
 @patch("eveuniverse.core.esitools.esi")

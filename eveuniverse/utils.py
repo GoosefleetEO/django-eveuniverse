@@ -22,11 +22,6 @@ class LoggerAddTag(logging.LoggerAdapter):
 logger = LoggerAddTag(logging.getLogger(__name__), __package__)
 
 
-def make_logger_prefix(tag: str):
-    """creates a function to add logger prefix, which returns tag when used empty"""
-    return lambda text="": "{}{}".format(tag, (": " + text) if text else "")
-
-
 def chunks(lst, size):
     """Yield successive sized chunks from lst."""
     for i in range(0, len(lst), size):

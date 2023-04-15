@@ -1,7 +1,6 @@
 from unittest.mock import Mock, patch
 
 import requests
-
 from django.test import TestCase
 
 from ..utils import NoSocketsTestCase, SocketAccessError, chunks, clean_setting
@@ -102,6 +101,5 @@ class TestCleanSetting(TestCase):
 
 class TestNoSocketsTestCase(NoSocketsTestCase):
     def test_raises_exception_on_attempted_network_access(self):
-
         with self.assertRaises(SocketAccessError):
             requests.get("https://www.google.com")

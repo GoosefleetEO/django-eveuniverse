@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ..models import (
+from eveuniverse.models import (
     EveCategory,
     EveConstellation,
     EveDogmaAttribute,
@@ -13,8 +13,9 @@ from ..models import (
     EveSolarSystem,
     EveType,
 )
-from ..tasks import (
+from eveuniverse.tasks import (
     create_eve_entities,
+    load_all_types,
     load_eve_object,
     load_map,
     load_ship_types,
@@ -24,8 +25,9 @@ from ..tasks import (
     update_or_create_inline_object,
     update_unresolved_eve_entities,
 )
-from ..utils import NoSocketsTestCase
-from .testdata.esi import EsiClientStub
+from eveuniverse.utils import NoSocketsTestCase
+
+from .testdata.esi import BravadoOperationStub, EsiClientStub
 
 TASKS_PATH = "eveuniverse.tasks"
 MANAGERS_PATH = "eveuniverse.managers"
@@ -153,3 +155,41 @@ class TestLoadData(TestCase):
 
         for id in [35825]:
             self.assertTrue(EveType.objects.filter(id=id).exists())
+
+
+@patch(TASKS_PATH + ".update_or_create_eve_object")
+@patch(TASKS_PATH + ".esi")
+class TestLoadAllTypes(NoSocketsTestCase):
+    def test_should_load_all_types(self, mock_esi, mock_update_or_create_eve_object):
+        # given
+        mock_esi.client.Universe.get_universe_categories.return_value = (
+            BravadoOperationStub([1, 2])
+        )
+        # when
+        load_all_types()
+        # then
+        self.assertEqual(mock_update_or_create_eve_object.delay.call_count, 2)
+
+    def test_should_abort_when_esi_returns_no_data(
+        self, mock_esi, mock_update_or_create_eve_object
+    ):
+        # given
+        mock_esi.client.Universe.get_universe_categories.return_value = (
+            BravadoOperationStub(None)
+        )
+        # when/then
+        with self.assertRaises(ValueError):
+            load_all_types()
+
+    def test_should_load_all_types_with_enabled_sections(
+        self, mock_esi, mock_update_or_create_eve_object
+    ):
+        # given
+        mock_esi.client.Universe.get_universe_categories.return_value = (
+            BravadoOperationStub([1])
+        )
+        # when
+        load_all_types(["alpha", "bravo"])
+        # then
+        _, kwargs = mock_update_or_create_eve_object.delay.call_args
+        self.assertEqual(kwargs["enabled_sections"], ["alpha", "bravo"])

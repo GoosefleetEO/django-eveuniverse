@@ -7,9 +7,8 @@
 import os
 import sys
 
-import sphinx_rtd_theme  # noqa
-
 import django
+import sphinx_rtd_theme  # noqa
 
 sys.path.insert(0, os.path.abspath(".."))
 os.environ["DJANGO_SETTINGS_MODULE"] = "testsite.settings"
@@ -46,6 +45,7 @@ extensions = [
     "myst_parser",
     "sphinx_rtd_theme",
     "sphinxcontrib_django2",
+    "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

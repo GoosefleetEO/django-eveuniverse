@@ -5,8 +5,9 @@ from dataclasses import dataclass
 from typing import Optional
 
 import requests
-
 from django.core.cache import cache
+
+from eveuniverse.app_settings import EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT
 from eveuniverse.helpers import dict_hash
 
 _CACHE_TIMEOUT = 3_600 * 12
@@ -72,8 +73,10 @@ def _fetch_items_from_endpoint_cached(
     result = cache.get(key=cache_key)
     if not result:
         url = f"{_BASE_URL}/universe/systems/{solar_system_id}/nearest_celestials"
-        logger.info(f"Sending request: {url}")
-        r = requests.get(url, params=params)
+        logger.info("Sending request: %s", url)
+        r = requests.get(
+            url, params=params, timeout=EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT
+        )
         r.raise_for_status()
         result = r.json()
         cache.set(key=cache_key, value=result, timeout=_CACHE_TIMEOUT)

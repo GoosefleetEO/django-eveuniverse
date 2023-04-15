@@ -5,8 +5,9 @@ from typing import Optional
 from urllib.parse import urlencode
 
 import requests
-
 from django.core.cache import cache
+
+from eveuniverse.app_settings import EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT
 
 _CACHE_TIMEOUT = 3_600 * 12
 _BASE_URL = "https://www.kalkoken.org/apps/evemicros/eveUniverse.php"
@@ -55,7 +56,9 @@ def _fetch_result_from_api_cached(
     cache_key = f"EVEUNIVERSE_NEAREST_CELESTIAL_{query}"
     result = cache.get(key=cache_key)
     if not result:
-        r = requests.get(f"{_BASE_URL}?{query}")
+        r = requests.get(
+            f"{_BASE_URL}?{query}", timeout=EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT
+        )
         r.raise_for_status()
         data = r.json()
         if "ok" not in data or not data["ok"] or "result" not in data:

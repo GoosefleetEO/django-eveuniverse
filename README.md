@@ -19,12 +19,13 @@ Complete set of Eve Online Universe models in Django with on-demand loading from
 
 Here is an overview of the main features:
 
-- Complete set of Eve Universe objects as Django models like regions, types or planets.
+- Complete set of ESI's Eve Universe objects as Django models like regions, types or planets.
 - On-demand loading mechanism that allows retrieving Eve universe objects ad-hoc from ESI
 - Management commands for preloading often used sets of data like the map or ships types
 - Eve models come with additional useful features, e.g. a route finder between solar systems or image URLs for types
 - Special model EveEntity for quickly resolving Eve Online IDs to names
 - Optional asynchronous loading of eve models and loading of all related children. (e.g. load all types for a specific group)
+- Additional models for selected data from the SDE that is not covered by ESI, e.g. type materials
 
 ## Documentation
 

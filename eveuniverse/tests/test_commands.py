@@ -8,56 +8,125 @@ from ..models import EveCategory, EveGroup, EveType
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
 
+MODELS_PATH = "eveuniverse.models"
 PACKAGE_PATH = "eveuniverse.management.commands"
 
 
 @patch(PACKAGE_PATH + ".eveuniverse_load_data.is_esi_online", lambda: True)
 @patch(PACKAGE_PATH + ".eveuniverse_load_data.get_input")
+@patch(PACKAGE_PATH + ".eveuniverse_load_data.chain")
 class TestLoadDataCommand(NoSocketsTestCase):
-    @patch(PACKAGE_PATH + ".eveuniverse_load_data.load_map")
-    def test_load_data_map(self, mock_load_map, mock_get_input):
+    def test_load_data_map(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "y"
         # when
         call_command("eveuniverse_load_data", "map", stdout=StringIO())
         # then
-        self.assertTrue(mock_load_map.delay.called)
+        args, _ = mock_chain.call_args
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_map"}, tasks)
 
-    @patch(PACKAGE_PATH + ".eveuniverse_load_data.load_ship_types")
-    def test_load_data_ship_types(self, mock_load_ship_types, mock_get_input):
+    def test_load_data_ship_types(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "y"
         # when
         call_command("eveuniverse_load_data", "ships", stdout=StringIO())
         # then
-        self.assertTrue(mock_load_ship_types.delay.called)
+        args, _ = mock_chain.call_args
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_ship_types"}, tasks)
 
-    @patch(PACKAGE_PATH + ".eveuniverse_load_data.load_structure_types")
-    def test_load_data_structure_types(self, mock_load_structure_types, mock_get_input):
+    def test_load_data_structure_types(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "y"
         # when
         call_command("eveuniverse_load_data", "structures", stdout=StringIO())
         # then
-        self.assertTrue(mock_load_structure_types.delay.called)
+        args, _ = mock_chain.call_args
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_structure_types"}, tasks)
 
-    @patch(PACKAGE_PATH + ".eveuniverse_load_data.load_map")
-    def test_can_abort(self, mock_load_map, mock_get_input):
+    def test_should_load_all_types_with_sections(self, mock_chain, mock_get_input):
+        # given
+        mock_get_input.return_value = "y"
+        # when
+        call_command("eveuniverse_load_data", "types", stdout=StringIO())
+        # then
+        args, _ = mock_chain.call_args
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_all_types"}, tasks)
+
+    def test_should_load_all_types(self, mock_chain, mock_get_input):
+        # given
+        mock_get_input.return_value = "y"
+        # when
+        with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False
+        ), patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False
+        ), patch(
+            MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
+        ):
+            call_command(
+                "eveuniverse_load_data",
+                "types",
+                "--types-enabled-sections",
+                "dogmas",
+                "type_materials",
+                stdout=StringIO(),
+            )
+        # then
+        args, _ = mock_chain.call_args
+        tasks = {o.task: {"kwargs": o.kwargs, "args": o.args} for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_all_types"}, set(tasks.keys()))
+        self.assertSetEqual(
+            set(tasks["eveuniverse.tasks.load_all_types"]["args"][0]),
+            {"dogmas", "type_materials"},
+        )
+
+    def test_can_abort(self, mock_chain, mock_get_input):
         # given
         mock_get_input.return_value = "n"
         # when
         call_command("eveuniverse_load_data", "map", stdout=StringIO())
         # then
-        self.assertFalse(mock_load_map.delay.called)
+        self.assertFalse(mock_chain.called)
 
-    @patch(PACKAGE_PATH + ".eveuniverse_load_data.load_map")
-    def test_should_skip_confirmation_question(self, mock_load_map, mock_get_input):
+    def test_should_skip_confirmation_question(self, mock_chain, mock_get_input):
         # given
         mock_get_input.side_effect = RuntimeError
         # when
         call_command("eveuniverse_load_data", "map", "--noinput", stdout=StringIO())
         # then
-        self.assertTrue(mock_load_map.delay.called)
+        args, _ = mock_chain.call_args
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual({"eveuniverse.tasks.load_map"}, tasks)
+
+    def test_should_load_structures_and_ships(self, mock_chain, mock_get_input):
+        # given
+        mock_get_input.return_value = "y"
+        # when
+        call_command("eveuniverse_load_data", "structures", "ships", stdout=StringIO())
+        # then
+        args, _ = mock_chain.call_args
+        tasks = {o.task for o in args[0]}
+        self.assertSetEqual(
+            {
+                "eveuniverse.tasks.load_structure_types",
+                "eveuniverse.tasks.load_ship_types",
+            },
+            tasks,
+        )
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)

@@ -27,7 +27,6 @@ def migrate_forward(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("eveuniverse", "0001_initial"),
     ]

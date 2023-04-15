@@ -2,14 +2,10 @@ from unittest.mock import patch
 
 import requests_mock
 
-from django.test.utils import override_settings
-
 from ..constants import EveGroupId
 from ..core import evesdeapi
 from ..models import (
     EveAsteroidBelt,
-    EveCategory,
-    EveGroup,
     EveMoon,
     EvePlanet,
     EveSolarSystem,
@@ -412,7 +408,7 @@ class TestEveTypeWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.type_materials)
 
 
-class EveTypeSection(NoSocketsTestCase):
+class TestEveTypeSection(NoSocketsTestCase):
     def test_should_return_value_as_str(self):
         self.assertEqual(str(EveType.Section.DOGMAS), "dogmas")
 
@@ -912,6 +908,16 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.moons)
 
 
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False)
 @patch(MODELS_PATH + ".evesdeapi")
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
@@ -1054,139 +1060,3 @@ class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
             result.eve_object, EveMoon.objects.get_or_create_esi(id=40349472)[0]
         )
         self.assertEqual(result.distance, 1000)
-
-
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
-@patch(MANAGERS_PATH + ".esi")
-class EveCategoryUpdateAll(NoSocketsTestCase):
-    def test_should_update_without_children_and_sync(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        EveCategory.objects.update_or_create_all_esi(
-            include_children=False, wait_for_children=True
-        )
-        # then
-        self.assertSetEqual(
-            set(EveCategory.objects.values_list("id", flat=True)),
-            {1, 2, 3, 4, 6, 9, 17, 65, 91},
-        )
-        self.assertEqual(EveGroup.objects.count(), 0)
-        self.assertEqual(EveType.objects.count(), 0)
-
-    def test_should_update_with_children_and_sync(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        EveCategory.objects.update_or_create_all_esi(
-            include_children=True, wait_for_children=True
-        )
-        # then
-        self.assertSetEqual(
-            set(EveCategory.objects.values_list("id", flat=True)),
-            {1, 2, 3, 4, 6, 9, 17, 65, 91},
-        )
-        self.assertSetEqual(
-            set(EveGroup.objects.values_list("id", flat=True)),
-            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
-        )
-        self.assertSetEqual(
-            set(EveType.objects.values_list("id", flat=True)),
-            {
-                13,
-                14,
-                15,
-                16,
-                34,
-                35,
-                36,
-                37,
-                38,
-                39,
-                40,
-                34599,
-                950,
-                21947,
-                29627,
-                21949,
-                21951,
-                21953,
-                21955,
-                21957,
-                21959,
-                21961,
-                21967,
-                3800,
-                603,
-                608,
-                2016,
-                621,
-                45038,
-                35825,
-                626,
-                1529,
-                1376,
-                5,
-                52678,
-            },
-        )
-
-    def test_should_update_with_children_and_async(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        EveCategory.objects.update_or_create_all_esi(
-            include_children=True, wait_for_children=False
-        )
-        # then
-        self.assertSetEqual(
-            set(EveCategory.objects.values_list("id", flat=True)),
-            {1, 2, 3, 4, 6, 9, 17, 65, 91},
-        )
-        self.assertSetEqual(
-            set(EveGroup.objects.values_list("id", flat=True)),
-            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
-        )
-        self.assertSetEqual(
-            set(EveType.objects.values_list("id", flat=True)),
-            {
-                5,
-                13,
-                14,
-                15,
-                16,
-                34,
-                35,
-                36,
-                37,
-                38,
-                39,
-                40,
-                950,
-                1376,
-                34599,
-                21947,
-                29627,
-                21949,
-                21951,
-                21953,
-                21955,
-                21957,
-                21959,
-                21961,
-                21967,
-                3800,
-                603,
-                608,
-                2016,
-                621,
-                45038,
-                35825,
-                626,
-                1529,
-                52678,
-            },
-        )
