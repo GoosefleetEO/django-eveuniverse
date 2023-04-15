@@ -51,61 +51,51 @@ test-38-django32:
   extends: .test-py38
   script:
   - tox -e py38-django32
-  - bash <(curl -s https://codecov.io/bash)
 
 test-38-django41:
   extends: .test-py38
   script:
   - tox -e py38-django41
-  - bash <(curl -s https://codecov.io/bash)
 
 test-38-django42:
   extends: .test-py38
   script:
   - tox -e py38-django42
-  - bash <(curl -s https://codecov.io/bash)
 
 test-39-django32:
   extends: .test-py39
   script:
   - tox -e py39-django32
-  - bash <(curl -s https://codecov.io/bash)
 
 test-39-django41:
   extends: .test-py39
   script:
   - tox -e py39-django41
-  - bash <(curl -s https://codecov.io/bash)
 
 test-39-django42:
   extends: .test-py39
   script:
   - tox -e py39-django42
-  - bash <(curl -s https://codecov.io/bash)
 
 test-310-django32:
   extends: .test-py310
   script:
   - tox -e py310-django32
-  - bash <(curl -s https://codecov.io/bash)
 
 test-310-django41:
   extends: .test-py310
   script:
   - tox -e py310-django41
-  - bash <(curl -s https://codecov.io/bash)
 
 test-310-django42:
   extends: .test-py310
   script:
   - tox -e py310-django42
-  - bash <(curl -s https://codecov.io/bash)
 
 test-311-django41:
   extends: .test-py311
   script:
   - tox -e py311-django41
-  - bash <(curl -s https://codecov.io/bash)
 
 test-311-django42:
   extends: .test-py311
