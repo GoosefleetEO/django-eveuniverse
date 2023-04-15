@@ -48,3 +48,6 @@ path = "eveuniverse/__init__.py"
 include = [
     "/eveuniverse",
 ]
+
+[tool.isort]
+profile = "black"
