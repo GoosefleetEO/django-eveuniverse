@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "django-eveuniverse"
+dynamic = ["version"]
+description = "Complete set of Eve Universe models with on-demand loading from ESI"
+readme = "README.md"
+license = "MIT"
+requires-python = "~=3.8"
+authors = [
+    { name = "Erik Kalkoken", email = "kalkoken87@gmail.com" },
+]
+classifiers = [
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+dependencies = [
+    "celery>=4.0.2",
+    "celery_once>=3.0.1",
+    "django-bitfield>=2.2",
+    "django-esi>=4,<5",
+    "django>=3.2",
+    "requests",
+]
+
+[project.urls]
+Homepage = "https://gitlab.com/ErikKalkoken/django-eveuniverse"
+
+[tool.hatch.version]
+path = "eveuniverse/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/eveuniverse",
+]
