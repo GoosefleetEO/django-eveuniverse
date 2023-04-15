@@ -1946,6 +1946,12 @@
                         "id": 1001,
                         "name": "Bruce Wayne"
                     }
+                ],
+                "invalid": [
+                    {
+                        "id": 666,
+                        "name": "Invalid"
+                    }
                 ]
             }
         }

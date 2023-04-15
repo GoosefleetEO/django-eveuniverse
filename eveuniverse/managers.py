@@ -779,23 +779,22 @@ class EveEntityManager(EveUniverseEntityModelManager):
             Count of updated entities
         """
         ids = set(map(int, ids))
-        with transaction.atomic():
-            existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
-            new_ids = ids.difference(existing_ids)
+        existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
+        new_ids = ids.difference(existing_ids)
 
-        if new_ids:
-            objects = [self.model(id=id) for id in new_ids]
-            self.bulk_create(
-                objects,
-                batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
-                ignore_conflicts=True,
-            )
-            to_update_qs = self.filter(id__in=new_ids) | self.filter(
-                id__in=ids.difference(new_ids), name=""
-            )
-            return to_update_qs.update_from_esi()
+        if not new_ids:
+            return 0
 
-        return 0
+        objects = [self.model(id=id) for id in new_ids]
+        self.bulk_create(
+            objects,
+            batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
+            ignore_conflicts=True,
+        )
+        to_update_qs = self.filter(id__in=new_ids) | self.filter(
+            id__in=ids.difference(new_ids), name=""
+        )
+        return to_update_qs.update_from_esi()
 
     def update_or_create_all_esi(
         self,
@@ -860,7 +859,7 @@ class EveEntityManager(EveUniverseEntityModelManager):
                         category = self._map_category_key_to_category(category_key)
                     except ValueError:
                         logger.warning(
-                            "Ignoring entities with unknown category %s:",
+                            "Ignoring entities with unknown category %s: %s",
                             category_key,
                             entities,
                         )
