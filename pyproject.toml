@@ -44,7 +44,7 @@ Homepage = "https://gitlab.com/ErikKalkoken/django-eveuniverse"
 [tool.hatch.version]
 path = "eveuniverse/__init__.py"
 
-[tool.hatch.build.targets.sdist]
+[tool.hatch.build]
 include = [
     "/eveuniverse",
 ]
