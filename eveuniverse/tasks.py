@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 from celery import shared_task
 from celery_once import QueueOnce as BaseQueueOnce
@@ -50,7 +50,7 @@ def load_eve_object(
     """
     logger.info("Loading %s with ID %s", model_name, id)
     ModelClass = EveUniverseEntityModel.get_model_class(model_name)
-    ModelClass.objects.get_or_create_esi(
+    ModelClass.objects.get_or_create_esi(  # type: ignore
         id=id, include_children=include_children, wait_for_children=wait_for_children
     )
 
@@ -61,8 +61,8 @@ def update_or_create_eve_object(
     id: int,
     include_children=False,
     wait_for_children=True,
-    enabled_sections: List[str] = None,
-    task_priority: int = None,
+    enabled_sections: Optional[List[str]] = None,
+    task_priority: Optional[int] = None,
 ) -> None:
     """Update or create an eve object from ESI.
 
@@ -76,7 +76,7 @@ def update_or_create_eve_object(
     """
     logger.info("Updating/Creating %s with ID %s", model_name, id)
     ModelClass = EveUniverseEntityModel.get_model_class(model_name)
-    ModelClass.objects.update_or_create_esi(
+    ModelClass.objects.update_or_create_esi(  # type: ignore
         id=id,
         include_children=include_children,
         wait_for_children=wait_for_children,
@@ -94,7 +94,7 @@ def update_or_create_inline_object(
     parent2_model_name: str,
     inline_model_name: str,
     parent_model_name: str,
-    enabled_sections: List[str] = None,
+    enabled_sections: Optional[List[str]] = None,
 ) -> None:
     """Task for updating or creating a single inline object from ESI"""
     logger.info(
@@ -104,7 +104,7 @@ def update_or_create_inline_object(
         parent_obj_id,
     )
     ModelClass = EveUniverseEntityModel.get_model_class(parent_model_name)
-    ModelClass.objects._update_or_create_inline_object(
+    ModelClass.objects._update_or_create_inline_object(  # type: ignore
         parent_obj_id=parent_obj_id,
         parent_fk=parent_fk,
         eve_data_obj=eve_data_obj,
@@ -130,10 +130,10 @@ def update_unresolved_eve_entities() -> None:
 
     Will resolve entities in parallel to speed up resolving large sets.
     """
-    ids = list(EveEntity.objects.filter(name="").valid_ids())
+    ids = list(EveEntity.objects.filter(name="").valid_ids())  # type: ignore
     logger.info("Updating %d unresolved entities from ESI", len(ids))
     for chunk_ids in chunks(ids, POST_UNIVERSE_NAMES_MAX_ITEMS):
-        _update_unresolved_eve_entities_for_page.delay(chunk_ids)
+        _update_unresolved_eve_entities_for_page.delay(chunk_ids)  # type: ignore
 
 
 @shared_task(**TASK_ESI_DEFAULTS)
@@ -146,7 +146,7 @@ def _update_unresolved_eve_entities_for_page(ids: Iterable[int]) -> None:
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
-def load_map(enabled_sections: List[str] = None) -> None:
+def load_map(enabled_sections: Optional[List[str]] = None) -> None:
     """Load the complete Eve map with all regions, constellation and solar systems
     and additional related entities if they are enabled.
 
@@ -170,11 +170,11 @@ def load_map(enabled_sections: List[str] = None) -> None:
             wait_for_children=False,
             enabled_sections=enabled_sections,
             task_priority=EVEUNIVERSE_LOAD_TASKS_PRIORITY,
-        )
+        )  # type: ignore
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
-def load_all_types(enabled_sections: List[str] = None) -> None:
+def load_all_types(enabled_sections: Optional[List[str]] = None) -> None:
     """Load all eve types.
 
     Args:
@@ -201,7 +201,7 @@ def load_all_types(enabled_sections: List[str] = None) -> None:
 def _load_category_with_children(
     category_id: int,
     force_loading_dogma: bool = False,
-    enabled_sections: List[str] = None,
+    enabled_sections: Optional[List[str]] = None,
 ) -> None:
     """Start loading a category async incl. all it's children from ESI."""
     enabled_sections = enabled_sections or []
@@ -214,7 +214,7 @@ def _load_category_with_children(
         wait_for_children=False,
         enabled_sections=enabled_sections,
         task_priority=EVEUNIVERSE_LOAD_TASKS_PRIORITY,
-    )
+    )  # type: ignore
 
 
 def _load_group_with_children(group_id: int, force_loading_dogma: bool = False) -> None:
@@ -227,7 +227,7 @@ def _load_group_with_children(group_id: int, force_loading_dogma: bool = False) 
         wait_for_children=False,
         enabled_sections=enabled_sections,
         task_priority=EVEUNIVERSE_LOAD_TASKS_PRIORITY,
-    )
+    )  # type: ignore
 
 
 def _load_type_with_children(type_id: int, force_loading_dogma: bool = False) -> None:
@@ -240,11 +240,11 @@ def _load_type_with_children(type_id: int, force_loading_dogma: bool = False) ->
         wait_for_children=False,
         enabled_sections=enabled_sections,
         task_priority=EVEUNIVERSE_LOAD_TASKS_PRIORITY,
-    )
+    )  # type: ignore
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
-def load_ship_types(enabled_sections: List[str] = None) -> None:
+def load_ship_types(enabled_sections: Optional[List[str]] = None) -> None:
     """Load all ship types.
 
     Args:
@@ -257,7 +257,7 @@ def load_ship_types(enabled_sections: List[str] = None) -> None:
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
-def load_structure_types(enabled_sections: List[str] = None) -> None:
+def load_structure_types(enabled_sections: Optional[List[str]] = None) -> None:
     """Load all structure types.
 
     Args:
@@ -271,9 +271,9 @@ def load_structure_types(enabled_sections: List[str] = None) -> None:
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
 def load_eve_types(
-    category_ids: List[int] = None,
-    group_ids: List[int] = None,
-    type_ids: List[int] = None,
+    category_ids: Optional[List[int]] = None,
+    group_ids: Optional[List[int]] = None,
+    type_ids: Optional[List[int]] = None,
     force_loading_dogma: bool = False,
 ) -> None:
     """Load specified eve types from ESI. Will always load all children except for EveType
@@ -299,7 +299,7 @@ def load_eve_types(
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
-def update_market_prices(minutes_until_stale: int = None):
+def update_market_prices(minutes_until_stale: Optional[int] = None):
     """Updates market prices from ESI.
     see EveMarketPrice.objects.update_from_esi() for details"""
     EveMarketPrice.objects.update_from_esi(minutes_until_stale)

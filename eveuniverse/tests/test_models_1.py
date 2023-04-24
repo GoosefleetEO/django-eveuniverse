@@ -934,14 +934,13 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(thera.is_high_sec)
 
     @staticmethod
-    def esi_get_route_origin_destination(origin, destination, **kwargs) -> list:
+    def esi_get_route_origin_destination(origin, destination, **kwargs):
         routes = {
             30045339: {30045342: [30045339, 30045342]},
         }
         if origin in routes and destination in routes[origin]:
             return BravadoOperationStub(routes[origin][destination])
-        else:
-            raise HTTPNotFound(Mock(**{"response.status_code": 404}))
+        raise HTTPNotFound(Mock(**{"response.status_code": 404}))
 
     @patch("eveuniverse.models.esi")
     def test_can_calculate_jumps(self, mock_esi_2, mock_esi):

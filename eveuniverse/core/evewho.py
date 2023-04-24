@@ -13,7 +13,7 @@ class _Category(Enum):
 _BASE_URL = "https://evewho.com"
 
 
-def _build_url(category: str, eve_id: int) -> str:
+def _build_url(category: _Category, eve_id: int) -> str:
     """URL to profile page for an eve entity."""
 
     partials = {

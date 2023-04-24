@@ -23,7 +23,7 @@ class DjangoBackend:
     def raise_or_lock(key, timeout):
         acquired = cache.add(key=key, value="lock", timeout=timeout)
         if not acquired:
-            raise AlreadyQueued(int(cache.ttl(key)))
+            raise AlreadyQueued(int(cache.ttl(key)))  # type: ignore
 
     @staticmethod
     def clear_lock(key):

@@ -1,6 +1,7 @@
 """Fetching image URLs for Eve objects."""
 
 import enum
+from typing import Optional
 
 _EVE_IMAGE_SERVER_URL = "https://images.evetech.net"
 _DEFAULT_IMAGE_SIZE = 32
@@ -34,11 +35,11 @@ class EsiTenant(enum.Enum):
 
 
 def _eve_entity_image_url(
-    category: str,
+    category: EsiCategory,
     entity_id: int,
     size: int = 32,
-    variant: ImageVariant = None,
-    tenant: EsiTenant = None,
+    variant: Optional[ImageVariant] = None,
+    tenant: Optional[EsiTenant] = None,
 ) -> str:
     """returns image URL for an Eve Online ID.
     Supported categories: alliance, corporation, character, inventory_type
@@ -103,15 +104,16 @@ def _eve_entity_image_url(
             raise ValueError(
                 "Invalid variant {} for category {}".format(variant, category)
             )
+        my_variant = variant
     else:
-        variant = categories[category]["variants"][0]
+        my_variant = categories[category]["variants"][0]
 
     if tenant and type(tenant) is not EsiTenant:
         raise ValueError("Invalid tenant {}".format(tenant))
 
     # compose result URL
     result = "{}/{}/{}/{}?size={}".format(
-        _EVE_IMAGE_SERVER_URL, endpoint, entity_id, variant.value, size
+        _EVE_IMAGE_SERVER_URL, endpoint, entity_id, my_variant.value, size
     )
     if tenant:
         result += "&tenant={}".format(tenant.value)

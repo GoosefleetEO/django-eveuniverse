@@ -1,5 +1,6 @@
 import logging
 import socket
+from typing import Any, Optional
 
 from django.conf import settings
 from django.test import TestCase
@@ -30,11 +31,11 @@ def chunks(lst, size):
 
 def clean_setting(
     name: str,
-    default_value: object,
-    min_value: int = None,
-    max_value: int = None,
-    required_type: type = None,
-    choices: list = None,
+    default_value: Any,
+    min_value: Optional[int] = None,
+    max_value: Optional[int] = None,
+    required_type: Optional[type] = None,
+    choices: Optional[list] = None,
 ):
     """cleans the input for a custom setting
 
@@ -43,7 +44,7 @@ def clean_setting(
 
     Need to define `required_type` if `default_value` is `None`
 
-    Will assume `min_value` of 0 for int (can be overriden)
+    Will assume `min_value` of 0 for int (can be overridden)
 
     Returns cleaned value for setting
     """
