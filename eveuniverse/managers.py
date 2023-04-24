@@ -709,7 +709,7 @@ class EveEntityManager(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Iterable[str] = None,
         task_priority: int = None,
-    ) -> Tuple[models.Model, bool]:
+    ):
         """gets or creates an EvEntity object.
 
         The object is automatically fetched from ESI if it does not exist (blocking)

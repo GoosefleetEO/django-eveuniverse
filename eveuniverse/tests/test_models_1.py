@@ -100,7 +100,7 @@ class TestEveUniverseBaseModel(NoSocketsTestCase):
     def test_eve_universe_meta_attr_3(self):
         """When not defined and is_mandatory, then raise exception"""
         with self.assertRaises(ValueError):
-            EveType._eve_universe_meta_attr("undefined_param", is_mandatory=True)
+            EveType._eve_universe_meta_attr_strict("undefined_param")
 
     def test_eve_universe_meta_attr_4(self):
         """When EveUniverseMeta class not defined, then return None"""

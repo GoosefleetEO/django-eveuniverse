@@ -125,8 +125,8 @@ class EveUniverseBaseModel(models.Model):
                 mappings.append(
                     {
                         "model": ModelClass,
-                        "load_order": ModelClass._eve_universe_meta_attr(
-                            "load_order", is_mandatory=True
+                        "load_order": ModelClass._eve_universe_meta_attr_strict(
+                            "load_order"
                         ),
                     }
                 )
@@ -134,7 +134,7 @@ class EveUniverseBaseModel(models.Model):
         return [y["model"] for y in sorted(mappings, key=lambda x: x["load_order"])]
 
     @classmethod
-    def get_model_class(cls, model_name: str) -> models.Model:
+    def get_model_class(cls, model_name: str):
         """returns the model class for the given name"""
         classes = {
             x[0]: x[1]
@@ -147,7 +147,7 @@ class EveUniverseBaseModel(models.Model):
             raise ValueError("Unknown model_name: %s" % model_name) from None
 
     @classmethod
-    def _esi_mapping(cls, enabled_sections: Set[str] = None) -> dict:
+    def _esi_mapping(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         field_mappings = cls._eve_universe_meta_attr("field_mappings")
         functional_pk = cls._eve_universe_meta_attr("functional_pk")
         parent_fk = cls._eve_universe_meta_attr("parent_fk")
@@ -169,7 +169,7 @@ class EveUniverseBaseModel(models.Model):
 
             if field.primary_key is True:
                 is_pk = True
-                esi_name = cls._esi_pk()
+                esi_name = cls._esi_pk()  # FIXME: This might fail
             elif functional_pk and field.name in functional_pk:
                 is_pk = True
             else:
@@ -206,15 +206,24 @@ class EveUniverseBaseModel(models.Model):
         return mapping
 
     @classmethod
-    def _disabled_fields(cls, enabled_sections: Set[str] = None) -> set:
-        """returns name of fields that must not be loaded from ESI"""
-        return {}
+    def _disabled_fields(cls, enabled_sections: Optional[Set[str]] = None) -> set:
+        """Return name of fields that must not be loaded from ESI."""
+        return set()
 
     @classmethod
-    def _eve_universe_meta_attr(
+    def _eve_universe_meta_attr(cls, attr_name: str) -> Optional[Any]:
+        """Return value of an attribute from EveUniverseMeta or None"""
+        return cls._eve_universe_meta_attr_flexible(attr_name, is_mandatory=False)
+
+    @classmethod
+    def _eve_universe_meta_attr_strict(cls, attr_name: str) -> Any:
+        """Return value of an attribute from EveUniverseMeta or raise exception."""
+        return cls._eve_universe_meta_attr_flexible(attr_name, is_mandatory=True)
+
+    @classmethod
+    def _eve_universe_meta_attr_flexible(
         cls, attr_name: str, is_mandatory: bool = False
     ) -> Optional[Any]:
-        """returns value of an attribute from EveUniverseMeta or None"""
         try:
             value = getattr(cls.EveUniverseMeta, attr_name)
         except AttributeError:
@@ -267,7 +276,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
 
     @staticmethod
     def determine_effective_sections(
-        enabled_sections: Iterable[str] = None,
+        enabled_sections: Optional[Iterable[str]] = None,
     ) -> Set[str]:
         """Determine currently effective sections."""
         enabled_sections = set(enabled_sections) if enabled_sections else set()
@@ -303,10 +312,10 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     @classmethod
     def _esi_pk(cls) -> str:
         """returns the name of the pk column on ESI that must exist"""
-        return cls._eve_universe_meta_attr("esi_pk", is_mandatory=True)
+        return cls._eve_universe_meta_attr_strict("esi_pk")
 
     @classmethod
-    def _has_esi_path_list(cls) -> str:
+    def _has_esi_path_list(cls) -> bool:
         return bool(cls._eve_universe_meta_attr("esi_path_list"))
 
     @classmethod
@@ -320,19 +329,19 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     @classmethod
     def _esi_path(cls, variant: str) -> Tuple[str, str]:
         attr_name = f"esi_path_{str(variant)}"
-        path = cls._eve_universe_meta_attr(attr_name, is_mandatory=True)
+        path = cls._eve_universe_meta_attr_strict(attr_name)
         if len(path.split(".")) != 2:
             raise ValueError(f"{attr_name} not valid")
         return path.split(".")
 
     @classmethod
-    def _children(cls, enabled_sections: Iterable[str] = None) -> dict:
+    def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         """returns the mapping of children for this class"""
         mappings = cls._eve_universe_meta_attr("children")
         return mappings if mappings else dict()
 
     @classmethod
-    def _inline_objects(cls, enabled_sections: Set[str] = None) -> dict:
+    def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         """returns a dict of inline objects if any"""
         inline_objects = cls._eve_universe_meta_attr("inline_objects")
         return inline_objects if inline_objects else dict()
