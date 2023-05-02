@@ -29,7 +29,11 @@ By default only the core models are automatically loaded on-demand. If you want 
 
 This app uses [Celery](https://docs.celeryproject.org/en/stable/index.html) for loading large sets of data, e.g. with the load commands. Please make sure celery is setup and working for your Django project.
 
-In addition you need to configure celery_once for celery. Eve Universe comes with generic Django backend, which should work with most Django installations and which can be setup like so:
+In addition you need to have a configuration for celery_once.
+
+Note that in case your installation is running with Alliance Auth, then you already have a celery once configuration and can skip this step.
+
+Eve Universe comes with generic Django backend, which should work with most Django installations and which can be setup by adding this to your celery configuration file (e.g. `celery.py`):
 
 ```python
 celery_app.conf.ONCE = {
