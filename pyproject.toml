@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "django-eveuniverse"
 dynamic = ["version"]
 description = "Complete set of Eve Universe models with on-demand loading from ESI"
-readme = "README.md"
+readme = "README.rst"
 license = "MIT"
 requires-python = "~=3.8"
 authors = [
@@ -39,7 +39,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://gitlab.com/ErikKalkoken/django-eveuniverse"
+Documentation = "https://django-eveuniverse.readthedocs.io/en/latest/"
+Source = "https://gitlab.com/ErikKalkoken/django-eveuniverse"
+Tracker = "https://gitlab.com/ErikKalkoken/django-eveuniverse/issues"
 
 [tool.hatch.version]
 path = "eveuniverse/__init__.py"
