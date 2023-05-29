@@ -24,7 +24,7 @@ class EveItem:
 
 
 def nearest_celestial(
-    solar_system_id: int, x: int, y: int, z: int, group_id: int = None
+    solar_system_id: int, x: int, y: int, z: int, group_id: Optional[int] = None
 ) -> Optional[EveItem]:
     """Fetch nearest celestial to given coordinates from API. Results are cached.
 
@@ -68,7 +68,7 @@ def _fetch_result_from_api_cached(
     return result
 
 
-def _get_item_from_result(result, group_id) -> Optional[dict]:
+def _get_item_from_result(result, group_id) -> Optional[EveItem]:
     """Tries to find item in result. Returns None if item can not be found."""
     if not result:
         return None

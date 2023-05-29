@@ -70,6 +70,11 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = ["css/rtd_dark.css"]
+html_logo = "https://imgpile.com/images/9sfnDo.png"
+html_theme_options = {
+    # Toc options
+    "navigation_depth": 4,
+}
 
 # autodoc
 add_module_names = False

@@ -125,8 +125,8 @@ class EveUniverseBaseModel(models.Model):
                 mappings.append(
                     {
                         "model": ModelClass,
-                        "load_order": ModelClass._eve_universe_meta_attr(
-                            "load_order", is_mandatory=True
+                        "load_order": ModelClass._eve_universe_meta_attr_strict(
+                            "load_order"
                         ),
                     }
                 )
@@ -134,7 +134,7 @@ class EveUniverseBaseModel(models.Model):
         return [y["model"] for y in sorted(mappings, key=lambda x: x["load_order"])]
 
     @classmethod
-    def get_model_class(cls, model_name: str) -> models.Model:
+    def get_model_class(cls, model_name: str):
         """returns the model class for the given name"""
         classes = {
             x[0]: x[1]
@@ -147,7 +147,7 @@ class EveUniverseBaseModel(models.Model):
             raise ValueError("Unknown model_name: %s" % model_name) from None
 
     @classmethod
-    def _esi_mapping(cls, enabled_sections: Set[str] = None) -> dict:
+    def _esi_mapping(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         field_mappings = cls._eve_universe_meta_attr("field_mappings")
         functional_pk = cls._eve_universe_meta_attr("functional_pk")
         parent_fk = cls._eve_universe_meta_attr("parent_fk")
@@ -169,7 +169,7 @@ class EveUniverseBaseModel(models.Model):
 
             if field.primary_key is True:
                 is_pk = True
-                esi_name = cls._esi_pk()
+                esi_name = cls._esi_pk()  # FIXME: This might fail
             elif functional_pk and field.name in functional_pk:
                 is_pk = True
             else:
@@ -206,17 +206,26 @@ class EveUniverseBaseModel(models.Model):
         return mapping
 
     @classmethod
-    def _disabled_fields(cls, enabled_sections: Set[str] = None) -> set:
-        """returns name of fields that must not be loaded from ESI"""
-        return {}
+    def _disabled_fields(cls, enabled_sections: Optional[Set[str]] = None) -> set:
+        """Return name of fields that must not be loaded from ESI."""
+        return set()
 
     @classmethod
-    def _eve_universe_meta_attr(
+    def _eve_universe_meta_attr(cls, attr_name: str) -> Optional[Any]:
+        """Return value of an attribute from EveUniverseMeta or None"""
+        return cls._eve_universe_meta_attr_flexible(attr_name, is_mandatory=False)
+
+    @classmethod
+    def _eve_universe_meta_attr_strict(cls, attr_name: str) -> Any:
+        """Return value of an attribute from EveUniverseMeta or raise exception."""
+        return cls._eve_universe_meta_attr_flexible(attr_name, is_mandatory=True)
+
+    @classmethod
+    def _eve_universe_meta_attr_flexible(
         cls, attr_name: str, is_mandatory: bool = False
     ) -> Optional[Any]:
-        """returns value of an attribute from EveUniverseMeta or None"""
         try:
-            value = getattr(cls.EveUniverseMeta, attr_name)
+            value = getattr(cls.EveUniverseMeta, attr_name)  # type: ignore
         except AttributeError:
             value = None
             if is_mandatory:
@@ -267,7 +276,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
 
     @staticmethod
     def determine_effective_sections(
-        enabled_sections: Iterable[str] = None,
+        enabled_sections: Optional[Iterable[str]] = None,
     ) -> Set[str]:
         """Determine currently effective sections."""
         enabled_sections = set(enabled_sections) if enabled_sections else set()
@@ -303,36 +312,36 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     @classmethod
     def _esi_pk(cls) -> str:
         """returns the name of the pk column on ESI that must exist"""
-        return cls._eve_universe_meta_attr("esi_pk", is_mandatory=True)
+        return cls._eve_universe_meta_attr_strict("esi_pk")
 
     @classmethod
-    def _has_esi_path_list(cls) -> str:
+    def _has_esi_path_list(cls) -> bool:
         return bool(cls._eve_universe_meta_attr("esi_path_list"))
 
     @classmethod
-    def _esi_path_list(cls) -> str:
+    def _esi_path_list(cls) -> Tuple[str, str]:
         return cls._esi_path("list")
 
     @classmethod
-    def _esi_path_object(cls) -> str:
+    def _esi_path_object(cls) -> Tuple[str, str]:
         return cls._esi_path("object")
 
     @classmethod
     def _esi_path(cls, variant: str) -> Tuple[str, str]:
         attr_name = f"esi_path_{str(variant)}"
-        path = cls._eve_universe_meta_attr(attr_name, is_mandatory=True)
+        path = cls._eve_universe_meta_attr_strict(attr_name)
         if len(path.split(".")) != 2:
             raise ValueError(f"{attr_name} not valid")
         return path.split(".")
 
     @classmethod
-    def _children(cls, enabled_sections: Iterable[str] = None) -> dict:
+    def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         """returns the mapping of children for this class"""
         mappings = cls._eve_universe_meta_attr("children")
         return mappings if mappings else dict()
 
     @classmethod
-    def _inline_objects(cls, enabled_sections: Set[str] = None) -> dict:
+    def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         """returns a dict of inline objects if any"""
         inline_objects = cls._eve_universe_meta_attr("inline_objects")
         return inline_objects if inline_objects else dict()
@@ -341,7 +350,11 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     def _is_list_only_endpoint(cls) -> bool:
         esi_path_list = cls._eve_universe_meta_attr("esi_path_list")
         esi_path_object = cls._eve_universe_meta_attr("esi_path_object")
-        return esi_path_list and esi_path_object and esi_path_list == esi_path_object
+        return (
+            bool(esi_path_list)
+            and bool(esi_path_object)
+            and esi_path_list == esi_path_object
+        )
 
 
 class EveUniverseInlineModel(EveUniverseBaseModel):
@@ -532,7 +545,7 @@ class EveEntity(EveUniverseEntityModel):
         Returns:
             itself after update
         """
-        obj, _ = EveEntity.objects.update_or_create_esi(id=self.id)
+        obj = EveEntity.objects.update_or_create_esi(id=self.id)[0]
         return obj
 
     def icon_url(self, size: int = EveUniverseEntityModel.DEFAULT_ICON_SIZE) -> str:
@@ -1041,7 +1054,7 @@ class EvePlanet(EveUniverseEntityModel):
         help_text=(
             "Flags for loadable sections. True if instance was loaded with section."
         ),  # no index, because MySQL does not support it for bitwise operations
-    )
+    )  # type: ignore
 
     objects = EvePlanetManager()
 
@@ -1059,7 +1072,7 @@ class EvePlanet(EveUniverseEntityModel):
         load_order = 205
 
     @classmethod
-    def _children(cls, enabled_sections: Iterable[str] = None) -> dict:
+    def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         enabled_sections = cls.determine_effective_sections(enabled_sections)
         children = dict()
         if cls.Section.ASTEROID_BELTS in enabled_sections:
@@ -1140,7 +1153,7 @@ class EveSolarSystem(EveUniverseEntityModel):
         help_text=(
             "Flags for loadable sections. True if instance was loaded with section."
         ),  # no index, because MySQL does not support it for bitwise operations
-    )
+    )  # type: ignore
 
     class EveUniverseMeta:
         esi_pk = "system_id"
@@ -1199,14 +1212,22 @@ class EveSolarSystem(EveUniverseEntityModel):
         Returns:
             Distance in meters or None if one of the systems is in WH space
         """
+        if not self.position_x or not self.position_y or not self.position_z:
+            return None
+        if (
+            not destination
+            or not destination.position_x
+            or not destination.position_y
+            or not destination.position_z
+        ):
+            return None
         if self.is_w_space or destination.is_w_space:
             return None
-        else:
-            return math.sqrt(
-                (destination.position_x - self.position_x) ** 2
-                + (destination.position_y - self.position_y) ** 2
-                + (destination.position_z - self.position_z) ** 2
-            )
+        return math.sqrt(
+            (destination.position_x - self.position_x) ** 2
+            + (destination.position_y - self.position_y) ** 2
+            + (destination.position_z - self.position_z) ** 2
+        )
 
     def route_to(
         self, destination: "EveSolarSystem"
@@ -1220,13 +1241,12 @@ class EveSolarSystem(EveUniverseEntityModel):
             List of solar system objects incl. origin and destination or None if no route can be found (e.g. if one system is in WH space)
         """
         path_ids = self._calc_route_esi(self.id, destination.id)
-        if path_ids is not None:
-            return [
-                EveSolarSystem.objects.get_or_create_esi(id=solar_system_id)
-                for solar_system_id in path_ids
-            ]
-        else:
+        if path_ids is None:
             return None
+        return [
+            EveSolarSystem.objects.get_or_create_esi(id=solar_system_id)
+            for solar_system_id in path_ids
+        ]
 
     def jumps_to(self, destination: "EveSolarSystem") -> Optional[int]:
         """Calculates the shortest route between the current and the given solar system
@@ -1261,7 +1281,7 @@ class EveSolarSystem(EveUniverseEntityModel):
             return None
 
     def nearest_celestial(
-        self, x: int, y: int, z: int, group_id: int = None
+        self, x: int, y: int, z: int, group_id: Optional[int] = None
     ) -> Optional[NearestCelestial]:
         """Determine nearest celestial to given coordinates as eveuniverse object.
 
@@ -1299,7 +1319,7 @@ class EveSolarSystem(EveUniverseEntityModel):
         )
 
     @classmethod
-    def _children(cls, enabled_sections: Iterable[str] = None) -> dict:
+    def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         enabled_sections = cls.determine_effective_sections(enabled_sections)
         children = dict()
         if cls.Section.PLANETS in enabled_sections:
@@ -1311,18 +1331,17 @@ class EveSolarSystem(EveUniverseEntityModel):
         return children
 
     @classmethod
-    def _disabled_fields(cls, enabled_sections: Set[str] = None) -> set:
+    def _disabled_fields(cls, enabled_sections: Optional[Set[str]] = None) -> set:
         enabled_sections = cls.determine_effective_sections(enabled_sections)
         if cls.Section.STARS not in enabled_sections:
             return {"eve_star"}
-        return {}
+        return set()
 
     @classmethod
-    def _inline_objects(cls, enabled_sections: Set[str] = None) -> dict:
-        if enabled_sections and cls.Section.PLANETS in enabled_sections:
-            return super()._inline_objects()
-        else:
+    def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
+        if not enabled_sections or cls.Section.PLANETS not in enabled_sections:
             return dict()
+        return super()._inline_objects()
 
 
 class EveStar(EveUniverseEntityModel):
@@ -1506,7 +1525,7 @@ class EveType(EveUniverseEntityModel):
         help_text=(
             "Flags for loadable sections. True if instance was loaded with section."
         ),  # no index, because MySQL does not support it for bitwise operations
-    )
+    )  # type: ignore
 
     objects = EveTypeManager()
 
@@ -1548,9 +1567,9 @@ class EveType(EveUniverseEntityModel):
     def icon_url(
         self,
         size: int = EveUniverseEntityModel.DEFAULT_ICON_SIZE,
-        variant: IconVariant = None,
-        category_id: int = None,
-        is_blueprint: bool = None,
+        variant: Optional[IconVariant] = None,
+        category_id: Optional[int] = None,
+        is_blueprint: Optional[bool] = None,
     ) -> str:
         """returns an image URL to this type as icon. Also works for blueprints and SKINs.
 
@@ -1601,7 +1620,7 @@ class EveType(EveUniverseEntityModel):
         return eveimageserver.type_render_url(self.id, size=size)
 
     @classmethod
-    def _disabled_fields(cls, enabled_sections: Set[str] = None) -> set:
+    def _disabled_fields(cls, enabled_sections: Optional[Set[str]] = None) -> set:
         enabled_sections = cls.determine_effective_sections(enabled_sections)
         disabled_fields = set()
         if cls.Section.GRAPHICS not in enabled_sections:
@@ -1611,11 +1630,10 @@ class EveType(EveUniverseEntityModel):
         return disabled_fields
 
     @classmethod
-    def _inline_objects(cls, enabled_sections: Set[str] = None) -> dict:
-        if enabled_sections and cls.Section.DOGMAS in enabled_sections:
-            return super()._inline_objects()
-        else:
+    def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
+        if not enabled_sections or cls.Section.DOGMAS not in enabled_sections:
             return dict()
+        return super()._inline_objects()
 
     @classmethod
     def eve_entity_category(cls) -> str:

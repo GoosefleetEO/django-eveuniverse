@@ -100,7 +100,7 @@ class TestEveUniverseBaseModel(NoSocketsTestCase):
     def test_eve_universe_meta_attr_3(self):
         """When not defined and is_mandatory, then raise exception"""
         with self.assertRaises(ValueError):
-            EveType._eve_universe_meta_attr("undefined_param", is_mandatory=True)
+            EveType._eve_universe_meta_attr_strict("undefined_param")
 
     def test_eve_universe_meta_attr_4(self):
         """When EveUniverseMeta class not defined, then return None"""
@@ -890,13 +890,6 @@ class TestEveSolarSystem(NoSocketsTestCase):
 
         self.assertTrue(EveStation.objects.filter(id=60015068).exists())
 
-    def test_distance_to(self, mock_esi):
-        mock_esi.client = EsiClientStub()
-
-        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
-        akidagi, _ = EveSolarSystem.objects.get_or_create_esi(id=30045342)
-        self.assertEqual(meters_to_ly(enaluri.distance_to(akidagi)), 1.947802326920925)
-
     def test_can_identify_highsec_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -933,15 +926,105 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(thera.is_low_sec)
         self.assertFalse(thera.is_high_sec)
 
+    """
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", True)
+    @patch(MODELS_PATH + ".cache")
+    def test_can_calculate_route(self, mock_cache, mock_esi):
+        def my_get_or_set(key, func, timeout):
+            return func()
+
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = None
+        mock_cache.get_or_set.side_effect = my_get_or_set
+
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(
+            id=30045339, include_children=True
+        )
+        akidagi, _ = EveSolarSystem.objects.get_or_create_esi(
+            id=30045342, include_children=True
+        )
+        self.assertEqual(enaluri.jumps_to(akidagi), 1)
+    """
+
+
+@patch(MANAGERS_PATH + ".esi")
+class TestEveSolarSystemDistanceTo(NoSocketsTestCase):
+    def test_should_calculate_distance_between_normal_systems(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        akidagi, _ = EveSolarSystem.objects.get_or_create_esi(id=30045342)
+        # when
+        result = enaluri.distance_to(akidagi)
+        # then
+        self.assertEqual(meters_to_ly(result), 1.947802326920925)
+
+    def test_should_return_none_when_one_system_in_wh_space_1(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        thera, _ = EveSolarSystem.objects.get_or_create_esi(id=31000005)
+        # when
+        result = enaluri.distance_to(thera)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_when_one_system_in_wh_space_2(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        thera, _ = EveSolarSystem.objects.get_or_create_esi(id=31000005)
+        # when
+        result = thera.distance_to(enaluri)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_when_no_destination(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        # when
+        result = enaluri.distance_to(None)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_when_origin_has_not_coordinates(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        enaluri.position_x = None
+        enaluri.position_y = None
+        enaluri.position_z = None
+        akidagi, _ = EveSolarSystem.objects.get_or_create_esi(id=30045342)
+        # when
+        result = enaluri.distance_to(akidagi)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_when_destination_has_not_coordinates(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        enaluri.position_x = None
+        enaluri.position_y = None
+        enaluri.position_z = None
+        akidagi, _ = EveSolarSystem.objects.get_or_create_esi(id=30045342)
+        # when
+        result = akidagi.distance_to(enaluri)
+        # then
+        self.assertIsNone(result)
+
+
+@patch(MANAGERS_PATH + ".esi")
+class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
     @staticmethod
-    def esi_get_route_origin_destination(origin, destination, **kwargs) -> list:
+    def esi_get_route_origin_destination(origin, destination, **kwargs):
         routes = {
             30045339: {30045342: [30045339, 30045342]},
         }
         if origin in routes and destination in routes[origin]:
             return BravadoOperationStub(routes[origin][destination])
-        else:
-            raise HTTPNotFound(Mock(**{"response.status_code": 404}))
+        raise HTTPNotFound(Mock(**{"response.status_code": 404}))
 
     @patch("eveuniverse.models.esi")
     def test_can_calculate_jumps(self, mock_esi_2, mock_esi):
@@ -965,25 +1048,39 @@ class TestEveSolarSystem(NoSocketsTestCase):
         jita, _ = EveSolarSystem.objects.get_or_create_esi(id=30000142)
         self.assertIsNone(enaluri.jumps_to(jita))
 
-    """
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", True)
-    @patch(MODELS_PATH + ".cache")
-    def test_can_calculate_route(self, mock_cache, mock_esi):
-        def my_get_or_set(key, func, timeout):
-            return func()
 
+@patch(MODELS_PATH + ".EveSolarSystem._calc_route_esi")
+@patch(MANAGERS_PATH + ".esi")
+class TestEveSolarSystemRouteTo(NoSocketsTestCase):
+    def test_should_return_valid_route(self, mock_esi, mock_calc_route_esi):
+        # given
         mock_esi.client = EsiClientStub()
-        mock_cache.get.return_value = None
-        mock_cache.get_or_set.side_effect = my_get_or_set
+        mock_calc_route_esi.return_value = [30045339, 30045342]
+        enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
+            0
+        ]
+        akidagi: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045342)[
+            0
+        ]
+        # when
+        result = enaluri.route_to(akidagi)
+        # then
+        self.assertListEqual(result, [(enaluri, False), (akidagi, False)])
 
-        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(
-            id=30045339, include_children=True
-        )
-        akidagi, _ = EveSolarSystem.objects.get_or_create_esi(
-            id=30045342, include_children=True
-        )
-        self.assertEqual(enaluri.jumps_to(akidagi), 1)
-    """
+    def test_should_return_none_when_no_route_found(
+        self, mock_esi, mock_calc_route_esi
+    ):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_calc_route_esi.return_value = None
+        enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
+            0
+        ]
+        thera, _ = EveSolarSystem.objects.get_or_create_esi(id=31000005)
+        # when
+        result = enaluri.route_to(thera)
+        # then
+        self.assertIsNone(result)
 
 
 @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)

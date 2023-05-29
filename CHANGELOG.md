@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Improved stability for loading large amounts of data
 - Adds support for Python 3.11
 - Minimum required Django version increased to Django 3.2
+- Moved to new build process (PEP 621)
+- Improved typing support
 
 ### Breaking changes
 
@@ -40,9 +42,10 @@ The following is a list of potential breaking changes introduced with this relea
 - Remove autoretry on common ESI errors, which are already covered by django-esi
 - Add autoretry for operational DB errors as attempts to survive occasional deadlocks when loading lots of data from ESI
 - Load tasks run with a lower task by default and priority can be configured by setting
-- Removed support for Django 4.0 (removed from CI pipeline)
-- Updated build process to PEP 518 specs (pyproject.toml)
+- Removed support for Django 4.0
+- Updated build process to PEP 621 specs (pyproject.toml)
 - Moved configuration for isort and pylint to pyproject.toml
+- Improved typing support
 
 ### Fixed
 

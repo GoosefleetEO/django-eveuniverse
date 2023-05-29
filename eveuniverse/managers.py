@@ -1,7 +1,7 @@
 import datetime as dt
 import logging
 from collections import defaultdict, namedtuple
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
 
 import requests
 from bravado.exception import HTTPNotFound
@@ -28,7 +28,7 @@ FakeResponse = namedtuple("FakeResponse", ["status_code"])
 
 class EveUniverseBaseModelManager(models.Manager):
     def _defaults_from_esi_obj(
-        self, eve_data_obj: dict, enabled_sections: Set[str] = None
+        self, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
     ) -> dict:
         """compiles defaults from an esi data object for update/creating the model"""
         defaults = dict()
@@ -78,6 +78,9 @@ class EveUniverseBaseModelManager(models.Manager):
         return defaults
 
 
+ModelType = TypeVar("ModelType", bound=models.Model)
+
+
 class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
     def get_or_create_esi(
         self,
@@ -85,9 +88,9 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         id: int,
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
-    ) -> Tuple[models.Model, bool]:
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
+    ) -> Tuple[ModelType, bool]:
         """gets or creates an eve universe object.
 
         The object is automatically fetched from ESI if it does not exist (blocking).
@@ -104,9 +107,9 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             A tuple consisting of the requested object and a created flag
         """
         id = int(id)
-        enabled_sections = self.model.determine_effective_sections(enabled_sections)
+        effective_sections = self.model.determine_effective_sections(enabled_sections)
         try:
-            enabled_sections_filter = self._enabled_sections_filter(enabled_sections)
+            enabled_sections_filter = self._enabled_sections_filter(effective_sections)
             obj = self.filter(**enabled_sections_filter).get(id=id)
             return obj, False
         except self.model.DoesNotExist:
@@ -114,7 +117,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                 id=id,
                 include_children=include_children,
                 wait_for_children=wait_for_children,
-                enabled_sections=enabled_sections,
+                enabled_sections=effective_sections,
                 task_priority=task_priority,
             )
 
@@ -131,9 +134,9 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         id: int,
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
-    ) -> Tuple[models.Model, bool]:
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
+    ) -> Tuple[ModelType, bool]:
         """updates or creates an Eve universe object by fetching it from ESI (blocking).
         Will always get/create parent objects
 
@@ -148,29 +151,29 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             A tuple consisting of the requested object and a created flag
         """
         id = int(id)
-        enabled_sections = self.model.determine_effective_sections(enabled_sections)
+        effective_sections = self.model.determine_effective_sections(enabled_sections)
         eve_data_obj = self._transform_esi_response_for_list_endpoints(
-            id, self._fetch_from_esi(id=id, enabled_sections=enabled_sections)
+            id, self._fetch_from_esi(id=id, enabled_sections=effective_sections)
         )
         if eve_data_obj:
-            defaults = self._defaults_from_esi_obj(eve_data_obj, enabled_sections)
+            defaults = self._defaults_from_esi_obj(eve_data_obj, effective_sections)
             obj, created = self.update_or_create(id=id, defaults=defaults)
-            if enabled_sections and hasattr(obj, "enabled_sections"):
+            if effective_sections and hasattr(obj, "enabled_sections"):
                 updated_sections = False
-                for section in enabled_sections:
+                for section in effective_sections:
                     if str(section) in self.model.Section.values():
                         setattr(obj.enabled_sections, section, True)
                         updated_sections = True
                 if updated_sections:
                     obj.save()
-            inline_objects = self.model._inline_objects(enabled_sections)
+            inline_objects = self.model._inline_objects(effective_sections)
             if inline_objects:
                 self._update_or_create_inline_objects(
                     parent_eve_data_obj=eve_data_obj,
                     parent_obj=obj,
                     inline_objects=inline_objects,
                     wait_for_children=wait_for_children,
-                    enabled_sections=enabled_sections,
+                    enabled_sections=effective_sections,
                     task_priority=task_priority,
                 )
             if include_children:
@@ -178,18 +181,18 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                     parent_eve_data_obj=eve_data_obj,
                     include_children=include_children,
                     wait_for_children=wait_for_children,
-                    enabled_sections=enabled_sections,
+                    enabled_sections=effective_sections,
                     task_priority=task_priority,
                 )
         else:
             raise HTTPNotFound(
-                FakeResponse(status_code=404),
+                FakeResponse(status_code=404),  # type: ignore
                 message=f"{self.model.__name__} object with id {id} not found",
             )
         return obj, created
 
     def _fetch_from_esi(
-        self, id: int = None, enabled_sections: Iterable[str] = None
+        self, id: Optional[int] = None, enabled_sections: Optional[Iterable[str]] = None
     ) -> dict:
         """make request to ESI and return response data.
         Can handle raw ESI response from both list and normal endpoints.
@@ -205,33 +208,32 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         )(**args).results()
         return esi_data
 
-    def _transform_esi_response_for_list_endpoints(self, id: int, esi_data) -> object:
+    def _transform_esi_response_for_list_endpoints(self, id: int, esi_data) -> dict:
         """Transforms raw ESI response from list endpoints if this is one
         else just passes the ESI response through
         """
         if not self.model._is_list_only_endpoint():
             return esi_data
 
-        else:
-            esi_pk = self.model._esi_pk()
-            for row in esi_data:
-                if esi_pk in row and row[esi_pk] == id:
-                    return row
+        esi_pk = self.model._esi_pk()
+        for row in esi_data:
+            if esi_pk in row and row[esi_pk] == id:
+                return row
 
-            raise HTTPNotFound(
-                FakeResponse(status_code=404),
-                message=f"{self.model.__name__} object with id {id} not found",
-            )
+        raise HTTPNotFound(
+            FakeResponse(status_code=404),  # type: ignore
+            message=f"{self.model.__name__} object with id {id} not found",
+        )
 
     def _update_or_create_inline_objects(
         self,
         *,
         parent_eve_data_obj: dict,
-        parent_obj: models.Model,
+        parent_obj,
         inline_objects: dict,
         wait_for_children: bool,
         enabled_sections: Iterable[str],
-        task_priority: int = None,
+        task_priority: Optional[int] = None,
     ) -> None:
         """updates_or_creates eve objects that are returned "inline" from ESI
         for the parent eve objects as defined for this parent model (if any)
@@ -292,7 +294,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                             enabled_sections=enabled_sections,
                         )
                     else:
-                        params = {
+                        params: Dict[str, Any] = {
                             "kwargs": {
                                 "parent_obj_id": parent_obj.id,
                                 "parent_fk": parent_fk,
@@ -306,15 +308,15 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                         }
                         if task_priority:
                             params["priority"] = task_priority
-                        task_update_or_create_inline_object.apply_async(**params)
+                        task_update_or_create_inline_object.apply_async(**params)  # type: ignore
 
     def _update_or_create_inline_object(
         self,
         parent_obj_id: int,
         parent_fk: str,
         eve_data_obj: dict,
-        other_pk_info: dict,
-        parent2_model_name: str,
+        other_pk_info: Dict[str, Any],
+        parent2_model_name: Optional[str],
         inline_model_name: str,
         enabled_sections: Iterable[str],
     ):
@@ -337,7 +339,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         else:
             value = esi_value
 
-        args[other_pk_info["name"]] = value
+        key = other_pk_info["name"]
+        args[key] = value  # type: ignore
         args["defaults"] = InlineModel.objects._defaults_from_esi_obj(
             eve_data_obj,
         )
@@ -349,8 +352,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         parent_eve_data_obj: dict,
         include_children: bool,
         wait_for_children: bool,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
+        enabled_sections: Iterable[str],
+        task_priority: Optional[int] = None,
     ) -> None:
         """updates or creates child objects as defined for this parent model (if any)"""
         from .tasks import (
@@ -379,7 +382,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                         )
 
                     else:
-                        params = {
+                        params: Dict[str, Any] = {
                             "kwargs": {
                                 "model_name": child_class,
                                 "id": id,
@@ -391,15 +394,15 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                         }
                         if task_priority:
                             params["priority"] = task_priority
-                        task_update_or_create_eve_object.apply_async(**params)
+                        task_update_or_create_eve_object.apply_async(**params)  # type: ignore
 
     def update_or_create_all_esi(
         self,
         *,
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
     ) -> None:
         """updates or creates all objects of this class from ESI.
 
@@ -414,14 +417,14 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             update_or_create_eve_object as task_update_or_create_eve_object,
         )
 
-        enabled_sections = self.model.determine_effective_sections(enabled_sections)
+        effective_sections = self.model.determine_effective_sections(enabled_sections)
 
         if self.model._is_list_only_endpoint():
             esi_pk = self.model._esi_pk()
             for eve_data_obj in self._fetch_from_esi():
                 args = {"id": eve_data_obj[esi_pk]}
                 args["defaults"] = self._defaults_from_esi_obj(
-                    eve_data_obj=eve_data_obj, enabled_sections=enabled_sections
+                    eve_data_obj=eve_data_obj, enabled_sections=effective_sections
                 )
                 self.update_or_create(**args)
 
@@ -438,22 +441,22 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                             id=id,
                             include_children=include_children,
                             wait_for_children=wait_for_children,
-                            enabled_sections=enabled_sections,
+                            enabled_sections=effective_sections,
                         )
                     else:
-                        params = {
+                        params: Dict[str, Any] = {
                             "kwargs": {
                                 "model_name": self.model.__name__,
                                 "id": id,
                                 "include_children": include_children,
                                 "wait_for_children": wait_for_children,
-                                "enabled_sections": list(enabled_sections),
+                                "enabled_sections": list(effective_sections),
                                 "task_priority": task_priority,
                             },
                         }
                         if task_priority:
                             params["priority"] = task_priority
-                        task_update_or_create_eve_object.apply_async(**params)
+                        task_update_or_create_eve_object.apply_async(**params)  # type: ignore
 
             else:
                 raise TypeError(
@@ -463,11 +466,11 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
     def bulk_get_or_create_esi(
         self,
         *,
-        ids: List[int],
+        ids: Iterable[int],
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
     ) -> models.QuerySet:
         """Gets or creates objects in bulk.
 
@@ -484,8 +487,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             Queryset with all requested eve objects
         """
         ids = set(map(int, ids))
-        enabled_sections = self.model.determine_effective_sections(enabled_sections)
-        enabled_sections_filter = self._enabled_sections_filter(enabled_sections)
+        effective_sections = self.model.determine_effective_sections(enabled_sections)
+        enabled_sections_filter = self._enabled_sections_filter(effective_sections)
         existing_ids = set(
             self.filter(id__in=ids)
             .filter(**enabled_sections_filter)
@@ -496,7 +499,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                 id=int(id),
                 include_children=include_children,
                 wait_for_children=wait_for_children,
-                enabled_sections=enabled_sections,
+                enabled_sections=effective_sections,
                 task_priority=task_priority,
             )
 
@@ -504,7 +507,9 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
 
 class EvePlanetManager(EveUniverseEntityModelManager):
-    def _fetch_from_esi(self, id: int, enabled_sections: Iterable[str] = None) -> dict:
+    def _fetch_from_esi(
+        self, id: int, enabled_sections: Optional[Iterable[str]] = None
+    ) -> dict:
         from .models import EveSolarSystem
 
         esi_data = super()._fetch_from_esi(id=id)
@@ -541,7 +546,9 @@ class EvePlanetChildrenManager(EveUniverseEntityModelManager):
         super().__init__()
         self._my_property_name = None
 
-    def _fetch_from_esi(self, id: int, enabled_sections: Iterable[str] = None) -> dict:
+    def _fetch_from_esi(
+        self, id: int, enabled_sections: Optional[Iterable[str]] = None
+    ) -> dict:
         from .models import EveSolarSystem
 
         if not self._my_property_name:
@@ -592,9 +599,9 @@ class EveStargateManager(EveUniverseEntityModelManager):
         id: int,
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
-    ) -> Tuple[models.Model, bool]:
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
+    ) -> Tuple[ModelType, bool]:
         """updates or creates an EveStargate object by fetching it from ESI (blocking).
         Will always get/create parent objects
 
@@ -632,11 +639,11 @@ class EveStationManager(EveUniverseEntityModelManager):
         self,
         *,
         parent_eve_data_obj: dict,
-        parent_obj: models.Model,
+        parent_obj,
         inline_objects: dict,
         wait_for_children: bool,
         enabled_sections: Iterable[str],
-        task_priority: int = None,
+        task_priority: Optional[int] = None,
     ) -> None:
         """updates_or_creates station service objects for EveStations"""
         from .models import EveStationService
@@ -658,9 +665,9 @@ class EveTypeManager(EveUniverseEntityModelManager):
         id: int,
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
-    ) -> Tuple[models.Model, bool]:
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
+    ) -> Tuple[ModelType, bool]:
         obj, created = super().update_or_create_esi(
             id=id,
             include_children=include_children,
@@ -707,9 +714,9 @@ class EveEntityManager(EveUniverseEntityModelManager):
         id: int,
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
-    ) -> Tuple[models.Model, bool]:
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
+    ) -> Tuple[ModelType, bool]:
         """gets or creates an EvEntity object.
 
         The object is automatically fetched from ESI if it does not exist (blocking)
@@ -741,9 +748,9 @@ class EveEntityManager(EveUniverseEntityModelManager):
         id: int,
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
-    ) -> Tuple[Optional[models.Model], bool]:
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
+    ) -> Tuple[ModelType, bool]:
         """Update or create an EveEntity object by fetching it from ESI (blocking).
 
         Args:
@@ -800,15 +807,15 @@ class EveEntityManager(EveUniverseEntityModelManager):
         to_update_qs = self.filter(id__in=new_ids) | self.filter(
             id__in=ids.difference(new_ids), name=""
         )
-        return to_update_qs.update_from_esi()
+        return to_update_qs.update_from_esi()  # type: ignore
 
     def update_or_create_all_esi(
         self,
         *,
         include_children: bool = False,
         wait_for_children: bool = True,
-        enabled_sections: Iterable[str] = None,
-        task_priority: int = None,
+        enabled_sections: Optional[Iterable[str]] = None,
+        task_priority: Optional[int] = None,
     ) -> None:
         """not implemented - do not use"""
         raise NotImplementedError()
@@ -819,7 +826,7 @@ class EveEntityManager(EveUniverseEntityModelManager):
         Returns:
             Count of updated entities.
         """
-        return self.filter(name="").update_from_esi()
+        return self.filter(name="").update_from_esi()  # type: ignore
 
     def bulk_update_all_esi(self):
         """Updates all EveEntity objects in the database from ESI.
@@ -827,7 +834,7 @@ class EveEntityManager(EveUniverseEntityModelManager):
         Returns:
             Count of updated entities.
         """
-        return self.all().update_from_esi()
+        return self.all().update_from_esi()  # type: ignore
 
     def resolve_name(self, id: int) -> str:
         """Return the name for the given Eve entity ID
@@ -968,7 +975,7 @@ class EveEntityManager(EveUniverseEntityModelManager):
 
 
 class EveMarketPriceManager(models.Manager):
-    def update_from_esi(self, minutes_until_stale: int = None) -> int:
+    def update_from_esi(self, minutes_until_stale: Optional[int] = None) -> int:
         """Updates market prices from ESI. Will only create new price objects for EveTypes that already exist in the database.
 
         Args:
@@ -979,8 +986,11 @@ class EveMarketPriceManager(models.Manager):
         """
         from .models import EveType
 
-        if minutes_until_stale is None:
-            minutes_until_stale = self.model.DEFAULT_MINUTES_UNTIL_STALE
+        minutes_until_stale = (
+            self.model.DEFAULT_MINUTES_UNTIL_STALE
+            if minutes_until_stale is None
+            else minutes_until_stale
+        )
 
         logger.info("Fetching market prices from ESI...")
         entries = esi.client.Market.get_markets_prices().results()

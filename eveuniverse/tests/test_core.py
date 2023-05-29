@@ -6,8 +6,8 @@ from django.core.cache import cache
 from django.test import TestCase
 from requests.exceptions import HTTPError
 
-from ..constants import EveGroupId
-from ..core import (
+from eveuniverse.constants import EveGroupId
+from eveuniverse.core import (
     dotlan,
     esitools,
     eveimageserver,
@@ -19,8 +19,9 @@ from ..core import (
     evexml,
     zkillboard,
 )
-from ..models import EveEntity
-from ..utils import NoSocketsTestCase
+from eveuniverse.models import EveEntity
+from eveuniverse.utils import NoSocketsTestCase
+
 from .testdata.esi import EsiClientStub
 from .testdata.factories import (
     create_eve_entity,
@@ -116,19 +117,29 @@ class TestEveImageServer(TestCase):
             "https://images.evetech.net/characters/42/portrait?size=1024",
         )
         with self.assertRaises(ValueError):
-            eveimageserver._eve_entity_image_url("corporation", 42, size=-5)
+            eveimageserver._eve_entity_image_url(
+                eveimageserver.EsiCategory.CORPORATION, 42, size=-5
+            )
 
         with self.assertRaises(ValueError):
-            eveimageserver._eve_entity_image_url("corporation", 42, size=0)
+            eveimageserver._eve_entity_image_url(
+                eveimageserver.EsiCategory.CORPORATION, 42, size=0
+            )
 
         with self.assertRaises(ValueError):
-            eveimageserver._eve_entity_image_url("corporation", 42, size=31)
+            eveimageserver._eve_entity_image_url(
+                eveimageserver.EsiCategory.CORPORATION, 42, size=31
+            )
 
         with self.assertRaises(ValueError):
-            eveimageserver._eve_entity_image_url("corporation", 42, size=1025)
+            eveimageserver._eve_entity_image_url(
+                eveimageserver.EsiCategory.CORPORATION, 42, size=1025
+            )
 
         with self.assertRaises(ValueError):
-            eveimageserver._eve_entity_image_url("corporation", 42, size=2048)
+            eveimageserver._eve_entity_image_url(
+                eveimageserver.EsiCategory.CORPORATION, 42, size=2048
+            )
 
     def test_variant(self):
         self.assertEqual(
@@ -174,7 +185,7 @@ class TestEveImageServer(TestCase):
             "https://images.evetech.net/characters/42/portrait?size=32",
         )
         with self.assertRaises(ValueError):
-            eveimageserver._eve_entity_image_url("invalid", 42)
+            eveimageserver._eve_entity_image_url("invalid", 42)  # type: ignore
 
     def test_tenants(self):
         self.assertEqual(
@@ -187,7 +198,7 @@ class TestEveImageServer(TestCase):
         )
         with self.assertRaises(ValueError):
             eveimageserver._eve_entity_image_url(
-                eveimageserver.EsiCategory.CHARACTER, 42, tenant="xxx"
+                eveimageserver.EsiCategory.CHARACTER, 42, tenant="xxx"  # type: ignore
             )
 
     def test_alliance_logo_url(self):
