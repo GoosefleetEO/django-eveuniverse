@@ -1,5 +1,5 @@
-sphinx>=4
-sphinx_rtd_theme
-myst_parser
-sphinxcontrib-django2
-sphinx-copybutton
+sphinx>=6.2.1
+sphinx-rtd-theme>=1.2.1
+myst_parser>=1.0.0
+sphinxcontrib-django2>=1.9
+sphinx-copybutton>=0.5.2
