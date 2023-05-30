@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.0.0] - tbd
+## [1.0.0] - 2023-05-30
 
 ### Highlights
 
@@ -45,6 +45,7 @@ The following is a list of potential breaking changes introduced with this relea
 - Removed support for Django 4.0
 - Updated build process to PEP 621 specs (pyproject.toml)
 - Moved configuration for isort and pylint to pyproject.toml
+- Improved docs
 - Improved typing support
 
 ### Fixed
