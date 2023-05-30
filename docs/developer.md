@@ -9,7 +9,7 @@ The developer guide describes how to develop apps with *django-eveuniverse*.
 ```{note}
 The "Eve Universe" classes are the classes from the Universe category in ESI plus the related classes for dogma and market groups. The objects of those classes change rarely and most changes are just adding new objects (e.g. new types). They are therefore well suited to be stored and cached locally for a longer period of time.
 
-The Eve Universe classes consist mostly of the same objects as the `Static Data Export <https://wiki.eveuniversity.org/Static_Data_Export>`_ (SDE).
+The Eve Universe classes consist mostly of the same objects as the [Static Data Export](https://wiki.eveuniversity.org/Static_Data_Export) (SDE).
 ```
 
 ```{eval-rst}

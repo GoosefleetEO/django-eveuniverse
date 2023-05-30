@@ -1,3 +1,4 @@
+==================
 django-eveuniverse
 ==================
 
@@ -8,7 +9,7 @@ loading from ESI.
 |license| |pre-commit| |Code style: black| |chat|
 
 Overview
---------
+========
 
 *django-eveuniverse* is a foundation app meant to help speed up the
 development of Eve Online apps with Django and ESI. It provides all
@@ -32,6 +33,15 @@ Here is an overview of the main features:
    related children. (e.g. load all types for a specific group)
 *  Additional models for selected data from the SDE that is not covered
    by ESI, e.g. type materials
+
+Models
+======
+
+.. figure:: ../aa-eveuniverse_models.png
+   :scale: 15 %
+   :alt: models with relationships
+
+   Models of Eve Universe with relationships.
 
 
 .. |release| image:: https://img.shields.io/pypi/v/django-eveuniverse?label=release

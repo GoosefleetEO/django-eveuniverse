@@ -8,7 +8,6 @@ This chapter contains the developer reference documentation of the public API fo
 
 .. _api-eve-models:
 
-
 Eve Models
 ==========
 
