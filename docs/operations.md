@@ -31,7 +31,9 @@ This app uses [Celery](https://docs.celeryproject.org/en/stable/index.html) for 
 
 In addition you need to have a configuration for celery_once.
 
+```{note}
 Note that in case your installation is running with Alliance Auth, then you already have a celery once configuration and can skip this step.
+```
 
 Eve Universe comes with generic Django backend, which should work with most Django installations and which can be setup by adding this to your celery configuration file (e.g. `celery.py`):
 
