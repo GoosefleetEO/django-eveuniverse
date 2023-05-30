@@ -1,3 +1,5 @@
+"""Eve universe models."""
+
 import enum
 import inspect
 import math
@@ -56,6 +58,9 @@ EsiMapping = namedtuple(
         "create_related",
     ],
 )
+"""
+:meta private:
+"""
 
 
 class _SectionBase(str, enum.Enum):
@@ -70,7 +75,10 @@ class _SectionBase(str, enum.Enum):
 
 
 class EveUniverseBaseModel(models.Model):
-    """Base class for all Eve Universe Models"""
+    """Base class for all Eve Universe Models.
+
+    :meta private:
+    """
 
     objects = EveUniverseBaseModelManager()
 
@@ -238,9 +246,11 @@ class EveUniverseBaseModel(models.Model):
 
 
 class EveUniverseEntityModel(EveUniverseBaseModel):
-    """Base class for Eve Universe Entity models
+    """Base class for Eve Universe Entity models.
 
-    Entity models are normal Eve entities that have a dedicated ESI endpoint
+    Entity models are normal Eve entities that have a dedicated ESI endpoint.
+
+    :meta private:
     """
 
     class Section(_SectionBase):
@@ -358,12 +368,14 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
 
 
 class EveUniverseInlineModel(EveUniverseBaseModel):
-    """Base class for Eve Universe Inline models
+    """Base class for Eve Universe Inline models.
 
     Inline models are objects which do not have a dedicated ESI endpoint and are
     provided through the endpoint of another entity
 
-    This class is also used for static Eve data
+    This class is also used for static Eve data.
+
+    :meta private:
     """
 
     class Meta:

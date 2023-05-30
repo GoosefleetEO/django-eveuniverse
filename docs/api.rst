@@ -8,217 +8,10 @@ This chapter contains the developer reference documentation of the public API fo
 
 .. _api-eve-models:
 
-Base classes
-============
-
-.. autoclass:: eveuniverse.models.EveUniverseBaseModel
-    :members:
-
-.. autoclass:: eveuniverse.models.EveUniverseEntityModel
-    :members:
-
-
-Core functions
-==============
-
-dotlan
-----------------
-.. automodule:: eveuniverse.core.dotlan
-    :members:
-
-esitools
-----------------
-.. automodule:: eveuniverse.core.esitools
-    :members:
-
-eveimageserver
-----------------
-.. automodule:: eveuniverse.core.eveimageserver
-    :members:
-
-eveitems
-----------------
-.. automodule:: eveuniverse.core.eveitems
-    :members:
-
-evemicros
-----------------
-.. automodule:: eveuniverse.core.evemicros
-    :members:
-
-evesdeapi
-----------------
-.. automodule:: eveuniverse.core.evesdeapi
-    :members:
-
-eveskinserver
-----------------
-.. automodule:: eveuniverse.core.eveskinserver
-    :members:
-
-evewho
-----------------
-.. automodule:: eveuniverse.core.evewho
-    :members:
-
-evexml
----------------
-.. automodule:: eveuniverse.core.evexml
-    :members:
-
-zkillboard
----------------
-.. automodule:: eveuniverse.core.zkillboard
-    :members:
-
 Eve Models
 ==========
 
-EveAncestry
-----------------
-.. autoclass:: eveuniverse.models.EveAncestry
-    :members:
-
-EveAsteroidBelt
-----------------
-.. autoclass:: eveuniverse.models.EveAsteroidBelt
-    :members:
-
-EveBloodline
-----------------
-.. autoclass:: eveuniverse.models.EveBloodline
-    :members:
-
-EveCategory
-----------------
-.. autoclass:: eveuniverse.models.EveCategory
-    :members:
-
-
-EveConstellation
-----------------
-.. autoclass:: eveuniverse.models.EveConstellation
-    :members:
-
-EveDogmaAttribute
------------------
-.. autoclass:: eveuniverse.models.EveDogmaAttribute
-    :members:
-
-EveDogmaEffect
---------------
-.. autoclass:: eveuniverse.models.EveDogmaEffect
-    :members:
-
-.. _api-models-eve-entity:
-
-EveDogmaEffectModifier
-----------------------
-.. autoclass:: eveuniverse.models.EveDogmaEffectModifier
-    :members:
-
-Eve Entity
---------------
-
-.. autoclass:: eveuniverse.models.EveEntity
-    :members:
-    :exclude-members:  DoesNotExist,  MultipleObjectsReturned
-
-EveFaction
-----------
-.. autoclass:: eveuniverse.models.EveFaction
-    :members:
-
-EveGraphic
-----------
-.. autoclass:: eveuniverse.models.EveGraphic
-    :members:
-
-EveGroup
-----------
-.. autoclass:: eveuniverse.models.EveGroup
-    :members:
-
-EveMarketGroup
---------------
-.. autoclass:: eveuniverse.models.EveMarketGroup
-    :members:
-
-EveMarketPrice
---------------
-.. autoclass:: eveuniverse.models.EveMarketPrice
-    :members:
-
-EveMoon
-----------
-.. autoclass:: eveuniverse.models.EveMoon
-    :members:
-
-EvePlanet
-----------
-.. autoclass:: eveuniverse.models.EvePlanet
-    :members:
-
-EveRace
-----------
-.. autoclass:: eveuniverse.models.EveRace
-    :members:
-
-EveRegion
-----------
-.. autoclass:: eveuniverse.models.EveRegion
-    :members:
-
-EveSolarSystem
---------------
-.. autoclass:: eveuniverse.models.EveSolarSystem
-    :members:
-    :exclude-members: children
-
-EveStar
-----------
-.. autoclass:: eveuniverse.models.EveStar
-    :members:
-
-EveStargate
------------
-.. autoclass:: eveuniverse.models.EveStargate
-    :members:
-    :exclude-members:  children, inline_objects
-
-EveStation
-----------
-.. autoclass:: eveuniverse.models.EveStation
-    :members:
-
-EveStationService
------------------
-.. autoclass:: eveuniverse.models.EveStationService
-    :members:
-
-EveType
----------
-.. autoclass:: eveuniverse.models.EveType
-    :members:
-
-EveTypeDogmaAttribute
----------------------
-.. autoclass:: eveuniverse.models.EveTypeDogmaAttribute
-    :members:
-
-EveTypeDogmaEffect
-------------------
-.. autoclass:: eveuniverse.models.EveTypeDogmaEffect
-    :members:
-
-EveTypeMaterial
----------------
-.. autoclass:: eveuniverse.models.EveTypeMaterial
-    :members:
-
-EveUnit
----------
-.. autoclass:: eveuniverse.models.EveUnit
+.. automodule:: eveuniverse.models
     :members:
 
 .. _api-manager-methods:
@@ -226,42 +19,16 @@ EveUnit
 Manager methods
 ====================
 
-Default manager methods
--------------------------
-
-All eve models have the following manager methods:
-
-.. autoclass:: eveuniverse.managers.EveUniverseEntityModelManager
+.. automodule:: eveuniverse.managers
     :members:
 
 .. _api-managers-eve-entity:
 
-EveEntity manager methods
--------------------------
-
-EveEntity comes with some additional manager methods.
-
-.. autoclass:: eveuniverse.managers.EveEntityQuerySet
-    :members:
-
-.. autoclass:: eveuniverse.managers.EveEntityManager
-    :members: get_or_create_esi, update_or_create_esi, bulk_create_esi, bulk_update_new_esi, bulk_update_all_esi, resolve_name, bulk_resolve_names, fetch_by_names_esi
-
-Other manager methods
--------------------------
-
-.. autoclass:: eveuniverse.managers.EveMarketPriceManager
-    :members:
-
 Helpers
 ====================
 
-.. autoclass:: eveuniverse.helpers.EveEntityNameResolver
-    :members: to_name
-
-.. autofunction:: eveuniverse.helpers.meters_to_au
-
-.. autofunction:: eveuniverse.helpers.meters_to_ly
+.. automodule:: eveuniverse.helpers
+    :members:
 
 Tasks
 ====================
@@ -312,3 +79,59 @@ Testdata
 
 .. seealso::
     Please also see :ref:`developer-testdata` on how to create test data for your app.
+
+
+Web APIs
+========
+
+APIs for accessing external web sites related to Eve Online.
+
+dotlan
+----------------
+.. automodule:: eveuniverse.core.dotlan
+    :members:
+
+esitools
+----------------
+.. automodule:: eveuniverse.core.esitools
+    :members:
+
+eveimageserver
+----------------
+.. automodule:: eveuniverse.core.eveimageserver
+    :members:
+
+eveitems
+----------------
+.. automodule:: eveuniverse.core.eveitems
+    :members:
+
+evemicros
+----------------
+.. automodule:: eveuniverse.core.evemicros
+    :members:
+
+evesdeapi
+----------------
+.. automodule:: eveuniverse.core.evesdeapi
+    :members:
+
+eveskinserver
+----------------
+.. automodule:: eveuniverse.core.eveskinserver
+    :members:
+
+evewho
+----------------
+.. automodule:: eveuniverse.core.evewho
+    :members:
+
+evexml
+---------------
+.. automodule:: eveuniverse.core.evexml
+    :members:
+
+zkillboard
+---------------
+.. automodule:: eveuniverse.core.zkillboard
+    :members:

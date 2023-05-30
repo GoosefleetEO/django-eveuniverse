@@ -1,3 +1,5 @@
+"""Helper functions and classes."""
+
 import hashlib
 import json
 from typing import Any, Dict, Optional
@@ -6,21 +8,22 @@ from django.db import models
 
 
 def meters_to_ly(value: float) -> Optional[float]:
-    """converts meters into lightyears"""
+    """Convert meters into lightyears."""
     return float(value) / 9_460_730_472_580_800 if value is not None else None
 
 
 def meters_to_au(value: float) -> Optional[float]:
-    """converts meters into AU"""
+    """Convert meters into AU."""
     return float(value) / 149_597_870_691 if value is not None else None
 
 
 def get_or_create_esi_or_none(
     prop_name: str, dct: dict, Model: type
 ) -> Optional[models.Model]:
-    """tries to create a new eveuniverse object from a dictionary entry
+    """Create a new eveuniverse object from a dictionary entry and return it
+    or return None if the prop name is not in the dict.
 
-    return the object on success or None
+    :meta private:
     """
     if eve_id := dct.get(prop_name):
         return Model.objects.get_or_create_esi(id=eve_id)[0]  # type: ignore
@@ -53,7 +56,10 @@ class EveEntityNameResolver:
 
 
 def dict_hash(dictionary: Dict[str, Any]) -> str:
-    """SHA256 hash of a dictionary."""
+    """SHA256 hash of a dictionary.
+
+    :meta private:
+    """
     my_hash = hashlib.sha256()
     encoded = json.dumps(dictionary, sort_keys=True).encode(encoding="utf8")
     my_hash.update(encoded)

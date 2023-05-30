@@ -1,3 +1,5 @@
+"""Tasks for Eve Universe."""
+
 import logging
 from typing import Iterable, List, Optional
 
