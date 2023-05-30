@@ -80,12 +80,15 @@ Manager methods
 Helpers
 ====================
 
-.. autoclass:: eveuniverse.helpers.EveEntityNameResolver
-    :members: to_nam
+.. automodule:: eveuniverse.helpers
+    :members:
 
-.. autofunction:: eveuniverse.helpers.meters_to_au
+.. .. autoclass:: eveuniverse.helpers.EveEntityNameResolver
+..     :members: to_nam
 
-.. autofunction:: eveuniverse.helpers.meters_to_ly
+.. .. autofunction:: eveuniverse.helpers.meters_to_au
+
+.. .. autofunction:: eveuniverse.helpers.meters_to_ly
 
 Tasks
 ====================
