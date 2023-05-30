@@ -78,3 +78,13 @@ html_theme_options = {
 
 # autodoc
 add_module_names = False
+autodoc_default_options = {
+    "members": True,
+    "member-order": "alphabetical",
+    "undoc-members": False,
+    "exclude-members": (
+        "__weakref__, DoesNotExist, MultipleObjectsReturned, "
+        "EveUniverseMeta, children, get_next_by_last_updated, "
+        "get_previous_by_last_updated"
+    ),
+}
