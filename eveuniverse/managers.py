@@ -1,3 +1,5 @@
+"""Managers and Querysets for Eve universe models."""
+
 import datetime as dt
 import logging
 from collections import defaultdict, namedtuple
@@ -24,9 +26,16 @@ from .utils import LoggerAddTag, chunks
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
 FakeResponse = namedtuple("FakeResponse", ["status_code"])
+"""
+:meta private:
+"""
 
 
 class EveUniverseBaseModelManager(models.Manager):
+    """
+    :meta private:
+    """
+
     def _defaults_from_esi_obj(
         self, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
     ) -> dict:
@@ -82,6 +91,8 @@ ModelType = TypeVar("ModelType", bound=models.Model)
 
 
 class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
+    """Manager for most Eve models."""
+
     def get_or_create_esi(
         self,
         *,
@@ -507,6 +518,10 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
 
 class EvePlanetManager(EveUniverseEntityModelManager):
+    """
+    :meta private:
+    """
+
     def _fetch_from_esi(
         self, id: int, enabled_sections: Optional[Iterable[str]] = None
     ) -> dict:
@@ -542,6 +557,10 @@ class EvePlanetManager(EveUniverseEntityModelManager):
 
 
 class EvePlanetChildrenManager(EveUniverseEntityModelManager):
+    """
+    :meta private:
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self._my_property_name = None
@@ -579,19 +598,30 @@ class EvePlanetChildrenManager(EveUniverseEntityModelManager):
 
 
 class EveAsteroidBeltManager(EvePlanetChildrenManager):
+    """
+    :meta private:
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self._my_property_name = "asteroid_belts"
 
 
 class EveMoonManager(EvePlanetChildrenManager):
+    """
+    :meta private:
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self._my_property_name = "moons"
 
 
 class EveStargateManager(EveUniverseEntityModelManager):
-    """For special handling of relations"""
+    """For special handling of relations
+
+    :meta private:
+    """
 
     def update_or_create_esi(
         self,
@@ -633,7 +663,10 @@ class EveStargateManager(EveUniverseEntityModelManager):
 
 
 class EveStationManager(EveUniverseEntityModelManager):
-    """For special handling of station services"""
+    """For special handling of station services
+
+    :meta private:
+    """
 
     def _update_or_create_inline_objects(
         self,
@@ -659,6 +692,10 @@ class EveStationManager(EveUniverseEntityModelManager):
 
 
 class EveTypeManager(EveUniverseEntityModelManager):
+    """
+    :meta private:
+    """
+
     def update_or_create_esi(
         self,
         *,
@@ -685,7 +722,7 @@ class EveTypeManager(EveUniverseEntityModelManager):
 
 
 class EveEntityQuerySet(models.QuerySet):
-    """Custom queryset for EveEntity"""
+    """Custom queryset for EveEntity."""
 
     def update_from_esi(self) -> int:
         """Updates all Eve entity objects in this queryset from ESI."""
@@ -700,13 +737,10 @@ class EveEntityQuerySet(models.QuerySet):
         )
 
 
-class EveEntityManager(EveUniverseEntityModelManager):
+class EveEntityManagerBase(EveUniverseEntityModelManager):
     """Custom manager for EveEntity"""
 
     MAX_DEPTH = 5
-
-    def get_queryset(self) -> models.QuerySet:
-        return EveEntityQuerySet(self.model, using=self._db)
 
     def get_or_create_esi(
         self,
@@ -974,6 +1008,9 @@ class EveEntityManager(EveUniverseEntityModelManager):
         return resolved_counter
 
 
+EveEntityManager = EveEntityManagerBase.from_queryset(EveEntityQuerySet)
+
+
 class EveMarketPriceManager(models.Manager):
     def update_from_esi(self, minutes_until_stale: Optional[int] = None) -> int:
         """Updates market prices from ESI. Will only create new price objects for EveTypes that already exist in the database.
@@ -1035,6 +1072,10 @@ class EveMarketPriceManager(models.Manager):
 
 
 class EveTypeMaterialManager(models.Manager):
+    """
+    :meta private:
+    """
+
     SDE_CACHE_KEY = "EVEUNIVERSE_TYPE_MATERIALS_REQUEST"
     SDE_CACHE_TIMEOUT = 3600 * 24
     SDE_ZZEVE_ROUTE = "invTypeMaterials.json"

@@ -72,38 +72,16 @@ Eve Models
 Manager methods
 ====================
 
-Default manager methods
--------------------------
-
-All eve models have the following manager methods:
-
-.. autoclass:: eveuniverse.managers.EveUniverseEntityModelManager
+.. automodule:: eveuniverse.managers
     :members:
 
 .. _api-managers-eve-entity:
-
-EveEntity manager methods
--------------------------
-
-EveEntity comes with some additional manager methods.
-
-.. autoclass:: eveuniverse.managers.EveEntityQuerySet
-    :members:
-
-.. autoclass:: eveuniverse.managers.EveEntityManager
-    :members: get_or_create_esi, update_or_create_esi, bulk_create_esi, bulk_update_new_esi, bulk_update_all_esi, resolve_name, bulk_resolve_names, fetch_by_names_esi
-
-Other manager methods
--------------------------
-
-.. autoclass:: eveuniverse.managers.EveMarketPriceManager
-    :members:
 
 Helpers
 ====================
 
 .. autoclass:: eveuniverse.helpers.EveEntityNameResolver
-    :members: to_name
+    :members: to_nam
 
 .. autofunction:: eveuniverse.helpers.meters_to_au
 

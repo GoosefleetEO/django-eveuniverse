@@ -1,3 +1,5 @@
+"""Eve universe models."""
+
 import enum
 import inspect
 import math
