@@ -8,58 +8,6 @@ This chapter contains the developer reference documentation of the public API fo
 
 .. _api-eve-models:
 
-Core functions
-==============
-
-dotlan
-----------------
-.. automodule:: eveuniverse.core.dotlan
-    :members:
-
-esitools
-----------------
-.. automodule:: eveuniverse.core.esitools
-    :members:
-
-eveimageserver
-----------------
-.. automodule:: eveuniverse.core.eveimageserver
-    :members:
-
-eveitems
-----------------
-.. automodule:: eveuniverse.core.eveitems
-    :members:
-
-evemicros
-----------------
-.. automodule:: eveuniverse.core.evemicros
-    :members:
-
-evesdeapi
-----------------
-.. automodule:: eveuniverse.core.evesdeapi
-    :members:
-
-eveskinserver
-----------------
-.. automodule:: eveuniverse.core.eveskinserver
-    :members:
-
-evewho
-----------------
-.. automodule:: eveuniverse.core.evewho
-    :members:
-
-evexml
----------------
-.. automodule:: eveuniverse.core.evexml
-    :members:
-
-zkillboard
----------------
-.. automodule:: eveuniverse.core.zkillboard
-    :members:
 
 Eve Models
 ==========
@@ -82,13 +30,6 @@ Helpers
 
 .. automodule:: eveuniverse.helpers
     :members:
-
-.. .. autoclass:: eveuniverse.helpers.EveEntityNameResolver
-..     :members: to_nam
-
-.. .. autofunction:: eveuniverse.helpers.meters_to_au
-
-.. .. autofunction:: eveuniverse.helpers.meters_to_ly
 
 Tasks
 ====================
@@ -139,3 +80,59 @@ Testdata
 
 .. seealso::
     Please also see :ref:`developer-testdata` on how to create test data for your app.
+
+
+Web APIs
+========
+
+APIs for accessing external web sites related to Eve Online.
+
+dotlan
+----------------
+.. automodule:: eveuniverse.core.dotlan
+    :members:
+
+esitools
+----------------
+.. automodule:: eveuniverse.core.esitools
+    :members:
+
+eveimageserver
+----------------
+.. automodule:: eveuniverse.core.eveimageserver
+    :members:
+
+eveitems
+----------------
+.. automodule:: eveuniverse.core.eveitems
+    :members:
+
+evemicros
+----------------
+.. automodule:: eveuniverse.core.evemicros
+    :members:
+
+evesdeapi
+----------------
+.. automodule:: eveuniverse.core.evesdeapi
+    :members:
+
+eveskinserver
+----------------
+.. automodule:: eveuniverse.core.eveskinserver
+    :members:
+
+evewho
+----------------
+.. automodule:: eveuniverse.core.evewho
+    :members:
+
+evexml
+---------------
+.. automodule:: eveuniverse.core.evexml
+    :members:
+
+zkillboard
+---------------
+.. automodule:: eveuniverse.core.zkillboard
+    :members:
