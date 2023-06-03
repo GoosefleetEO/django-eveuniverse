@@ -20,6 +20,11 @@ from ..models import (
     EveFaction,
     EveGraphic,
     EveGroup,
+    EveIndustryActivity,
+    EveIndustryActivityDuration,
+    EveIndustryActivityMaterial,
+    EveIndustryActivityProduct,
+    EveIndustryActivitySkill,
     EveMarketGroup,
     EveMarketPrice,
     EveMoon,
@@ -61,12 +66,17 @@ class TestEveUniverseBaseModel(NoSocketsTestCase):
             models,
             [
                 EveUnit,  # load_order = 100
+                EveIndustryActivity,  # load_order=101
                 EveEntity,  # load_order = 110
                 EveGraphic,  # load_order = 120
                 EveCategory,  # load_order = 130
                 EveGroup,  # load_order = 132
                 EveType,  # load_order = 134
                 EveTypeMaterial,  # load_order = 135
+                EveIndustryActivityDuration,  # load_order = 136
+                EveIndustryActivityMaterial,  # load_order = 137
+                EveIndustryActivityProduct,  # load_order = 138
+                EveIndustryActivitySkill,  # load_order = 139
                 EveDogmaAttribute,  # load_order = 140
                 EveDogmaEffect,  # load_order = 142
                 EveDogmaEffectModifier,  # load_order = 144
@@ -245,7 +255,7 @@ class TestEveCategoryUpdateAll(NoSocketsTestCase):
         # then
         self.assertSetEqual(
             set(EveCategory.objects.values_list("id", flat=True)),
-            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+            {1, 2, 3, 4, 6, 9, 16, 17, 65, 91},
         )
         self.assertEqual(EveGroup.objects.count(), 0)
         self.assertEqual(EveType.objects.count(), 0)
@@ -260,7 +270,7 @@ class TestEveCategoryUpdateAll(NoSocketsTestCase):
         # then
         self.assertSetEqual(
             set(EveCategory.objects.values_list("id", flat=True)),
-            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+            {1, 2, 3, 4, 6, 9, 16, 17, 65, 91},
         )
         self.assertEqual(EveGroup.objects.count(), 0)
         self.assertEqual(EveType.objects.count(), 0)
@@ -284,11 +294,11 @@ class TestEveCategoryUpdateAll(NoSocketsTestCase):
         # then
         self.assertSetEqual(
             set(EveCategory.objects.values_list("id", flat=True)),
-            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+            {1, 2, 3, 4, 6, 9, 16, 17, 65, 91},
         )
         self.assertSetEqual(
             set(EveGroup.objects.values_list("id", flat=True)),
-            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
+            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 268, 1404, 1950},
         )
         self.assertSetEqual(
             set(EveType.objects.values_list("id", flat=True)),
@@ -328,6 +338,7 @@ class TestEveCategoryUpdateAll(NoSocketsTestCase):
                 1376,
                 5,
                 52678,
+                3380,
             },
         )
 
@@ -341,11 +352,11 @@ class TestEveCategoryUpdateAll(NoSocketsTestCase):
         # then
         self.assertSetEqual(
             set(EveCategory.objects.values_list("id", flat=True)),
-            {1, 2, 3, 4, 6, 9, 17, 65, 91},
+            {1, 2, 3, 4, 6, 9, 16, 17, 65, 91},
         )
         self.assertSetEqual(
             set(EveGroup.objects.values_list("id", flat=True)),
-            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 1404, 1950},
+            {1, 5, 6, 7, 8, 9, 10, 105, 15, 18, 536, 25, 26, 268, 1404, 1950},
         )
         self.assertSetEqual(
             set(EveType.objects.values_list("id", flat=True)),
@@ -385,6 +396,7 @@ class TestEveCategoryUpdateAll(NoSocketsTestCase):
                 626,
                 1529,
                 52678,
+                3380,
             },
         )
 

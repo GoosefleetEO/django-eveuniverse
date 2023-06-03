@@ -2,8 +2,10 @@
 
 import datetime as dt
 import logging
+from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
+from urllib.parse import urljoin
 
 import requests
 from bravado.exception import HTTPNotFound
@@ -13,11 +15,7 @@ from django.db.utils import IntegrityError
 from django.utils.timezone import now
 
 from . import __title__
-from .app_settings import (
-    EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
-    EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT,
-    EVEUNIVERSE_ZZEVE_SDE_URL,
-)
+from .app_settings import EVEUNIVERSE_API_SDE_URL, EVEUNIVERSE_BULK_METHODS_BATCH_SIZE
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS
 from .helpers import EveEntityNameResolver, get_or_create_esi_or_none
 from .providers import esi
@@ -713,11 +711,23 @@ class EveTypeManager(EveUniverseEntityModelManager):
             task_priority=task_priority,
         )
         enabled_sections = self.model.determine_effective_sections(enabled_sections)
-        if enabled_sections and self.model.Section.TYPE_MATERIALS in enabled_sections:
-            from .models import EveTypeMaterial
+        if enabled_sections:
+            if self.model.Section.TYPE_MATERIALS in enabled_sections:
+                from .models import EveTypeMaterial
 
-            EveTypeMaterial.objects.update_or_create_api(eve_type=obj)
+                EveTypeMaterial.objects.update_or_create_api(eve_type=obj)
+            if self.model.Section.INDUSTRY_ACTIVITIES in enabled_sections:
+                from .models import (
+                    EveIndustryActivityDuration,
+                    EveIndustryActivityMaterial,
+                    EveIndustryActivityProduct,
+                    EveIndustryActivitySkill,
+                )
 
+                EveIndustryActivityDuration.objects.update_or_create_api(eve_type=obj)
+                EveIndustryActivityProduct.objects.update_or_create_api(eve_type=obj)
+                EveIndustryActivitySkill.objects.update_or_create_api(eve_type=obj)
+                EveIndustryActivityMaterial.objects.update_or_create_api(eve_type=obj)
         return obj, created
 
 
@@ -741,6 +751,9 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
     """Custom manager for EveEntity"""
 
     MAX_DEPTH = 5
+
+    def get_queryset(self) -> models.QuerySet:
+        return EveEntityQuerySet(self.model, using=self._db)
 
     def get_or_create_esi(
         self,
@@ -1071,14 +1084,62 @@ class EveMarketPriceManager(models.Manager):
             return len(market_prices)
 
 
-class EveTypeMaterialManager(models.Manager):
-    """
-    :meta private:
-    """
+class ApiCacheManager(ABC):
+    @property
+    @abstractmethod
+    def sde_cache_key(self) -> str:
+        pass
 
-    SDE_CACHE_KEY = "EVEUNIVERSE_TYPE_MATERIALS_REQUEST"
-    SDE_CACHE_TIMEOUT = 3600 * 24
-    SDE_ZZEVE_ROUTE = "invTypeMaterials.json"
+    @property
+    @abstractmethod
+    def sde_api_route(self) -> str:
+        pass
+
+    @property
+    def sde_cache_timeout(self):
+        return 3600 * 24
+
+    @classmethod
+    def _response_to_cache(cls, r: requests.Response) -> dict:
+        data_all = dict()
+        for row in r.json():
+            type_id = row["typeID"]
+            if type_id not in data_all:
+                data_all[type_id] = list()
+            data_all[type_id].append(row)
+        cache.set(
+            key=cls.sde_cache_key,
+            value=data_all,
+            timeout=cls.sde_cache_timeout,
+        )
+        return data_all
+
+    @classmethod
+    def _fetch_sde_data_cached(cls) -> dict:
+        data = cache.get(cls.sde_cache_key)
+        if not data:
+            r = requests.get(
+                urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls.sde_api_route)
+            )
+            r.raise_for_status()
+            data = cls._response_to_cache(r)
+            cache.set(
+                key=cls.sde_cache_key,
+                value=data,
+                timeout=cls.sde_cache_timeout,
+            )
+        return data
+
+    @classmethod
+    @abstractmethod
+    def update_or_create_api(cls, *args, **kwargs) -> None:
+        pass
+
+
+class EveTypeMaterialManager(models.Manager, ApiCacheManager):
+    sde_cache_key = "EVEUNIVERSE_TYPE_MATERIALS_REQUEST"
+    sde_cache_timeout = 3600 * 24
+    sde_api_route = "invTypeMaterials.json"
 
     def update_or_create_api(self, *, eve_type) -> None:
         """updates or creates type material objects for the given eve type"""
@@ -1097,22 +1158,106 @@ class EveTypeMaterialManager(models.Manager):
                 },
             )
 
-    @classmethod
-    def _fetch_sde_data_cached(cls) -> dict:
-        type_material_data_all = cache.get(cls.SDE_CACHE_KEY)
-        if not type_material_data_all:
-            url = EVEUNIVERSE_ZZEVE_SDE_URL.rstrip("/") + "/" + cls.SDE_ZZEVE_ROUTE
-            r = requests.get(url, timeout=EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT)
-            r.raise_for_status()
-            type_material_data_all = dict()
-            for row in r.json():
-                type_id = row["typeID"]
-                if type_id not in type_material_data_all:
-                    type_material_data_all[type_id] = list()
-                type_material_data_all[type_id].append(row)
-            cache.set(
-                key=cls.SDE_CACHE_KEY,
-                value=type_material_data_all,
-                timeout=cls.SDE_CACHE_TIMEOUT,
+
+class EveIndustryActivityDurationManager(models.Manager, ApiCacheManager):
+    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_DURATIONS_REQUEST"
+    sde_cache_timeout = 3600 * 24
+    sde_api_route = "industryActivity.json"  # not related to EveIndustryActivity
+
+    def update_or_create_api(self, *, eve_type) -> None:
+        from eveuniverse.models import EveIndustryActivity
+
+        industry_activity_data_all = self._fetch_sde_data_cached()
+        for industry_activity_data in industry_activity_data_all.get(eve_type.id, []):
+            activity = EveIndustryActivity.objects.get(
+                pk=industry_activity_data.get("activityID")
             )
-        return type_material_data_all
+            self.update_or_create(
+                eve_type=eve_type,
+                activity=activity,
+                defaults={
+                    "time": industry_activity_data.get("time"),
+                },
+            )
+
+
+class EveIndustryActivityMaterialManager(models.Manager, ApiCacheManager):
+    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_MATERIALS_REQUEST"
+    sde_cache_timeout = 3600 * 24
+    sde_api_route = "industryActivityMaterials.json"
+
+    def update_or_create_api(self, *, eve_type) -> None:
+        """updates or creates industry material objects for the given industry activity"""
+        from .models import EveIndustryActivity, EveType
+
+        data_all = self._fetch_sde_data_cached()
+        activity_data = data_all.get(eve_type.id, {})
+        for industry_material_data in activity_data:
+            material_eve_type, _ = EveType.objects.get_or_create_esi(
+                id=industry_material_data.get("materialTypeID")
+            )
+            activity = EveIndustryActivity.objects.get(
+                pk=industry_material_data.get("activityID")
+            )
+            self.update_or_create(
+                eve_type=eve_type,
+                material_eve_type=material_eve_type,
+                activity=activity,
+                defaults={
+                    "quantity": industry_material_data.get("quantity"),
+                },
+            )
+
+
+class EveIndustryActivityProductManager(models.Manager, ApiCacheManager):
+    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_PRODUCTS_REQUEST"
+    sde_cache_timeout = 3600 * 24
+    sde_api_route = "industryActivityProducts.json"
+
+    def update_or_create_api(self, *, eve_type) -> None:
+        from .models import EveIndustryActivity, EveType
+
+        data_all = self._fetch_sde_data_cached()
+        activity_data = data_all.get(eve_type.id, {})
+        for industry_products_data in activity_data:
+            product_eve_type, _ = EveType.objects.get_or_create_esi(
+                id=industry_products_data.get("productTypeID")
+            )
+            activity = EveIndustryActivity.objects.get(
+                pk=industry_products_data.get("activityID")
+            )
+            self.update_or_create(
+                eve_type=eve_type,
+                product_eve_type=product_eve_type,
+                activity=activity,
+                defaults={
+                    "quantity": industry_products_data.get("quantity"),
+                },
+            )
+
+
+class EveIndustryActivitySkillManager(models.Manager, ApiCacheManager):
+    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_SKILLS_REQUEST"
+    sde_cache_timeout = 3600 * 24
+    sde_api_route = "industryActivitySkills.json"
+
+    def update_or_create_api(self, *, eve_type) -> None:
+        from .models import EveIndustryActivity, EveType
+
+        data_all = self._fetch_sde_data_cached()
+        activity_data = data_all.get(eve_type.id, {})
+        for industry_skill_data in activity_data:
+            skill_eve_type, _ = EveType.objects.get_or_create_esi(
+                id=industry_skill_data.get("skillID")
+            )
+            activity = EveIndustryActivity.objects.get(
+                pk=industry_skill_data.get("activityID")
+            )
+            self.update_or_create(
+                eve_type=eve_type,
+                skill_eve_type=skill_eve_type,
+                activity=activity,
+                defaults={
+                    "level": industry_skill_data.get("level"),
+                },
+            )

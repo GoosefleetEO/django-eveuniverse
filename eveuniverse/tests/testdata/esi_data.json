@@ -147,6 +147,12 @@
                     608
                 ]
             },
+            "150": {
+                  "description": "Skills are learned by capsuleer pilots using special data chips known as skillbooks, and these are available for almost any imaginable activity that can be carried out in space",
+                  "market_group_id": 150,
+                  "name": "Skills",
+                  "types": []
+            },
             "1361": {
                 "description": "Small spaceships that excel in any role involving speed and agility",
                 "market_group_id": 1361,
@@ -160,6 +166,15 @@
                 "name": "Cruisers",
                 "parent_group_id": 4,
                 "types": []
+            },
+               "369": {
+                  "description": "Skills pertaining to the efficient use of manufacturing facilities and industrial devices",
+                  "market_group_id": 369,
+                  "name": "Production",
+                  "parent_group_id": 150,
+                  "types": [
+                    3380
+                  ]
             }
         },
         "get_markets_prices": [
@@ -294,6 +309,14 @@
                     105
                 ],
                 "name": "Blueprint",
+                "published": true
+            },
+            "16": {
+                "category_id": 16,
+                "groups": [
+                    268
+                ],
+                "name": "Skill",
                 "published": true
             },
             "17": {
@@ -594,6 +617,15 @@
                 "published": true,
                 "types": [
                     950
+                ]
+            },
+            "268": {
+                "category_id": 16,
+                "group_id": 268,
+                "name": "Production",
+                "published": true,
+                "types": [
+                    3380
                 ]
             },
             "536": {
@@ -1440,6 +1472,73 @@
                 "radius": 10000,
                 "type_id": 2016,
                 "volume": 1
+            },
+            "3380": {
+                "capacity": 0.0,
+                "description": "Allows basic operation of factories. 4% reduction in manufacturing time per skill level.",
+                "dogma_attributes": [
+                    {
+                        "attribute_id": 161,
+                        "value": 0.01
+                    },
+                    {
+                        "attribute_id": 162,
+                        "value": 1.0
+                    },
+                    {
+                        "attribute_id": 4,
+                        "value": 0.0
+                    },
+                    {
+                        "attribute_id": 38,
+                        "value": 0.0
+                    },
+                    {
+                        "attribute_id": 440,
+                        "value": -4.0
+                    },
+                    {
+                        "attribute_id": 275,
+                        "value": 1.0
+                    },
+                    {
+                        "attribute_id": 180,
+                        "value": 166.0
+                    },
+                    {
+                        "attribute_id": 181,
+                        "value": 165.0
+                    },
+                    {
+                        "attribute_id": 280,
+                        "value": 0.0
+                    }
+                ],
+                "dogma_effects": [
+                    {
+                        "effect_id": 132,
+                        "is_default": true
+                    },
+                    {
+                        "effect_id": 412,
+                        "is_default": false
+                    },
+                    {
+                        "effect_id": 425,
+                        "is_default": false
+                    }
+                ],
+                "group_id": 268,
+                "icon_id": 33,
+                "market_group_id": 369,
+                "mass": 0.0,
+                "name": "Industry",
+                "packaged_volume": 0.01,
+                "portion_size": 1,
+                "published": true,
+                "radius": 1.0,
+                "type_id": 3380,
+                "volume": 0.01
             },
             "3800": {
                 "capacity": 0,

@@ -7,8 +7,8 @@ EVEUNIVERSE_BULK_METHODS_BATCH_SIZE = clean_setting(
 of Django batch methods, e.g. bulk_create and bulk_update.
 """
 
-EVEUNIVERSE_ZZEVE_SDE_URL = clean_setting(
-    "EVEUNIVERSE_ZZEVE_SDE_URL", "https://sde.eve-o.tech/latest"
+EVEUNIVERSE_API_SDE_URL = clean_setting(
+    "EVEUNIVERSE_API_SDE_URL", "https://sde.eve-o.tech/latest"
 )
 """URL to a web site providing the SDE tables as JSON files."""
 
@@ -45,6 +45,11 @@ EVEUNIVERSE_LOAD_TYPE_MATERIALS = clean_setting(
     "EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
 )
 """When true will automatically load type materials be with every type."""
+
+EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES = clean_setting(
+    "EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES", False
+)
+
 
 EVEUNIVERSE_LOAD_TASKS_PRIORITY = clean_setting("EVEUNIVERSE_LOAD_TASKS_PRIORITY", 6)
 """Priority of tasks for data loads.

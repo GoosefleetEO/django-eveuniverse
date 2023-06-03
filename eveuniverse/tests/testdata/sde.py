@@ -12,10 +12,15 @@ sde_data = _load_sde_data()
 
 
 def type_materials_cache_content():
-    type_material_data_all = dict()
-    for row in sde_data["type_materials"]:
+    return cache_content(table="type_materials")
+
+
+def cache_content(table):
+    data_all = dict()
+    cached_data = sde_data[table]
+    for row in cached_data:
         type_id = row["typeID"]
-        if type_id not in type_material_data_all:
-            type_material_data_all[type_id] = list()
-        type_material_data_all[type_id].append(row)
-    return type_material_data_all
+        if type_id not in data_all:
+            data_all[type_id] = list()
+        data_all[type_id].append(row)
+    return data_all

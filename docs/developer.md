@@ -141,6 +141,11 @@ Therefore the following eve models are not loaded through relations By default a
 - EveStargate
 - EveStar
 - EveStation
+- EveTypeMaterial
+- EveIndustryActivityDurations
+- EveIndustryActivityMaterials
+- EveIndustryActivityProducts
+- EveIndustryActivitySkills
 
 ```{eval-rst}
 .. Hint::
@@ -197,6 +202,29 @@ obj, _ = EveSolarSystem.objects.get_or_create_esi(id=30000142, include_children=
 .. seealso::
     See also the API for a list of all available sections for each model that supports it: :py:class:`eveuniverse.models.EvePlanet.Section`, :py:class:`eveuniverse.models.EveSolarSystem.Section`, :py:class:`eveuniverse.models.EveType.Section`.
 ```
+
+#### NON-ESI models
+
+There are several managers which obtain the data from SDE API, since it's not provided by ESI. The related models are:
+
+- EveTypeMaterial
+- EveIndustryActivityDurations
+- EveIndustryActivityMaterials
+- EveIndustryActivityProducts
+- EveIndustryActivitySkills
+
+Managers for these models implement 'update_or_create_api' method
+
+
+```Python
+merlin_blueprint, _ = EveType.objects.get_or_create_esi(id=950)
+
+EveIndustryActivityMaterials.objects.update_or_create_api(
+    eve_type=merlin_blueprint
+)
+```
+
+#### Loading
 
 #### Preloading instances
 

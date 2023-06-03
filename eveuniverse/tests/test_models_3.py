@@ -6,6 +6,10 @@ from ..constants import EveGroupId
 from ..core import evesdeapi
 from ..models import (
     EveAsteroidBelt,
+    EveIndustryActivityDuration,
+    EveIndustryActivityMaterial,
+    EveIndustryActivityProduct,
+    EveIndustryActivitySkill,
     EveMoon,
     EvePlanet,
     EveSolarSystem,
@@ -17,13 +21,24 @@ from ..models import (
 )
 from ..utils import NoSocketsTestCase
 from .testdata.esi import EsiClientStub
-from .testdata.sde import sde_data, type_materials_cache_content
+from .testdata.sde import cache_content, sde_data, type_materials_cache_content
 
 MODELS_PATH = "eveuniverse.models"
 MANAGERS_PATH = "eveuniverse.managers"
 
 
-@patch(MANAGERS_PATH + ".EVEUNIVERSE_ZZEVE_SDE_URL", "https://sde.eve-o.tech/latest")
+def get_cache_content(cache_key):
+    table_name = {
+        "EVEUNIVERSE_INDUSTRY_ACTIVITY_MATERIALS_REQUEST": "industry_activity_materials",
+        "EVEUNIVERSE_INDUSTRY_ACTIVITY_PRODUCTS_REQUEST": "industry_activity_products",
+        "EVEUNIVERSE_INDUSTRY_ACTIVITY_SKILLS_REQUEST": "industry_activity_skills",
+        "EVEUNIVERSE_INDUSTRY_ACTIVITY_DURATIONS_REQUEST": "industry_activity_durations",
+        "EVEUNIVERSE_TYPE_MATERIALS_REQUEST": "type_materials",
+    }.get(cache_key)
+    return cache_content(table=table_name)
+
+
+@patch(MANAGERS_PATH + ".EVEUNIVERSE_API_SDE_URL", "https://sde.eve-o.tech/latest")
 @patch(MANAGERS_PATH + ".cache")
 @patch(MANAGERS_PATH + ".esi")
 @requests_mock.Mocker()
@@ -175,6 +190,268 @@ class TestEveTypeMaterial(NoSocketsTestCase):
             ),
             set(),
         )
+
+
+@patch(MANAGERS_PATH + ".cache")
+@patch(MANAGERS_PATH + ".esi")
+@requests_mock.Mocker()
+class TestEveIndustryActivityDuration(NoSocketsTestCase):
+    def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = None
+        mock_cache.set.return_value = None
+        requests_mocker.register_uri(
+            "GET",
+            url="https://sde.eve-o.tech/latest/industryActivity.json",
+            json=sde_data["industry_activity_durations"],
+        )
+        merlin_blueprint, _ = EveType.objects.get_or_create_esi(id=950)
+
+        EveIndustryActivityDuration.objects.update_or_create_api(
+            eve_type=merlin_blueprint,
+        )
+        # then
+        self.assertTrue(requests_mocker.called)
+        self.assertTrue(mock_cache.set.called)
+        self.assertSetEqual(
+            set(
+                EveIndustryActivityDuration.objects.filter(eve_type_id=950).values_list(
+                    "activity_id", flat=True
+                )
+            ),
+            {1, 8, 3, 4, 5},
+        )
+        obj = EveIndustryActivityDuration.objects.get(eve_type_id=950, activity_id=8)
+        self.assertEqual(obj.time, 63900)
+        obj = EveIndustryActivityDuration.objects.get(eve_type_id=950, activity_id=1)
+        self.assertEqual(obj.time, 6000)
+        obj = EveIndustryActivityDuration.objects.get(eve_type_id=950, activity_id=3)
+        self.assertEqual(obj.time, 2100)
+        obj = EveIndustryActivityDuration.objects.get(eve_type_id=950, activity_id=4)
+        self.assertEqual(obj.time, 2100)
+
+        obj = EveIndustryActivityDuration.objects.get(eve_type_id=950, activity_id=5)
+        self.assertEqual(obj.time, 4800)
+
+    def test_should_use_cache_if_available(self, mock_esi, mock_cache, requests_mocker):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = cache_content("industry_activity_durations")
+        mock_cache.set.return_value = None
+        requests_mocker.register_uri(
+            "GET",
+            url="https://sde.eve-o.tech/latest/industryActivity.json",
+            json=sde_data["industry_activity_durations"],
+        )
+        eve_type, _ = EveType.objects.get_or_create_esi(id=950)
+        # when
+        EveIndustryActivityDuration.objects.update_or_create_api(eve_type=eve_type)
+        # then
+        self.assertFalse(requests_mocker.called)
+        self.assertFalse(mock_cache.set.called)
+        self.assertSetEqual(
+            set(
+                EveIndustryActivityDuration.objects.filter(eve_type_id=950).values_list(
+                    "activity_id", flat=True
+                )
+            ),
+            {1, 8, 3, 4, 5},
+        )
+
+
+@patch(MANAGERS_PATH + ".cache")
+@patch(MANAGERS_PATH + ".esi")
+@requests_mock.Mocker()
+class TestEveIndustryActivityMaterial(NoSocketsTestCase):
+    def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = None
+        mock_cache.set.return_value = None
+        requests_mocker.register_uri(
+            "GET",
+            url="https://sde.eve-o.tech/latest/industryActivityMaterials.json",
+            json=sde_data["industry_activity_materials"],
+        )
+        merlin_blueprint, _ = EveType.objects.get_or_create_esi(id=950)
+        EveIndustryActivityMaterial.objects.update_or_create_api(
+            eve_type=merlin_blueprint,
+        )
+        # then
+        self.assertTrue(requests_mocker.called)
+        self.assertTrue(mock_cache.set.called)
+        self.assertSetEqual(
+            set(
+                EveIndustryActivityMaterial.objects.filter(
+                    eve_type=merlin_blueprint
+                ).values_list("material_eve_type_id", flat=True)
+            ),
+            {34, 35, 36, 37},
+        )
+        obj = EveIndustryActivityMaterial.objects.get(
+            eve_type_id=950, material_eve_type_id=34
+        )
+        self.assertEqual(obj.quantity, 32000)
+        obj = EveIndustryActivityMaterial.objects.get(
+            eve_type_id=950, material_eve_type_id=35
+        )
+        self.assertEqual(obj.quantity, 6000)
+        obj = EveIndustryActivityMaterial.objects.get(
+            eve_type_id=950, material_eve_type_id=36
+        )
+        self.assertEqual(obj.quantity, 2500)
+
+        obj = EveIndustryActivityMaterial.objects.get(
+            eve_type_id=950, material_eve_type_id=37
+        )
+        self.assertEqual(obj.quantity, 500)
+
+    def test_should_use_cache_if_available(self, mock_esi, mock_cache, requests_mocker):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = cache_content("industry_activity_materials")
+        mock_cache.set.return_value = None
+        requests_mocker.register_uri(
+            "GET",
+            url="https://sde.eve-o.tech/latest/industryActivityMaterials.json",
+            json=sde_data["industry_activity_materials"],
+        )
+        eve_type, _ = EveType.objects.get_or_create_esi(id=950)
+        # when
+        EveIndustryActivityMaterial.objects.update_or_create_api(eve_type=eve_type)
+        # then
+        self.assertFalse(requests_mocker.called)
+        self.assertFalse(mock_cache.set.called)
+        self.assertSetEqual(
+            set(
+                EveIndustryActivityMaterial.objects.filter(
+                    eve_type=eve_type
+                ).values_list("material_eve_type_id", flat=True)
+            ),
+            {34, 35, 36, 37},
+        )
+
+
+@patch(MANAGERS_PATH + ".cache")
+@patch(MANAGERS_PATH + ".esi")
+@requests_mock.Mocker()
+class TestEveIndustryActivityProduct(NoSocketsTestCase):
+    def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = None
+        mock_cache.set.return_value = None
+        requests_mocker.register_uri(
+            "GET",
+            url="https://sde.eve-o.tech/latest/industryActivityProducts.json",
+            json=sde_data["industry_activity_products"],
+        )
+        merlin_blueprint, _ = EveType.objects.get_or_create_esi(id=950)
+        EveIndustryActivityProduct.objects.update_or_create_api(
+            eve_type=merlin_blueprint,
+        )
+        # then
+        self.assertTrue(requests_mocker.called)
+        self.assertTrue(mock_cache.set.called)
+        self.assertSetEqual(
+            set(
+                EveIndustryActivityProduct.objects.filter(
+                    eve_type=merlin_blueprint
+                ).values_list("product_eve_type_id", flat=True)
+            ),
+            {603},
+        )
+        obj = EveIndustryActivityProduct.objects.get(
+            eve_type_id=950, product_eve_type_id=603
+        )
+        self.assertEqual(obj.quantity, 1)
+
+    def test_should_use_cache_if_available(self, mock_esi, mock_cache, requests_mocker):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = cache_content("industry_activity_products")
+        mock_cache.set.return_value = None
+        requests_mocker.register_uri(
+            "GET",
+            url="https://sde.eve-o.tech/latest/industryActivityProducts.json",
+            json=sde_data["industry_activity_products"],
+        )
+        eve_type, _ = EveType.objects.get_or_create_esi(id=950)
+        # when
+        EveIndustryActivityProduct.objects.update_or_create_api(eve_type=eve_type)
+        # then
+        self.assertFalse(requests_mocker.called)
+        self.assertFalse(mock_cache.set.called)
+        self.assertSetEqual(
+            set(
+                EveIndustryActivityProduct.objects.filter(
+                    eve_type=eve_type
+                ).values_list("product_eve_type_id", flat=True)
+            ),
+            {603},
+        )
+
+
+@patch(MANAGERS_PATH + ".cache")
+@patch(MANAGERS_PATH + ".esi")
+@requests_mock.Mocker()
+class TestEveIndustryActivitySkill(NoSocketsTestCase):
+    def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = None
+        mock_cache.set.return_value = None
+        requests_mocker.register_uri(
+            "GET",
+            url="https://sde.eve-o.tech/latest/industryActivitySkills.json",
+            json=sde_data["industry_activity_skills"],
+        )
+        merlin_blueprint, _ = EveType.objects.get_or_create_esi(id=950)
+        EveIndustryActivitySkill.objects.update_or_create_api(
+            eve_type=merlin_blueprint,
+        )
+        # then
+        self.assertTrue(requests_mocker.called)
+        self.assertTrue(mock_cache.set.called)
+        self.assertSetEqual(
+            set(
+                EveIndustryActivitySkill.objects.filter(
+                    eve_type=merlin_blueprint
+                ).values_list("skill_eve_type_id", flat=True)
+            ),
+            {3380},
+        )
+
+    def test_should_use_cache_if_avaliable(self, mock_esi, mock_cache, requests_mocker):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get.return_value = cache_content("industry_activity_skills")
+        mock_cache.set.return_value = None
+        requests_mocker.register_uri(
+            "GET",
+            url="https://sde.eve-o.tech/latest/industryActivitySkills.json",
+            json=sde_data["industry_activity_skills"],
+        )
+        merlin_blueprint, _ = EveType.objects.get_or_create_esi(id=950)
+        EveIndustryActivitySkill.objects.update_or_create_api(
+            eve_type=merlin_blueprint,
+        )
+        # then
+        self.assertFalse(requests_mocker.called)
+        self.assertFalse(mock_cache.set.called)
+        self.assertSetEqual(
+            set(
+                EveIndustryActivitySkill.objects.filter(
+                    eve_type=merlin_blueprint
+                ).values_list("skill_eve_type_id", flat=True)
+            ),
+            {3380},
+        )
+        obj = EveIndustryActivitySkill.objects.get(
+            eve_type_id=950,
+        )
+        self.assertEqual(obj.level, 1)
 
 
 @patch(MANAGERS_PATH + ".cache")
@@ -407,6 +684,46 @@ class TestEveTypeWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.graphics)
         self.assertTrue(obj.enabled_sections.type_materials)
 
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES", True)
+    def test_should_create_blueprint_with_industry_records_global(
+        self, mock_esi, mock_cache
+    ):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get = get_cache_content
+        # when
+        obj, created = EveType.objects.update_or_create_esi(
+            id=950,
+        )  # Merlin BPC
+        self.assertTrue(EveIndustryActivityDuration.objects.filter(eve_type_id=950))
+        self.assertTrue(EveIndustryActivityMaterial.objects.filter(eve_type_id=950))
+        self.assertTrue(EveIndustryActivityProduct.objects.filter(eve_type_id=950))
+        self.assertTrue(EveIndustryActivitySkill.objects.filter(eve_type_id=950))
+
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False)
+    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES", False)
+    def test_should_create_blueprint_with_industry_records_on_demand(
+        self, mock_esi, mock_cache
+    ):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_cache.get = get_cache_content
+        # when
+        obj, created = EveType.objects.update_or_create_esi(
+            id=950, enabled_sections=[EveType.Section.INDUSTRY_ACTIVITIES]
+        )  # Merlin BPC
+        self.assertTrue(EveIndustryActivityDuration.objects.filter(eve_type_id=950))
+        self.assertTrue(EveIndustryActivityMaterial.objects.filter(eve_type_id=950))
+        self.assertTrue(EveIndustryActivityProduct.objects.filter(eve_type_id=950))
+        self.assertTrue(EveIndustryActivitySkill.objects.filter(eve_type_id=950))
+
 
 class TestEveTypeSection(NoSocketsTestCase):
     def test_should_return_value_as_str(self):
@@ -415,7 +732,13 @@ class TestEveTypeSection(NoSocketsTestCase):
     def test_should_return_values(self):
         self.assertEqual(
             list(EveType.Section),
-            ["dogmas", "graphics", "market_groups", "type_materials"],
+            [
+                "dogmas",
+                "graphics",
+                "market_groups",
+                "type_materials",
+                "industry_activities",
+            ],
         )
 
 
