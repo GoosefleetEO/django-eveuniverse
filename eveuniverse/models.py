@@ -16,6 +16,7 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_ASTEROID_BELTS,
     EVEUNIVERSE_LOAD_DOGMAS,
     EVEUNIVERSE_LOAD_GRAPHICS,
+    EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES,
     EVEUNIVERSE_LOAD_MARKET_GROUPS,
     EVEUNIVERSE_LOAD_MOONS,
     EVEUNIVERSE_LOAD_PLANETS,
@@ -30,6 +31,10 @@ from .core import dotlan, eveimageserver, eveitems, evesdeapi, eveskinserver, ev
 from .managers import (
     EveAsteroidBeltManager,
     EveEntityManager,
+    EveIndustryActivityDurationManager,
+    EveIndustryActivityMaterialManager,
+    EveIndustryActivityProductManager,
+    EveIndustryActivitySkillManager,
     EveMarketPriceManager,
     EveMoonManager,
     EvePlanetManager,
@@ -310,6 +315,8 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
             enabled_sections.add(EveSolarSystem.Section.STATIONS.value)
         if EVEUNIVERSE_LOAD_TYPE_MATERIALS:
             enabled_sections.add(EveType.Section.TYPE_MATERIALS.value)
+        if EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES:
+            enabled_sections.add(EveType.Section.INDUSTRY_ACTIVITIES.value)
         return enabled_sections
 
     @classmethod
@@ -1503,6 +1510,7 @@ class EveType(EveUniverseEntityModel):
         GRAPHICS = "graphics"  #:
         MARKET_GROUPS = "market_groups"  #:
         TYPE_MATERIALS = "type_materials"  #:
+        INDUSTRY_ACTIVITIES = "industry_activities"  #:
 
     capacity = models.FloatField(default=None, null=True)
     description = models.TextField(default="")
@@ -1758,7 +1766,7 @@ class EveTypeMaterial(EveUniverseInlineModel):
         ]
 
     class EveUniverseMeta:
-        load_order = 137
+        load_order = 135
 
     def __str__(self) -> str:
         return f"{self.eve_type}-{self.material_eve_type}"
@@ -1771,3 +1779,150 @@ class EveTypeMaterial(EveUniverseInlineModel):
             f"quantity={self.quantity}"
             ")"
         )
+
+
+class EveIndustryActivity(EveUniverseInlineModel):
+    """
+    Contains desctiption and about different types of industry activities
+    See 'industry_activities.json'
+    """
+
+    id = models.IntegerField(primary_key=True)
+    description = models.CharField(max_length=100)
+    name = models.CharField(max_length=30)
+
+    class EveUniverseMeta:
+        load_order = 101
+
+
+class EveIndustryActivityDuration(EveUniverseInlineModel):
+    """
+    Contains the number of seconds it takes to create a blueprint product
+    """
+
+    eve_type = models.ForeignKey(
+        EveType,
+        on_delete=models.CASCADE,
+        help_text="Blueprint type",
+        related_name="industry_durations",
+    )
+    activity = models.ForeignKey(EveIndustryActivity, on_delete=models.CASCADE)
+    time = models.PositiveIntegerField()
+
+    objects = EveIndustryActivityDurationManager()
+
+    class EveUniverseMeta:
+        load_order = 136
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["eve_type", "activity"],
+                name="fpk_eveindustryactivity",
+            )
+        ]
+
+
+class EveIndustryActivityMaterial(EveUniverseInlineModel):
+    """
+    Contains the materials and amounts required to create a blueprint product
+    """
+
+    eve_type = models.ForeignKey(
+        EveType,
+        on_delete=models.CASCADE,
+        help_text="Blueprint type",
+        related_name="industry_materials",
+    )
+    activity = models.ForeignKey(EveIndustryActivity, on_delete=models.CASCADE)
+    material_eve_type = models.ForeignKey(
+        EveType,
+        on_delete=models.CASCADE,
+        related_name="+",
+        help_text="Material required type",
+    )
+    quantity = models.PositiveIntegerField()
+
+    objects = EveIndustryActivityMaterialManager()
+
+    class EveUniverseMeta:
+        load_order = 137
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "eve_type",
+                    "material_eve_type",
+                    "activity",
+                ],
+                name="fpk_eveindustryactivitymaterial",
+            )
+        ]
+
+
+class EveIndustryActivityProduct(EveUniverseInlineModel):
+    """
+    Contains quantities of products for blueprints
+    """
+
+    eve_type = models.ForeignKey(
+        EveType,
+        on_delete=models.CASCADE,
+        help_text="Blueprint type",
+        related_name="industry_products",
+    )
+    activity = models.ForeignKey(EveIndustryActivity, on_delete=models.CASCADE)
+    product_eve_type = models.ForeignKey(
+        EveType, on_delete=models.CASCADE, related_name="+", help_text="Result type"
+    )
+    quantity = models.PositiveIntegerField()
+
+    objects = EveIndustryActivityProductManager()
+
+    class EveUniverseMeta:
+        load_order = 138
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "eve_type",
+                    "product_eve_type",
+                    "activity",
+                ],
+                name="fpk_eveindustryactivityproduct",
+            )
+        ]
+
+
+class EveIndustryActivitySkill(EveUniverseInlineModel):
+    """
+    Contains levels of skills required for blueprint run
+    """
+
+    eve_type = models.ForeignKey(
+        EveType,
+        on_delete=models.CASCADE,
+        help_text="Blueprint type",
+        related_name="industry_skills",
+    )
+    activity = models.ForeignKey(EveIndustryActivity, on_delete=models.CASCADE)
+    skill_eve_type = models.ForeignKey(
+        EveType, on_delete=models.CASCADE, related_name="+", help_text="Skill book type"
+    )
+
+    level = models.PositiveIntegerField(db_index=True)
+
+    objects = EveIndustryActivitySkillManager()
+
+    class EveUniverseMeta:
+        load_order = 139
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["eve_type", "skill_eve_type", "activity"],
+                name="fpk_eveindustryactivityskill",
+            )
+        ]

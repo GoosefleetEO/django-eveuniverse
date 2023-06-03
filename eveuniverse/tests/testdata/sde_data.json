@@ -1,4 +1,41 @@
 {
+    "industry_activity_durations": [
+        {
+            "activityID": 1,
+            "time": 6000,
+            "typeID": 950
+        },
+        {
+            "activityID": 3,
+            "time": 2100,
+            "typeID": 950
+        },
+        {
+            "activityID": 4,
+            "time": 2100,
+            "typeID": 950
+        },
+        {
+            "activityID": 5,
+            "time": 4800,
+            "typeID": 950
+        },
+        {
+            "activityID": 8,
+            "time": 63900,
+            "typeID": 950
+        }
+    ],
+    "industry_activity_materials": [
+        {"typeID": 950, "activityID": 1, "materialTypeID": 34, "quantity": 32000},
+        {"typeID": 950, "activityID": 1, "materialTypeID": 35, "quantity": 6000},
+        {"typeID": 950, "activityID": 1, "materialTypeID": 36, "quantity": 2500},
+        {"typeID": 950, "activityID": 1, "materialTypeID": 37, "quantity": 500}
+    ],
+    "industry_activity_products": [
+        {"typeID": 950, "activityID": 1, "productTypeID": 603, "quantity": 1}
+    ],
+    "industry_activity_skills": [{"typeID": 950, "activityID": 1, "skillID": 3380, "level": 1}],
     "type_materials": [
         {
             "materialTypeID": 34,
