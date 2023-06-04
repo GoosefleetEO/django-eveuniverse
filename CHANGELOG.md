@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- Minor
+- Fix image in README on PyPI
 
 ## [1.1.0] - 2023-06-04
 

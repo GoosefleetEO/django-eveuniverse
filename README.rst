@@ -37,11 +37,11 @@ Here is an overview of the main features:
 Models
 ======
 
-.. figure:: ../aa-eveuniverse_models.png
+Models of Eve Universe with relationships:
+
+.. image:: ../aa-eveuniverse_models.png
    :scale: 15 %
    :alt: models with relationships
-
-   Models of Eve Universe with relationships.
 
 
 .. |release| image:: https://img.shields.io/pypi/v/django-eveuniverse?label=release
