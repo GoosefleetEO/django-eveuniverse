@@ -1782,10 +1782,7 @@ class EveTypeMaterial(EveUniverseInlineModel):
 
 
 class EveIndustryActivity(EveUniverseInlineModel):
-    """
-    Contains desctiption and about different types of industry activities
-    See 'industry_activities.json'
-    """
+    """An industry activity in Eve Online."""
 
     id = models.IntegerField(primary_key=True)
     description = models.CharField(max_length=100)
@@ -1796,9 +1793,7 @@ class EveIndustryActivity(EveUniverseInlineModel):
 
 
 class EveIndustryActivityDuration(EveUniverseInlineModel):
-    """
-    Contains the number of seconds it takes to create a blueprint product
-    """
+    """Number of seconds it takes to create a blueprint product."""
 
     eve_type = models.ForeignKey(
         EveType,
@@ -1824,9 +1819,7 @@ class EveIndustryActivityDuration(EveUniverseInlineModel):
 
 
 class EveIndustryActivityMaterial(EveUniverseInlineModel):
-    """
-    Contains the materials and amounts required to create a blueprint product
-    """
+    """The materials and amounts required to create a blueprint product."""
 
     eve_type = models.ForeignKey(
         EveType,
@@ -1862,9 +1855,7 @@ class EveIndustryActivityMaterial(EveUniverseInlineModel):
 
 
 class EveIndustryActivityProduct(EveUniverseInlineModel):
-    """
-    Contains quantities of products for blueprints
-    """
+    """Quantities of products for blueprints."""
 
     eve_type = models.ForeignKey(
         EveType,
@@ -1897,9 +1888,7 @@ class EveIndustryActivityProduct(EveUniverseInlineModel):
 
 
 class EveIndustryActivitySkill(EveUniverseInlineModel):
-    """
-    Contains levels of skills required for blueprint run
-    """
+    """Levels of skills required for blueprint run."""
 
     eve_type = models.ForeignKey(
         EveType,

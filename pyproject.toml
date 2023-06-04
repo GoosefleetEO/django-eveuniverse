@@ -4,8 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "django-eveuniverse"
-dynamic = ["version"]
-description = "Complete set of Eve Universe models with on-demand loading from ESI"
+dynamic = ["description", "version"]
 readme = "README.rst"
 license = {file = "LICENSE"}
 requires-python = ">=3.8"

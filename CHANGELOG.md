@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.1.1] - 2023-06-04
+
+### Fixed
+
+- Minor
+
+## [1.1.0] - 2023-06-04
+
+### Added
+
+- Models for industry activities:
+  - EveIndustryActivity
+  - EveIndustryActivityDuration
+  - EveIndustryActivityMaterial
+  - EveIndustryActivityProduct
+  - EveIndustryActivitySkill
+
+Big thanks to @iso.func for the contribution!
+
 ## [1.0.0] - 2023-05-30
 
 ### Highlights
