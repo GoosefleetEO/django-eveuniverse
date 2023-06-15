@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.2.0] - 2023-06-15
+
+### Added
+
+- EvePlanet.type_name()
+
 ## [1.1.1] - 2023-06-04
 
 ### Fixed
