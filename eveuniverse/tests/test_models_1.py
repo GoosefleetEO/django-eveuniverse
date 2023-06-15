@@ -795,6 +795,13 @@ class TestEvePlanet(NoSocketsTestCase):
         moon.refresh_from_db()
         self.assertNotEqual(moon.name, "Dummy")
 
+    def test_can_return_planet_type_name(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        obj, _ = EvePlanet.objects.update_or_create_esi(id=40349467)
+        # when/then
+        self.assertEqual(obj.type_name(), "Barren")
+
 
 @patch(MANAGERS_PATH + ".esi")
 class TestEveRace(NoSocketsTestCase):

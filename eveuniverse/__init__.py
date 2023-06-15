@@ -2,5 +2,5 @@
 
 default_app_config = "eveuniverse.apps.EveuniverseConfig"
 
-__version__ = "1.1.1"
+__version__ = "1.2.0"
 __title__ = "Eve Universe"

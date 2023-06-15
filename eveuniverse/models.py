@@ -3,6 +3,7 @@
 import enum
 import inspect
 import math
+import re
 import sys
 from collections import namedtuple
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
@@ -1089,6 +1090,14 @@ class EvePlanet(EveUniverseEntityModel):
         }
         children = {"moons": "EveMoon", "asteroid_belts": "EveAsteroidBelt"}
         load_order = 205
+
+    def type_name(self) -> str:
+        """Return shortened name of planet type.
+
+        Note: Accesses the eve_type object.
+        """
+        matches = re.findall(r"Planet \((\S*)\)", self.eve_type.name)
+        return matches[0] if matches else ""
 
     @classmethod
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
