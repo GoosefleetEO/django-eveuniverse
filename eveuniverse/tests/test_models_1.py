@@ -1069,13 +1069,15 @@ class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
         self.assertIsNone(enaluri.jumps_to(jita))
 
 
-@patch(MODELS_PATH + ".EveSolarSystem._calc_route_esi")
+@patch(MODELS_PATH + ".esi")
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemRouteTo(NoSocketsTestCase):
-    def test_should_return_valid_route(self, mock_esi, mock_calc_route_esi):
+    def test_should_return_valid_route(self, mock_esi_1, mock_esi_2):
         # given
-        mock_esi.client = EsiClientStub()
-        mock_calc_route_esi.return_value = [30045339, 30045342]
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
         enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
             0
         ]
@@ -1087,18 +1089,20 @@ class TestEveSolarSystemRouteTo(NoSocketsTestCase):
         # then
         self.assertListEqual(result, [(enaluri, False), (akidagi, False)])
 
-    def test_should_return_none_when_no_route_found(
-        self, mock_esi, mock_calc_route_esi
-    ):
+    def test_should_return_none_when_no_route_found(self, mock_esi_1, mock_esi_2):
         # given
-        mock_esi.client = EsiClientStub()
-        mock_calc_route_esi.return_value = None
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.side_effect = (
+            HTTPNotFound(Mock(**{"response.status_code": 404}))
+        )
         enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
             0
         ]
-        thera, _ = EveSolarSystem.objects.get_or_create_esi(id=31000005)
+        akidagi: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045342)[
+            0
+        ]
         # when
-        result = enaluri.route_to(thera)
+        result = enaluri.route_to(akidagi)
         # then
         self.assertIsNone(result)
 
