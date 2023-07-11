@@ -1048,6 +1048,26 @@ class TestEveSolarSystemDistanceTo(NoSocketsTestCase):
         # then
         self.assertIsNone(result)
 
+    def test_should_return_none_when_one_system_is_in_trig_space_1(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when
+        result = enaluri.distance_to(otela)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_when_one_system_is_in_trig_space_2(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when
+        result = otela.distance_to(enaluri)
+        # then
+        self.assertIsNone(result)
+
 
 @patch(MANAGERS_PATH + ".esi")
 @patch("eveuniverse.models.esi")
@@ -1099,6 +1119,19 @@ class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
         thera, _ = EveSolarSystem.objects.get_or_create_esi(id=31000005)
         # when/then
         self.assertIsNone(thera.jumps_to(enaluri))
+
+    def test_should_return_none_if_any_system_is_in_trig_space_1(
+        self, mock_esi_2, mock_esi_1
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when/then
+        self.assertIsNone(enaluri.jumps_to(otela))
 
 
 @patch(MODELS_PATH + ".esi")

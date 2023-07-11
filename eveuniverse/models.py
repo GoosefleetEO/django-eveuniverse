@@ -1260,7 +1260,12 @@ class EveSolarSystem(EveUniverseEntityModel):
         ):
             return None
 
-        if self.is_w_space or destination.is_w_space:
+        if (
+            self.is_w_space
+            or destination.is_w_space
+            or self.is_trig_space
+            or destination.is_trig_space
+        ):
             return None
 
         return math.sqrt(

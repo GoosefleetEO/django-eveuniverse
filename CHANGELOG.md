@@ -15,9 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- `EveSolarSystem.routeTo()` no longer requests routes from ESI for systems in WH space
-- `EveSolarSystem.jumps()` no longer requests routes from ESI for systems in WH space
-- `EveSolarSystem.routeTo()` / `EveSolarSystem.jumps()` now interpret all error responses from ESI route endpoint as meaning "no route"
+- `EveSolarSystem.route_to()` no longer requests routes from ESI for systems in WH space
+- `EveSolarSystem.jumps_to()` no longer requests routes from ESI for systems in WH space
+- `EveSolarSystem.route_to()` / `EveSolarSystem.jumps()` now interpret all error responses from ESI route endpoint as meaning "no route"
 
 ## [1.2.0] - 2023-06-15
 
