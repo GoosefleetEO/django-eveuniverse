@@ -1306,7 +1306,12 @@ class EveSolarSystem(EveUniverseEntityModel):
         Returns:
             Number of total jumps or None if no route can be found (e.g. if one system is in WH space)
         """
-        if self.is_w_space or destination.is_w_space:
+        if (
+            self.is_w_space
+            or destination.is_w_space
+            or self.is_trig_space
+            or destination.is_trig_space
+        ):
             return None
 
         path_ids = self._calc_route_esi(self.id, destination.id)

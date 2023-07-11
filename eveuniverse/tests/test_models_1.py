@@ -1133,6 +1133,19 @@ class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
         # when/then
         self.assertIsNone(enaluri.jumps_to(otela))
 
+    def test_should_return_none_if_any_system_is_in_trig_space_2(
+        self, mock_esi_2, mock_esi_1
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when/then
+        self.assertIsNone(otela.jumps_to(enaluri))
+
 
 @patch(MODELS_PATH + ".esi")
 @patch(MANAGERS_PATH + ".esi")
