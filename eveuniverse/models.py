@@ -9,9 +9,9 @@ from collections import namedtuple
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from bitfield import BitField
-from bravado.exception import HTTPNotFound
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
+from django.utils.functional import cached_property
 
 from .app_settings import (
     EVEUNIVERSE_LOAD_ASTEROID_BELTS,
@@ -27,7 +27,7 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_TYPE_MATERIALS,
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
-from .constants import EveCategoryId, EveGroupId
+from .constants import EveCategoryId, EveGroupId, EveRegionId
 from .core import dotlan, eveimageserver, eveitems, evesdeapi, eveskinserver, evewho
 from .managers import (
     EveAsteroidBeltManager,
@@ -1220,12 +1220,22 @@ class EveSolarSystem(EveUniverseEntityModel):
     @property
     def is_null_sec(self) -> bool:
         """returns True if this solar system is in null sec, else False"""
-        return round(self.security_status, 1) <= 0 and not self.is_w_space
+        return (
+            not self.is_w_space
+            and not self.is_trig_space
+            and round(self.security_status, 1) <= 0
+            and not self.is_w_space
+        )
 
     @property
     def is_w_space(self) -> bool:
         """returns True if this solar system is in wormhole space, else False"""
         return 31000000 <= self.id < 32000000
+
+    @cached_property
+    def is_trig_space(self) -> bool:
+        """returns True if this solar system is in Triglavian space, else False"""
+        return self.eve_constellation.eve_region_id == EveRegionId.POCHVEN
 
     @classmethod
     def eve_entity_category(cls) -> str:
@@ -1249,8 +1259,15 @@ class EveSolarSystem(EveUniverseEntityModel):
             or not destination.position_z
         ):
             return None
-        if self.is_w_space or destination.is_w_space:
+
+        if (
+            self.is_w_space
+            or destination.is_w_space
+            or self.is_trig_space
+            or destination.is_trig_space
+        ):
             return None
+
         return math.sqrt(
             (destination.position_x - self.position_x) ** 2
             + (destination.position_y - self.position_y) ** 2
@@ -1266,11 +1283,21 @@ class EveSolarSystem(EveUniverseEntityModel):
             destination: Other solar system to use in calculation
 
         Returns:
-            List of solar system objects incl. origin and destination or None if no route can be found (e.g. if one system is in WH space)
+            List of solar system objects incl. origin and destination
+            or None if no route can be found (e.g. if one system is in WH space)
         """
+        if (
+            self.is_w_space
+            or destination.is_w_space
+            or self.is_trig_space
+            or destination.is_trig_space
+        ):
+            return None
+
         path_ids = self._calc_route_esi(self.id, destination.id)
         if path_ids is None:
             return None
+
         return [
             EveSolarSystem.objects.get_or_create_esi(id=solar_system_id)
             for solar_system_id in path_ids
@@ -1283,8 +1310,17 @@ class EveSolarSystem(EveUniverseEntityModel):
             destination: Other solar system to use in calculation
 
         Returns:
-            Number of total jumps or None if no route can be found (e.g. if one system is in WH space)
+            Number of total jumps
+            or None if no route can be found (e.g. if one system is in WH space)
         """
+        if (
+            self.is_w_space
+            or destination.is_w_space
+            or self.is_trig_space
+            or destination.is_trig_space
+        ):
+            return None
+
         path_ids = self._calc_route_esi(self.id, destination.id)
         return len(path_ids) - 1 if path_ids is not None else None
 
@@ -1305,7 +1341,8 @@ class EveSolarSystem(EveUniverseEntityModel):
             return esi.client.Routes.get_route_origin_destination(
                 origin=origin_id, destination=destination_id
             ).results()
-        except HTTPNotFound:
+        except OSError:  # FIXME: ESI is supposed to return 404,
+            # but django-esi is actually returning an OSError
             return None
 
     def nearest_celestial(

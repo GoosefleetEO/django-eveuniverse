@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.3.0] - 2023-07-11
+
+### Added
+
+- `EveSolarSystem.is_trig_space()``: Ability to detect if a solar system is in Triglavian space
+
+### Fixed
+
+- `EveSolarSystem.route_to()` no longer requests routes from ESI for systems in WH space
+- `EveSolarSystem.jumps_to()` no longer requests routes from ESI for systems in WH space
+- `EveSolarSystem.route_to()` / `EveSolarSystem.jumps()` now interpret all error responses from ESI route endpoint as meaning "no route"
+- `EveSolarSystem.route_to()` no longer requests routes from ESI for systems in Triglavian space
+- `EveSolarSystem.jumps_to()` no longer requests routes from ESI for systems in Triglavian space
+- `EveSolarSystem.distance_to()` no longer requests distances from ESI for systems in Triglavian space
+
 ## [1.2.0] - 2023-06-15
 
 ### Added

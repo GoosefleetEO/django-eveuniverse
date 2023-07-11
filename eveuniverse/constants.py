@@ -21,5 +21,9 @@ class EveGroupId(IntEnum):
     ALLIANCE = 32
 
 
+class EveRegionId(IntEnum):
+    POCHVEN = 10000070
+
+
 # ESI
 POST_UNIVERSE_NAMES_MAX_ITEMS = 1000

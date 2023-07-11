@@ -148,10 +148,10 @@
                 ]
             },
             "150": {
-                  "description": "Skills are learned by capsuleer pilots using special data chips known as skillbooks, and these are available for almost any imaginable activity that can be carried out in space",
-                  "market_group_id": 150,
-                  "name": "Skills",
-                  "types": []
+                "description": "Skills are learned by capsuleer pilots using special data chips known as skillbooks, and these are available for almost any imaginable activity that can be carried out in space",
+                "market_group_id": 150,
+                "name": "Skills",
+                "types": []
             },
             "1361": {
                 "description": "Small spaceships that excel in any role involving speed and agility",
@@ -167,14 +167,14 @@
                 "parent_group_id": 4,
                 "types": []
             },
-               "369": {
-                  "description": "Skills pertaining to the efficient use of manufacturing facilities and industrial devices",
-                  "market_group_id": 369,
-                  "name": "Production",
-                  "parent_group_id": 150,
-                  "types": [
+            "369": {
+                "description": "Skills pertaining to the efficient use of manufacturing facilities and industrial devices",
+                "market_group_id": 369,
+                "name": "Production",
+                "parent_group_id": 150,
+                "types": [
                     3380
-                  ]
+                ]
             }
         },
         "get_markets_prices": [
@@ -382,6 +382,19 @@
                 "region_id": 10000069,
                 "systems": [
                     30045339
+                ]
+            },
+            "20000787": {
+                "constellation_id": 20000787,
+                "name": "Krai Perun",
+                "position": {
+                    "x": -162832101952226140,
+                    "y": 50656681128061160,
+                    "z": 103886924951038770
+                },
+                "region_id": 10000070,
+                "systems": [
+                    30000157
                 ]
             },
             "21000324": {
@@ -771,6 +784,14 @@
                 "name": "Black Rise",
                 "region_id": 10000069
             },
+            "10000070": {
+                "constellations": [
+                    20000787
+                ],
+                "description": "<i>We are Zorya Triglav\r\n\r\nWe speak for the Convocation of Triglav Outside the Struggle\r\n\r\nHear the words of our prayer and heed them\r\n\r\nRealization of glorification pattern in totality approaches\r\n\r\nAncient Domains stability requires weaving of Final Liminality conduits\r\n\r\nTotality requires Triglav Exalted Final Liminality Dazh Elements\r\n\r\nSobornost Kybernauts are exhorted to realize glorification pattern in totality\r\n\r\nThe Flow of Vyraj requires realization of stability of Ancient Domains\r\n\r\nSobornost Kybernauts realizing glorification shall be in proven communion\r\n\r\nThe Domain of Pochven shall be three Krais of nine fields within clade\r\n\r\nThe Flow of Vyraj will bring Sobornost of Triglav in the Domain of Pochven\r\n\r\nWe speak for the Convocation of Triglav Outside the Struggle\r\n\r\nWe are Zorya Triglav</i>\r\n\r\n – Triglavian Invasion Communique by Zorya Triglav, YC122.09.17",
+                "name": "Pochven",
+                "region_id": 10000070
+            },
             "11000031": {
                 "constellations": [
                     21000324
@@ -1013,6 +1034,22 @@
                     60003760
                 ],
                 "system_id": 30000142
+            },
+            "30000157": {
+                "constellation_id": 20000787,
+                "name": "Otela",
+                "planets": [],
+                "position": {
+                    "x": -89620400993906060,
+                    "y": 75048904312138340,
+                    "z": 93501974138973170
+                },
+                "security_class": "C",
+                "security_status": -1,
+                "star_id": 40009947,
+                "stargates": [],
+                "stations": [],
+                "system_id": 30000157
             },
             "30001161": {
                 "constellation_id": 20000169,

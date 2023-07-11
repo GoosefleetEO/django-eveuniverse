@@ -4,8 +4,9 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test.utils import override_settings
 
-from ..models import EveCategory, EveGroup, EveType
-from ..utils import NoSocketsTestCase
+from eveuniverse.models import EveCategory, EveGroup, EveType
+from eveuniverse.utils import NoSocketsTestCase
+
 from .testdata.esi import EsiClientStub
 
 MODELS_PATH = "eveuniverse.models"

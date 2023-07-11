@@ -6,8 +6,8 @@ from bravado.exception import HTTPNotFound
 from django.test.utils import override_settings
 from django.utils.timezone import now
 
-from ..helpers import meters_to_ly
-from ..models import (
+from eveuniverse.helpers import meters_to_ly
+from eveuniverse.models import (
     EveAncestry,
     EveAsteroidBelt,
     EveBloodline,
@@ -42,7 +42,8 @@ from ..models import (
     EveUnit,
     EveUniverseBaseModel,
 )
-from ..utils import NoSocketsTestCase
+from eveuniverse.utils import NoSocketsTestCase
+
 from .testdata.esi import BravadoOperationStub, EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000
@@ -917,6 +918,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(jita.is_low_sec)
         self.assertFalse(jita.is_null_sec)
         self.assertFalse(jita.is_w_space)
+        self.assertFalse(jita.is_trig_space)
 
     def test_can_identify_lowsec_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -926,6 +928,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(enaluri.is_high_sec)
         self.assertFalse(enaluri.is_null_sec)
         self.assertFalse(enaluri.is_w_space)
+        self.assertFalse(enaluri.is_trig_space)
 
     def test_can_identify_nullsec_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -935,6 +938,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(hed_gp.is_low_sec)
         self.assertFalse(hed_gp.is_high_sec)
         self.assertFalse(hed_gp.is_w_space)
+        self.assertFalse(hed_gp.is_trig_space)
 
     def test_can_identify_ws_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -944,6 +948,17 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(thera.is_null_sec)
         self.assertFalse(thera.is_low_sec)
         self.assertFalse(thera.is_high_sec)
+        self.assertFalse(thera.is_trig_space)
+
+    def test_can_identify_trig_system(self, mock_esi):
+        mock_esi.client = EsiClientStub()
+
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        self.assertFalse(otela.is_w_space)
+        self.assertFalse(otela.is_null_sec)
+        self.assertFalse(otela.is_low_sec)
+        self.assertFalse(otela.is_high_sec)
+        self.assertTrue(otela.is_trig_space)
 
     """
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", True)
@@ -1033,48 +1048,114 @@ class TestEveSolarSystemDistanceTo(NoSocketsTestCase):
         # then
         self.assertIsNone(result)
 
-
-@patch(MANAGERS_PATH + ".esi")
-class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
-    @staticmethod
-    def esi_get_route_origin_destination(origin, destination, **kwargs):
-        routes = {
-            30045339: {30045342: [30045339, 30045342]},
-        }
-        if origin in routes and destination in routes[origin]:
-            return BravadoOperationStub(routes[origin][destination])
-        raise HTTPNotFound(Mock(**{"response.status_code": 404}))
-
-    @patch("eveuniverse.models.esi")
-    def test_can_calculate_jumps(self, mock_esi_2, mock_esi):
-        mock_esi.client = EsiClientStub()
-        mock_esi_2.client.Routes.get_route_origin_destination.side_effect = (
-            self.esi_get_route_origin_destination
-        )
-
-        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
-        akidagi, _ = EveSolarSystem.objects.get_or_create_esi(id=30045342)
-        self.assertEqual(enaluri.jumps_to(akidagi), 1)
-
-    @patch("eveuniverse.models.esi")
-    def test_route_calc_returns_none_if_no_route_found(self, mock_esi_2, mock_esi):
-        mock_esi.client = EsiClientStub()
-        mock_esi_2.client.Routes.get_route_origin_destination.side_effect = (
-            self.esi_get_route_origin_destination
-        )
-
-        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
-        jita, _ = EveSolarSystem.objects.get_or_create_esi(id=30000142)
-        self.assertIsNone(enaluri.jumps_to(jita))
-
-
-@patch(MODELS_PATH + ".EveSolarSystem._calc_route_esi")
-@patch(MANAGERS_PATH + ".esi")
-class TestEveSolarSystemRouteTo(NoSocketsTestCase):
-    def test_should_return_valid_route(self, mock_esi, mock_calc_route_esi):
+    def test_should_return_none_when_one_system_is_in_trig_space_1(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
-        mock_calc_route_esi.return_value = [30045339, 30045342]
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when
+        result = enaluri.distance_to(otela)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_when_one_system_is_in_trig_space_2(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when
+        result = otela.distance_to(enaluri)
+        # then
+        self.assertIsNone(result)
+
+
+@patch(MANAGERS_PATH + ".esi")
+@patch("eveuniverse.models.esi")
+class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
+    def test_can_calculate_jumps(self, mock_esi_2, mock_esi_1):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        akidagi, _ = EveSolarSystem.objects.get_or_create_esi(id=30045342)
+        # when/then
+        self.assertEqual(enaluri.jumps_to(akidagi), 1)
+
+    def test_route_calc_returns_none_if_no_route_found(self, mock_esi_2, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.side_effect = (
+            HTTPNotFound(Mock(**{"response.status_code": 404}))
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        jita, _ = EveSolarSystem.objects.get_or_create_esi(id=30000142)
+        # when/then
+        self.assertIsNone(enaluri.jumps_to(jita))
+
+    def test_should_return_none_if_any_system_is_in_wh_space_1(
+        self, mock_esi_2, mock_esi_1
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        thera, _ = EveSolarSystem.objects.get_or_create_esi(id=31000005)
+        # when/then
+        self.assertIsNone(enaluri.jumps_to(thera))
+
+    def test_should_return_none_if_any_system_is_in_wh_space_2(
+        self, mock_esi_2, mock_esi_1
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        thera, _ = EveSolarSystem.objects.get_or_create_esi(id=31000005)
+        # when/then
+        self.assertIsNone(thera.jumps_to(enaluri))
+
+    def test_should_return_none_if_any_system_is_in_trig_space_1(
+        self, mock_esi_2, mock_esi_1
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when/then
+        self.assertIsNone(enaluri.jumps_to(otela))
+
+    def test_should_return_none_if_any_system_is_in_trig_space_2(
+        self, mock_esi_2, mock_esi_1
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when/then
+        self.assertIsNone(otela.jumps_to(enaluri))
+
+
+@patch(MODELS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".esi")
+class TestEveSolarSystemRouteTo(NoSocketsTestCase):
+    def test_should_return_valid_route(self, mock_esi_1, mock_esi_2):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
         enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
             0
         ]
@@ -1086,18 +1167,84 @@ class TestEveSolarSystemRouteTo(NoSocketsTestCase):
         # then
         self.assertListEqual(result, [(enaluri, False), (akidagi, False)])
 
-    def test_should_return_none_when_no_route_found(
-        self, mock_esi, mock_calc_route_esi
-    ):
+    def test_should_return_none_when_no_route_found(self, mock_esi_1, mock_esi_2):
         # given
-        mock_esi.client = EsiClientStub()
-        mock_calc_route_esi.return_value = None
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.side_effect = (
+            HTTPNotFound(Mock(**{"response.status_code": 404}))
+        )
         enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
             0
         ]
-        thera, _ = EveSolarSystem.objects.get_or_create_esi(id=31000005)
+        akidagi: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045342)[
+            0
+        ]
+        # when
+        result = enaluri.route_to(akidagi)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_if_any_system_is_in_wh_space_1(
+        self, mock_esi_1, mock_esi_2
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
+            0
+        ]
+        thera: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=31000005)[0]
         # when
         result = enaluri.route_to(thera)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_if_any_system_is_in_wh_space_2(
+        self, mock_esi_1, mock_esi_2
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
+            0
+        ]
+        thera: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=31000005)[0]
+        # when
+        result = thera.route_to(enaluri)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_if_any_system_is_in_trig_space_1(
+        self, mock_esi_1, mock_esi_2
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when
+        result = otela.route_to(enaluri)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_if_any_system_is_in_trig_space_2(
+        self, mock_esi_1, mock_esi_2
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri, _ = EveSolarSystem.objects.get_or_create_esi(id=30045339)
+        otela, _ = EveSolarSystem.objects.get_or_create_esi(id=30000157)
+        # when
+        result = enaluri.route_to(otela)
         # then
         self.assertIsNone(result)
 
