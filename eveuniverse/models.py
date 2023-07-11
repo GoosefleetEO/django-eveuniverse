@@ -9,7 +9,6 @@ from collections import namedtuple
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from bitfield import BitField
-from bravado.exception import HTTPNotFound
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 
@@ -1249,8 +1248,10 @@ class EveSolarSystem(EveUniverseEntityModel):
             or not destination.position_z
         ):
             return None
+
         if self.is_w_space or destination.is_w_space:
             return None
+
         return math.sqrt(
             (destination.position_x - self.position_x) ** 2
             + (destination.position_y - self.position_y) ** 2
@@ -1268,9 +1269,13 @@ class EveSolarSystem(EveUniverseEntityModel):
         Returns:
             List of solar system objects incl. origin and destination or None if no route can be found (e.g. if one system is in WH space)
         """
+        if self.is_w_space or destination.is_w_space:
+            return None
+
         path_ids = self._calc_route_esi(self.id, destination.id)
         if path_ids is None:
             return None
+
         return [
             EveSolarSystem.objects.get_or_create_esi(id=solar_system_id)
             for solar_system_id in path_ids
@@ -1305,7 +1310,8 @@ class EveSolarSystem(EveUniverseEntityModel):
             return esi.client.Routes.get_route_origin_destination(
                 origin=origin_id, destination=destination_id
             ).results()
-        except HTTPNotFound:
+        except OSError:  # FIXME: ESI is supposed to return 404,
+            # but django-esi is actually returning an OSError
             return None
 
     def nearest_celestial(

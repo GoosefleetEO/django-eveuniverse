@@ -1106,6 +1106,40 @@ class TestEveSolarSystemRouteTo(NoSocketsTestCase):
         # then
         self.assertIsNone(result)
 
+    def test_should_return_none_if_any_system_is_in_wh_space_1(
+        self, mock_esi_1, mock_esi_2
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
+            0
+        ]
+        thera: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=31000005)[0]
+        # when
+        result = enaluri.route_to(thera)
+        # then
+        self.assertIsNone(result)
+
+    def test_should_return_none_if_any_system_is_in_wh_space_2(
+        self, mock_esi_1, mock_esi_2
+    ):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client.Routes.get_route_origin_destination.return_value = (
+            BravadoOperationStub([30045339, 30045342])
+        )
+        enaluri: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=30045339)[
+            0
+        ]
+        thera: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(id=31000005)[0]
+        # when
+        result = thera.route_to(enaluri)
+        # then
+        self.assertIsNone(result)
+
 
 @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
 @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
