@@ -2,9 +2,9 @@ from unittest.mock import patch
 
 import requests_mock
 
-from ..constants import EveGroupId
-from ..core import evesdeapi
-from ..models import (
+from eveuniverse.constants import EveGroupId
+from eveuniverse.core import evesdeapi
+from eveuniverse.models import (
     EveAsteroidBelt,
     EveIndustryActivityDuration,
     EveIndustryActivityMaterial,
@@ -19,7 +19,8 @@ from ..models import (
     EveType,
     EveTypeMaterial,
 )
-from ..utils import NoSocketsTestCase
+from eveuniverse.utils import NoSocketsTestCase
+
 from .testdata.esi import EsiClientStub
 from .testdata.sde import cache_content, sde_data, type_materials_cache_content
 

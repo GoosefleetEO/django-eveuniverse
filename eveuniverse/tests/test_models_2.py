@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 from django.test.utils import override_settings
 
-from ..constants import EveCategoryId
-from ..models import (
+from eveuniverse.constants import EveCategoryId
+from eveuniverse.models import (
     EsiMapping,
     EveAncestry,
     EveBloodline,
@@ -22,7 +22,8 @@ from ..models import (
     EveUnit,
     EveUniverseEntityModel,
 )
-from ..utils import NoSocketsTestCase
+from eveuniverse.utils import NoSocketsTestCase
+
 from .testdata.esi import EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000

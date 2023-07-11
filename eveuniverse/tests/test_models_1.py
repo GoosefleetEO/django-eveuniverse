@@ -6,8 +6,8 @@ from bravado.exception import HTTPNotFound
 from django.test.utils import override_settings
 from django.utils.timezone import now
 
-from ..helpers import meters_to_ly
-from ..models import (
+from eveuniverse.helpers import meters_to_ly
+from eveuniverse.models import (
     EveAncestry,
     EveAsteroidBelt,
     EveBloodline,
@@ -42,7 +42,8 @@ from ..models import (
     EveUnit,
     EveUniverseBaseModel,
 )
-from ..utils import NoSocketsTestCase
+from eveuniverse.utils import NoSocketsTestCase
+
 from .testdata.esi import BravadoOperationStub, EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000

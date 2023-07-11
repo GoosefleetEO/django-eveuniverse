@@ -2,8 +2,9 @@
 
 from unittest.mock import patch
 
-from ..models import EveEntity
-from ..utils import NoSocketsTestCase
+from eveuniverse.models import EveEntity
+from eveuniverse.utils import NoSocketsTestCase
+
 from .testdata.esi import BravadoOperationStub, EsiClientStub
 from .testdata.factories import create_eve_entity
 

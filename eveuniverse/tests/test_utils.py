@@ -3,7 +3,12 @@ from unittest.mock import Mock, patch
 import requests
 from django.test import TestCase
 
-from ..utils import NoSocketsTestCase, SocketAccessError, chunks, clean_setting
+from eveuniverse.utils import (
+    NoSocketsTestCase,
+    SocketAccessError,
+    chunks,
+    clean_setting,
+)
 
 MODULE_PATH = "eveuniverse.utils"
 
