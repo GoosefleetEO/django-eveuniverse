@@ -11,6 +11,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 from bitfield import BitField
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
+from django.utils.functional import cached_property
 
 from .app_settings import (
     EVEUNIVERSE_LOAD_ASTEROID_BELTS,
@@ -26,7 +27,7 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_TYPE_MATERIALS,
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
-from .constants import EveCategoryId, EveGroupId
+from .constants import EveCategoryId, EveGroupId, EveRegionId
 from .core import dotlan, eveimageserver, eveitems, evesdeapi, eveskinserver, evewho
 from .managers import (
     EveAsteroidBeltManager,
@@ -1219,12 +1220,22 @@ class EveSolarSystem(EveUniverseEntityModel):
     @property
     def is_null_sec(self) -> bool:
         """returns True if this solar system is in null sec, else False"""
-        return round(self.security_status, 1) <= 0 and not self.is_w_space
+        return (
+            not self.is_w_space
+            and not self.is_trig_space
+            and round(self.security_status, 1) <= 0
+            and not self.is_w_space
+        )
 
     @property
     def is_w_space(self) -> bool:
         """returns True if this solar system is in wormhole space, else False"""
         return 31000000 <= self.id < 32000000
+
+    @cached_property
+    def is_trig_space(self) -> bool:
+        """returns True if this solar system is in Triglavian space, else False"""
+        return self.eve_constellation.eve_region_id == EveRegionId.POCHVEN
 
     @classmethod
     def eve_entity_category(cls) -> str:
@@ -1290,6 +1301,9 @@ class EveSolarSystem(EveUniverseEntityModel):
         Returns:
             Number of total jumps or None if no route can be found (e.g. if one system is in WH space)
         """
+        if self.is_w_space or destination.is_w_space:
+            return None
+
         path_ids = self._calc_route_esi(self.id, destination.id)
         return len(path_ids) - 1 if path_ids is not None else None
 
