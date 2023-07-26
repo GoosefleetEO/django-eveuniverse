@@ -123,32 +123,68 @@ This command will load large sets of data from ESI into local database for selec
 - **structures**: All structures types
 - **types**: All types
 
+Here is how you can use this command (not including default Django arguments):
+
+```text
+usage: manage.py eveuniverse_load_data [-h]
+                        [--types-enabled-sections {dogmas,graphics,market_groups,type_materials,industry_activities} [{dogmas,graphics,market_groups,type_materials,industry_activities} ...]]
+                        [--map-enabled-sections {dogmas,graphics,market_groups,type_materials,industry_activities} [{dogmas,graphics,market_groups,type_materials,industry_activities} ...]]
+                        [--version] [-v {0,1,2,3}] [--settings SETTINGS]
+                        [--pythonpath PYTHONPATH] [--traceback] [--no-color]
+                        [--force-color] [--skip-checks]
+                        {map,ships,structures,types} [{map,ships,structures,types} ...]
+
+Load large sets of data from ESI into local database for selected topics
+
+positional arguments:
+  {map,ships,structures,types}
+                        Topic(s) to load data for
+
+options:
+  -h, --help            show this help message and exit
+  --types-enabled-sections {dogmas,graphics,market_groups,type_materials,industry_activities} [{dogmas,graphics,market_groups,type_materials,industry_activities} ...]
+                        List of enabled sections for types, ships and structures topics
+  --map-enabled-sections {dogmas,graphics,market_groups,type_materials,industry_activities} [{dogmas,graphics,market_groups,type_materials,industry_activities} ...]
+                        List of enabled sections for map topic
+```
+
 ### eveuniverse_purge_all
 
-This command will purge ALL data of your models
+This command will purge ALL data of your models.
 
 ### eveuniverse_load_types
 
+This command loads large sets of types as specified from ESI into the local database.
+
+Here is how you can use this command (not including default Django arguments):
+
 ```text
-Loads large sets of types as specified from ESI into the local database. This
-is a helper command meant to be called from other apps only.
+usage: manage.py eveuniverse_load_types [-h] [--category_id CATEGORY_ID]
+                        [--category_id_with_dogma CATEGORY_ID_WITH_DOGMA]
+                        [--group_id GROUP_ID] [--group_id_with_dogma GROUP_ID_WITH_DOGMA]
+                        [--type_id TYPE_ID] [--type_id_with_dogma TYPE_ID_WITH_DOGMA]
+                        [--disable_esi_check]
+                        app_name
+
+Loads large sets of types as specified from ESI into the local database. This is a helper command meant
+to be called from other apps only.
 
 positional arguments:
   app_name              Name of app this data is loaded for
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --category_id CATEGORY_ID
                         Eve category ID to be loaded excl. dogma
   --category_id_with_dogma CATEGORY_ID_WITH_DOGMA
                         Eve category ID to be loaded incl. dogma
-  --disable_esi_check   Disables checking that ESI is online
   --group_id GROUP_ID   Eve group ID to be loaded excl. dogma
   --group_id_with_dogma GROUP_ID_WITH_DOGMA
                         Eve group ID to be loaded incl. dogma
   --type_id TYPE_ID     Eve type ID to be loaded excl. dogma
   --type_id_with_dogma TYPE_ID_WITH_DOGMA
                         Eve type ID to be loaded incl. dogma
+  --disable_esi_check   Disables checking that ESI is online
 ```
 
 ## Database tools
