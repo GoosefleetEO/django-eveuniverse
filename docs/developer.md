@@ -215,7 +215,6 @@ There are several managers which obtain the data from SDE API, since it's not pr
 
 Managers for these models implement 'update_or_create_api' method
 
-
 ```Python
 merlin_blueprint, _ = EveType.objects.get_or_create_esi(id=950)
 
@@ -223,12 +222,6 @@ EveIndustryActivityMaterials.objects.update_or_create_api(
     eve_type=merlin_blueprint
 )
 ```
-
-#### Loading
-
-#### Preloading instances
-
-`eveuniverse_load_types` management command for preloading types can also include loading dogmas if requested.
 
 #### Test tools
 
@@ -239,6 +232,16 @@ The test tool for creating test data also support the `enabled_sections` argumen
 While all models support loading eve objects on demand from ESI, some apps might need specific data sets to be preloaded. For example an app might want to provide a drop down list of all structure types, and loading that list on demand would not be fast enough to guarantee acceptable UI response times.
 
 The solution is to provide the user with a management command, so he an preload the needed data sets - for example all ship types - during app installation. Since this is a command use case *django-eveuniverse* offers a management helper command with all the needed functionality for loading data and which can be easily utilized with just a very small and simple management command in your own app.
+
+Eve Universe provides two management commands which can be either used directly, or wrapped in a convenient management command by the community app:
+
+- `eveuniverse_load_data`: Loads large sets of objects from ESI (e.g. all types or all solar systems)
+- `eveuniverse_load_types`: Loads a set of specific type objects from ESI (e.g. all types of a specific category)
+
+```{eval-rst}
+.. seealso::
+    For an overview of all management commands please see :ref:`operations-management-commands`.
+```
 
 Here is an example for creating such a management command. We want to load all kinds of structures to show to the user in a drop down list. We therefore want to preload all structure types (`category_id = 65`), all control towers (`group_id = 365`) and the customs office (`type_id = 2233`):
 
@@ -264,11 +267,6 @@ class Command(BaseCommand):
 ```
 
 For more details on how to use `eveuniverse_load_types` just call it with `--help` from a console.
-
-```{eval-rst}
-.. seealso::
-    For an overview of all management commands please see :ref:`operations-management-commands`.
-```
 
 ## Eve ID to name resolution
 
