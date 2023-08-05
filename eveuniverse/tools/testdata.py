@@ -99,8 +99,8 @@ def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
             data[MyModel.__name__] = my_data
 
     print(f"Writing testdata to: {filepath}")
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, cls=DjangoJSONEncoder, indent=4, sort_keys=True)
+    with open(filepath, "w", encoding="utf-8") as file:
+        json.dump(data, file, cls=DjangoJSONEncoder, indent=4, sort_keys=True)
 
 
 def load_testdata_from_dict(testdata: dict) -> None:
@@ -145,7 +145,7 @@ def load_testdata_from_file(filepath: str) -> None:
     Args:
         filepath: Absolute path to the JSON file containing the testdata created by `create_testdata()`
     """
-    with open(filepath, "r", encoding="utf-8") as f:
-        testdata = json.load(f)
+    with open(filepath, "r", encoding="utf-8") as file:
+        testdata = json.load(file)
 
     load_testdata_from_dict(testdata)

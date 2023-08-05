@@ -87,33 +87,31 @@ def _eve_entity_image_url(
         },
     }
     if not entity_id:
-        raise ValueError("Invalid entity_id: {}".format(entity_id))
+        raise ValueError(f"Invalid entity_id: {entity_id}")
 
     entity_id = int(entity_id)
 
     if not size or size < 32 or size > 1024 or (size & (size - 1) != 0):
-        raise ValueError("Invalid size: {}".format(size))
+        raise ValueError(f"Invalid size: {size}")
 
-    if type(category) is not EsiCategory:
-        raise ValueError("Invalid category {}".format(category))
+    if not isinstance(category, EsiCategory):
+        raise ValueError(f"Invalid category {category}")
 
     endpoint = categories[category]["endpoint"]
 
     if variant:
         if variant not in categories[category]["variants"]:
-            raise ValueError(
-                "Invalid variant {} for category {}".format(variant, category)
-            )
+            raise ValueError(f"Invalid variant {variant} for category {category}")
         my_variant = variant
     else:
         my_variant = categories[category]["variants"][0]
 
-    if tenant and type(tenant) is not EsiTenant:
-        raise ValueError("Invalid tenant {}".format(tenant))
+    if tenant and not isinstance(tenant, EsiTenant):
+        raise ValueError(f"Invalid tenant {tenant}")
 
     # compose result URL
-    result = "{}/{}/{}/{}?size={}".format(
-        _EVE_IMAGE_SERVER_URL, endpoint, entity_id, my_variant.value, size
+    result = (
+        f"{_EVE_IMAGE_SERVER_URL}/{endpoint}/{entity_id}/{my_variant.value}?size={size}"
     )
     if tenant:
         result += "&tenant={}".format(tenant.value)

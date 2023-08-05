@@ -31,9 +31,8 @@ def _build_url(category: _Category, name: str) -> str:
         partial = partials[category]
     except KeyError:
         raise ValueError(f"Invalid category: {category}") from None
-    return urljoin(
-        _BASE_URL, "{}/{}".format(partial, quote(str(name).replace(" ", "_")))
-    )
+    url_part = quote(str(name).replace(" ", "_"))
+    return urljoin(_BASE_URL, f"{partial}/{url_part}")
 
 
 def alliance_url(name: str) -> str:

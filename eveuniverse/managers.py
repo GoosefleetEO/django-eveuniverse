@@ -1,5 +1,7 @@
 """Managers and Querysets for Eve universe models."""
 
+# pylint: disable = import-outside-toplevel
+
 import datetime as dt
 import logging
 from abc import ABC, abstractmethod
@@ -59,14 +61,17 @@ class EveUniverseBaseModelManager(models.Manager):
 
                 if esi_value is not None:
                     if mapping.is_fk:
-                        ParentClass = mapping.related_model
+                        parent_class = mapping.related_model
                         try:
-                            value = ParentClass.objects.get(id=esi_value)
-                        except ParentClass.DoesNotExist:
+                            value = parent_class.objects.get(id=esi_value)
+                        except parent_class.DoesNotExist:
                             value = None
                             if mapping.create_related:
                                 try:
-                                    value, _ = ParentClass.objects.update_or_create_esi(
+                                    (
+                                        value,
+                                        _,
+                                    ) = parent_class.objects.update_or_create_esi(
                                         id=esi_value,
                                         include_children=False,
                                         wait_for_children=True,
@@ -107,9 +112,12 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         Args:
             id: Eve Online ID of object
-            include_children: if child objects should be updated/created as well (only when a new object is created)
-            wait_for_children: when true child objects will be updated/created blocking (if any), else async (only when a new object is created)
-            enabled_sections: Sections to load regardless of current settings, e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
+            include_children: if child objects should be updated/created as well
+            (only when a new object is created)
+            wait_for_children: when true child objects will be updated/created blocking
+            (if any), else async (only when a new object is created)
+            enabled_sections: Sections to load regardless of current settings,
+            e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
             task_priority: priority of started tasks
 
         Returns:
@@ -152,8 +160,10 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         Args:
             id: Eve Online ID of object
             include_children: if child objects should be updated/created as well (if any)
-            wait_for_children: when true child objects will be updated/created blocking (if any), else async
-            enabled_sections: Sections to load regardless of current settings, e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
+            wait_for_children: when true child objects will be updated/created blocking
+            (if any), else async
+            enabled_sections: Sections to load regardless of current settings,
+            e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
             task_priority: priority of started tasks
 
         Returns:
@@ -253,8 +263,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         if not parent_eve_data_obj or not parent_obj:
             raise ValueError(
-                "%s: Tried to create inline object from empty parent object"
-                % self.model.__name__,
+                f"{self.model.__name__}: Tried to create inline object "
+                "from empty parent object"
             )
 
         for inline_field, model_name in inline_objects.items():
@@ -262,30 +272,26 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                 inline_field in parent_eve_data_obj
                 and parent_eve_data_obj[inline_field]
             ):
-                InlineModel = self.model.get_model_class(model_name)
-                esi_mapping = InlineModel._esi_mapping()
+                inline_model_class = self.model.get_model_class(model_name)
+                esi_mapping = inline_model_class._esi_mapping()
                 parent_fk = None
                 other_pk = None
-                ParentClass2 = None
+                parent_class_2 = None
                 for field_name, mapping in esi_mapping.items():
                     if mapping.is_pk:
                         if mapping.is_parent_fk:
                             parent_fk = field_name
                         else:
                             other_pk = (field_name, mapping)
-                            ParentClass2 = mapping.related_model
+                            parent_class_2 = mapping.related_model
 
                 if not parent_fk or not other_pk:
                     raise ValueError(
-                        "ESI Mapping for %s not valid: %s, %s"
-                        % (
-                            model_name,
-                            parent_fk,
-                            other_pk,
-                        )
+                        f"ESI Mapping for {model_name} not valid: "
+                        f"{parent_fk}, {other_pk}"
                     )
 
-                parent2_model_name = ParentClass2.__name__ if ParentClass2 else None
+                parent2_model_name = parent_class_2.__name__ if parent_class_2 else None
                 other_pk_info = {
                     "name": other_pk[0],
                     "esi_name": other_pk[1].esi_name,
@@ -337,12 +343,12 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         args = {f"{parent_fk}_id": parent_obj_id}
         esi_value = eve_data_obj.get(other_pk_info["esi_name"])
         if other_pk_info["is_fk"]:
-            ParentClass2 = self.model.get_model_class(parent2_model_name)
+            parent_class_2 = self.model.get_model_class(parent2_model_name)
             try:
-                value = ParentClass2.objects.get(id=esi_value)
-            except ParentClass2.DoesNotExist:
+                value = parent_class_2.objects.get(id=esi_value)
+            except parent_class_2.DoesNotExist:
                 try:
-                    value, _ = ParentClass2.objects.update_or_create_esi(id=esi_value)
+                    value, _ = parent_class_2.objects.update_or_create_esi(id=esi_value)
                 except AttributeError:
                     value = None
         else:
@@ -371,8 +377,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         if not parent_eve_data_obj:
             raise ValueError(
-                "%s: Tried to create children from empty parent object"
-                % self.model.__name__,
+                f"{self.model.__name__}: Tried to create children "
+                "from empty parent object"
             )
 
         for key, child_class in self.model._children(enabled_sections).items():
@@ -381,8 +387,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                     # TODO: Refactor this hack
                     id = obj["planet_id"] if key == "planets" else obj
                     if wait_for_children:
-                        ChildClass = self.model.get_model_class(child_class)
-                        ChildClass.objects.update_or_create_esi(
+                        child_model_class = self.model.get_model_class(child_class)
+                        child_model_class.objects.update_or_create_esi(
                             id=id,
                             include_children=include_children,
                             wait_for_children=wait_for_children,
@@ -1036,10 +1042,12 @@ EveEntityManager = EveEntityManagerBase.from_queryset(EveEntityQuerySet)
 
 class EveMarketPriceManager(models.Manager):
     def update_from_esi(self, minutes_until_stale: Optional[int] = None) -> int:
-        """Updates market prices from ESI. Will only create new price objects for EveTypes that already exist in the database.
+        """Updates market prices from ESI. Will only create new price objects
+        for EveTypes that already exist in the database.
 
         Args:
-            minutes_until_stale: only prices older then given minutes are regarding as stale and will be updated. Will use default (60) if not specified.
+            minutes_until_stale: only prices older then given minutes are regarding
+            as stale and will be updated. Will use default (60) if not specified.
 
         Returns:
             Count of updated types
@@ -1110,9 +1118,9 @@ class ApiCacheManager(ABC):
         return 3600 * 24
 
     @classmethod
-    def _response_to_cache(cls, r: requests.Response) -> dict:
+    def _response_to_cache(cls, response: requests.Response) -> dict:
         data_all = {}
-        for row in r.json():
+        for row in response.json():
             type_id = row["typeID"]
             if type_id not in data_all:
                 data_all[type_id] = []
@@ -1128,12 +1136,12 @@ class ApiCacheManager(ABC):
     def _fetch_sde_data_cached(cls) -> dict:
         data = cache.get(cls.sde_cache_key)
         if not data:
-            r = requests.get(
+            response = requests.get(
                 urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls.sde_api_route),
                 timeout=10,
             )
-            r.raise_for_status()
-            data = cls._response_to_cache(r)
+            response.raise_for_status()
+            data = cls._response_to_cache(response)
             cache.set(
                 key=cls.sde_cache_key,
                 value=data,

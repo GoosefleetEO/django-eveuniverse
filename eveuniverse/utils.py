@@ -17,7 +17,7 @@ class LoggerAddTag(logging.LoggerAdapter):
         self.prefix = prefix
 
     def process(self, msg, kwargs):
-        return "[%s] %s" % (self.prefix, msg), kwargs
+        return f"[{self.prefix}] {msg}", kwargs
 
 
 logger = LoggerAddTag(logging.getLogger(__name__), __package__)

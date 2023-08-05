@@ -56,11 +56,11 @@ def _fetch_result_from_api_cached(
     cache_key = f"EVEUNIVERSE_NEAREST_CELESTIAL_{query}"
     result = cache.get(key=cache_key)
     if not result:
-        r = requests.get(
+        response = requests.get(
             f"{_BASE_URL}?{query}", timeout=EVEUNIVERSE_REQUESTS_DEFAULT_TIMEOUT
         )
-        r.raise_for_status()
-        data = r.json()
+        response.raise_for_status()
+        data = response.json()
         if "ok" not in data or not data["ok"] or "result" not in data:
             return None
         result = data["result"]

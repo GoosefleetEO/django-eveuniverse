@@ -104,19 +104,21 @@ class EveUniverseBaseModel(models.Model):
             key=lambda x: x.name,
         )
         fields_2 = []
-        for f in fields:
-            if f.many_to_one or f.one_to_one:
-                name = f"{f.name}_id"
+        for field in fields:
+            if field.many_to_one or field.one_to_one:
+                name = f"{field.name}_id"
                 value = getattr(self, name)
-            elif f.many_to_many:
-                name = f.name
-                value = ", ".join(sorted([str(x) for x in getattr(self, f.name).all()]))
+            elif field.many_to_many:
+                name = field.name
+                value = ", ".join(
+                    sorted([str(x) for x in getattr(self, field.name).all()])
+                )
             else:
-                name = f.name
-                value = getattr(self, f.name)
+                name = field.name
+                value = getattr(self, field.name)
 
             if isinstance(value, str):
-                if isinstance(f, models.TextField) and len(value) > 32:
+                if isinstance(field, models.TextField) and len(value) > 32:
                     value = f"{value[:32]}..."
                 text = f"{name}='{value}'"
             else:
@@ -128,20 +130,22 @@ class EveUniverseBaseModel(models.Model):
 
     @classmethod
     def all_models(cls) -> List[Dict[models.Model, int]]:
-        """returns a list of all Eve Universe model classes sorted by load order"""
+        """Return a list of all Eve Universe model classes sorted by load order."""
         mappings = []
-        for _, ModelClass in inspect.getmembers(sys.modules[__name__], inspect.isclass):
+        for _, model_class in inspect.getmembers(
+            sys.modules[__name__], inspect.isclass
+        ):
             if issubclass(
-                ModelClass, (EveUniverseEntityModel, EveUniverseInlineModel)
-            ) and ModelClass not in (
+                model_class, (EveUniverseEntityModel, EveUniverseInlineModel)
+            ) and model_class not in (
                 cls,
                 EveUniverseEntityModel,
                 EveUniverseInlineModel,
             ):
                 mappings.append(
                     {
-                        "model": ModelClass,
-                        "load_order": ModelClass._eve_universe_meta_attr_strict(
+                        "model": model_class,
+                        "load_order": model_class._eve_universe_meta_attr_strict(
                             "load_order"
                         ),
                     }
@@ -160,7 +164,7 @@ class EveUniverseBaseModel(models.Model):
         try:
             return classes[model_name]
         except KeyError:
-            raise ValueError("Unknown model_name: %s" % model_name) from None
+            raise ValueError(f"Unknown model_name: {model_name}") from None
 
     @classmethod
     def _esi_mapping(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
@@ -243,8 +247,8 @@ class EveUniverseBaseModel(models.Model):
             value = None
             if is_mandatory:
                 raise ValueError(
-                    "Mandatory attribute EveUniverseMeta.%s not defined "
-                    "for class %s" % (attr_name, cls.__name__)
+                    f"Mandatory attribute EveUniverseMeta.{attr_name} not defined "
+                    f"for class {cls.__name__}"
                 ) from None
 
         return value
@@ -396,7 +400,8 @@ class EveEntity(EveUniverseEntityModel):
     alliance, character, constellation, faction, type, region, solar system, station
 
 
-    This is a special model model dedicated to quick resolution of Eve IDs to names and their categories, e.g. for characters. See also manager methods.
+    This is a special model model dedicated to quick resolution of Eve IDs to names
+    and their categories, e.g. for characters. See also manager methods.
     """
 
     # NPC IDs
@@ -1013,12 +1018,10 @@ class EveMarketPrice(models.Model):
         return f"{self.eve_type}: {self.average_price}"
 
     def __repr__(self) -> str:
-        return "{}(eve_type='{}', adjusted_price={}, average_price={}, updated_at={})".format(
-            type(self).__name__,
-            self.eve_type,
-            self.adjusted_price,
-            self.average_price,
-            self.updated_at.isoformat(),
+        return (
+            f"{type(self).__name__}(eve_type='{self.eve_type}', "
+            f"adjusted_price={self.adjusted_price}, average_price={self.average_price}, "
+            f"updated_at={self.updated_at})"
         )
 
 
@@ -1341,7 +1344,8 @@ class EveSolarSystem(EveUniverseEntityModel):
             destination_id: ID of the other solar system to use in calculation
 
         Returns:
-            List of solar system IDs incl. origin and destination or None if no route can be found (e.g. if one system is in WH space)
+            List of solar system IDs incl. origin and destination
+            or None if no route can be found (e.g. if one system is in WH space)
         """
 
         try:
@@ -1682,7 +1686,8 @@ class EveType(EveUniverseEntityModel):
                 return eveskinserver.type_icon_url(self.id, size=size)
 
             if size < 32 or size > 128 or (size & (size - 1) != 0):
-                raise ValueError("Invalid size: {}".format(size))
+                raise ValueError(f"Invalid size: {size}")
+
             filename = f"eveuniverse/skin_generic_{size}.png"
             return staticfiles_storage.url(filename)
 
