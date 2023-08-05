@@ -30,7 +30,7 @@ test-py38-dj40:
     - tox -e py38-$DJANGO_VERSION
   parallel:
     matrix:
-      - PLATFORM: [django32, django40, django41, django42]
+      - DJANGO_VERSION: [django32, django40, django41, django42]
 
 # test-py39-dj40:
 #   extends: .tox_setup
