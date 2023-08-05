@@ -154,9 +154,7 @@ class EsiClientStub:
         ]
         for endpoint in esi_endpoints:
             if not hasattr(cls, endpoint.category):
-                setattr(
-                    cls, endpoint.category, type(endpoint.category, (object,), dict())
-                )
+                setattr(cls, endpoint.category, type(endpoint.category, (object,), {}))
             my_category = getattr(cls, endpoint.category)
             if not hasattr(my_category, endpoint.method):
                 setattr(

@@ -38,7 +38,7 @@ class EveUniverseBaseModelManager(models.Manager):
         self, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
     ) -> dict:
         """compiles defaults from an esi data object for update/creating the model"""
-        defaults = dict()
+        defaults = {}
         for field_name, mapping in self.model._esi_mapping(enabled_sections).items():
             if not mapping.is_pk:
                 if not isinstance(mapping.esi_name, tuple):
@@ -209,7 +209,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         if id is not None and not self.model._is_list_only_endpoint():
             args = {self.model._esi_pk(): id}
         else:
-            args = dict()
+            args = {}
         category, method = self.model._esi_path_object()
         esi_data = getattr(
             getattr(esi.client, category),
@@ -680,7 +680,7 @@ class EveStationManager(EveUniverseEntityModelManager):
         from .models import EveStationService
 
         if "services" in parent_eve_data_obj:
-            services = list()
+            services = []
             for service_name in parent_eve_data_obj["services"]:
                 service, _ = EveStationService.objects.get_or_create(name=service_name)
                 services.append(service)
@@ -996,7 +996,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         """Updates all Eve entity objects by id from ESI."""
         if not ids:
             return 0
-        ids = list(set([int(id) for id in ids if id not in self.model.ESI_INVALID_IDS]))
+        ids = list(set((int(id) for id in ids if id not in self.model.ESI_INVALID_IDS)))
         logger.info("Updating %d entities from ESI", len(ids))
         resolved_counter = 0
         for chunk_ids in chunks(ids, POST_UNIVERSE_NAMES_MAX_ITEMS):
@@ -1111,11 +1111,11 @@ class ApiCacheManager(ABC):
 
     @classmethod
     def _response_to_cache(cls, r: requests.Response) -> dict:
-        data_all = dict()
+        data_all = {}
         for row in r.json():
             type_id = row["typeID"]
             if type_id not in data_all:
-                data_all[type_id] = list()
+                data_all[type_id] = []
             data_all[type_id].append(row)
         cache.set(
             key=cls.sde_cache_key,

@@ -101,7 +101,7 @@ class EveUniverseBaseModel(models.Model):
             ],
             key=lambda x: x.name,
         )
-        fields_2 = list()
+        fields_2 = []
         for f in fields:
             if f.many_to_one or f.one_to_one:
                 name = f"{f.name}_id"
@@ -127,7 +127,7 @@ class EveUniverseBaseModel(models.Model):
     @classmethod
     def all_models(cls) -> List[Dict[models.Model, int]]:
         """returns a list of all Eve Universe model classes sorted by load order"""
-        mappings = list()
+        mappings = []
         for _, ModelClass in inspect.getmembers(sys.modules[__name__], inspect.isclass):
             if issubclass(
                 ModelClass, (EveUniverseEntityModel, EveUniverseInlineModel)
@@ -167,7 +167,7 @@ class EveUniverseBaseModel(models.Model):
         parent_fk = cls._eve_universe_meta_attr("parent_fk")
         dont_create_related = cls._eve_universe_meta_attr("dont_create_related")
         disabled_fields = cls._disabled_fields(enabled_sections)
-        mapping = dict()
+        mapping = {}
         for field in [
             field
             for field in cls._meta.get_fields()
@@ -189,10 +189,7 @@ class EveUniverseBaseModel(models.Model):
             else:
                 is_pk = False
 
-            if parent_fk and is_pk and field.name in parent_fk:
-                is_parent_fk = True
-            else:
-                is_parent_fk = False
+            is_parent_fk = bool(parent_fk and is_pk and field.name in parent_fk)
 
             if isinstance(field, models.ForeignKey):
                 is_fk = True
@@ -356,13 +353,13 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         """returns the mapping of children for this class"""
         mappings = cls._eve_universe_meta_attr("children")
-        return mappings if mappings else dict()
+        return mappings if mappings else {}
 
     @classmethod
     def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         """returns a dict of inline objects if any"""
         inline_objects = cls._eve_universe_meta_attr("inline_objects")
-        return inline_objects if inline_objects else dict()
+        return inline_objects if inline_objects else {}
 
     @classmethod
     def _is_list_only_endpoint(cls) -> bool:
@@ -539,20 +536,28 @@ class EveEntity(EveUniverseEntityModel):
         """
         if self.is_alliance:
             return dotlan.alliance_url(self.name)
-        elif self.is_character:
+
+        if self.is_character:
             return evewho.character_url(self.id)
-        elif self.is_corporation:
+
+        if self.is_corporation:
             return dotlan.corporation_url(self.name)
-        elif self.is_faction:
+
+        if self.is_faction:
             return dotlan.faction_url(self.name)
-        elif self.is_region:
+
+        if self.is_region:
             return dotlan.region_url(self.name)
-        elif self.is_solar_system:
+
+        if self.is_solar_system:
             return dotlan.solar_system_url(self.name)
-        elif self.is_station:
+
+        if self.is_station:
             return dotlan.station_url(self.name)
-        elif self.is_type:
+
+        if self.is_type:
             return eveitems.type_url(self.id)
+
         return ""
 
     def is_category(self, category: str) -> bool:
@@ -1102,7 +1107,7 @@ class EvePlanet(EveUniverseEntityModel):
     @classmethod
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         enabled_sections = cls.determine_effective_sections(enabled_sections)
-        children = dict()
+        children = {}
         if cls.Section.ASTEROID_BELTS in enabled_sections:
             children["asteroid_belts"] = "EveAsteroidBelt"
         if cls.Section.MOONS in enabled_sections:
@@ -1386,7 +1391,7 @@ class EveSolarSystem(EveUniverseEntityModel):
     @classmethod
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         enabled_sections = cls.determine_effective_sections(enabled_sections)
-        children = dict()
+        children = {}
         if cls.Section.PLANETS in enabled_sections:
             children["planets"] = "EvePlanet"
         if cls.Section.STARGATES in enabled_sections:
@@ -1405,7 +1410,7 @@ class EveSolarSystem(EveUniverseEntityModel):
     @classmethod
     def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         if not enabled_sections or cls.Section.PLANETS not in enabled_sections:
-            return dict()
+            return {}
         return super()._inline_objects()
 
 
@@ -1698,7 +1703,7 @@ class EveType(EveUniverseEntityModel):
     @classmethod
     def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         if not enabled_sections or cls.Section.DOGMAS not in enabled_sections:
-            return dict()
+            return {}
         return super()._inline_objects()
 
     @classmethod

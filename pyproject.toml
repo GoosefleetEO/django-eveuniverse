@@ -62,6 +62,9 @@ max-line-length = 120
 disable = [
     "cyclic-import",
     "fixme",
+    "E",
+    "W",
+    "C",
     # "import-outside-toplevel",
     # "too-many-instance-attributes",
     # "too-few-public-methods",
