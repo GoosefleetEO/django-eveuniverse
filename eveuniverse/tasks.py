@@ -51,8 +51,8 @@ def load_eve_object(
     Will only be created from ESI if it does not exist
     """
     logger.info("Loading %s with ID %s", model_name, id)
-    ModelClass = EveUniverseEntityModel.get_model_class(model_name)
-    ModelClass.objects.get_or_create_esi(  # type: ignore
+    model_class = EveUniverseEntityModel.get_model_class(model_name)
+    model_class.objects.get_or_create_esi(  # type: ignore
         id=id, include_children=include_children, wait_for_children=wait_for_children
     )
 
@@ -71,14 +71,17 @@ def update_or_create_eve_object(
     Args:
         model_name: Name of the respective Django model, e.g. ``"EveType"``
         id: Eve Online ID of object
-        include_children: if child objects should be updated/created as well (only when a new object is created)
-        wait_for_children: when true child objects will be updated/created blocking (if any), else async (only when a new object is created)
-        enabled_sections: Sections to load regardless of current settings, e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
+        include_children: if child objects should be updated/created as well
+        (only when a new object is created)
+        wait_for_children: when true child objects will be updated/created blocking (if any),
+        else async (only when a new object is created)
+        enabled_sections: Sections to load regardless of current settings,
+        e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
         task_priority: priority of started tasks
     """
     logger.info("Updating/Creating %s with ID %s", model_name, id)
-    ModelClass = EveUniverseEntityModel.get_model_class(model_name)
-    ModelClass.objects.update_or_create_esi(  # type: ignore
+    model_class = EveUniverseEntityModel.get_model_class(model_name)
+    model_class.objects.update_or_create_esi(  # type: ignore
         id=id,
         include_children=include_children,
         wait_for_children=wait_for_children,
@@ -105,8 +108,8 @@ def update_or_create_inline_object(
         parent_model_name,
         parent_obj_id,
     )
-    ModelClass = EveUniverseEntityModel.get_model_class(parent_model_name)
-    ModelClass.objects._update_or_create_inline_object(  # type: ignore
+    model_class = EveUniverseEntityModel.get_model_class(parent_model_name)
+    model_class.objects._update_or_create_inline_object(  # type: ignore
         parent_obj_id=parent_obj_id,
         parent_fk=parent_fk,
         eve_data_obj=eve_data_obj,

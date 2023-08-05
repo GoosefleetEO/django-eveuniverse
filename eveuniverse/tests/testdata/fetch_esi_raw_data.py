@@ -28,7 +28,7 @@ TYPE_IDS = [
 print("Fetching ESI raw data...")
 
 # fetching types from ESI
-esi_data = {"categories": dict(), "groups": dict(), "types": dict()}
+esi_data = {"categories": {}, "groups": {}, "types": {}}
 category_ids = set()
 group_ids = set()
 print("Fetching types...")

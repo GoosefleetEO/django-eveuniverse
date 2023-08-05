@@ -1,10 +1,12 @@
 """Managers and Querysets for Eve universe models."""
 
+# pylint: disable = import-outside-toplevel, missing-class-docstring
+
 import datetime as dt
 import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
+from typing import Any, Dict, Iterable, Optional, Set, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -38,7 +40,7 @@ class EveUniverseBaseModelManager(models.Manager):
         self, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
     ) -> dict:
         """compiles defaults from an esi data object for update/creating the model"""
-        defaults = dict()
+        defaults = {}
         for field_name, mapping in self.model._esi_mapping(enabled_sections).items():
             if not mapping.is_pk:
                 if not isinstance(mapping.esi_name, tuple):
@@ -59,14 +61,17 @@ class EveUniverseBaseModelManager(models.Manager):
 
                 if esi_value is not None:
                     if mapping.is_fk:
-                        ParentClass = mapping.related_model
+                        parent_class = mapping.related_model
                         try:
-                            value = ParentClass.objects.get(id=esi_value)
-                        except ParentClass.DoesNotExist:
+                            value = parent_class.objects.get(id=esi_value)
+                        except parent_class.DoesNotExist:
                             value = None
                             if mapping.create_related:
                                 try:
-                                    value, _ = ParentClass.objects.update_or_create_esi(
+                                    (
+                                        value,
+                                        _,
+                                    ) = parent_class.objects.update_or_create_esi(
                                         id=esi_value,
                                         include_children=False,
                                         wait_for_children=True,
@@ -85,9 +90,6 @@ class EveUniverseBaseModelManager(models.Manager):
         return defaults
 
 
-ModelType = TypeVar("ModelType", bound=models.Model)
-
-
 class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
     """Manager for most Eve models."""
 
@@ -99,7 +101,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """gets or creates an eve universe object.
 
         The object is automatically fetched from ESI if it does not exist (blocking).
@@ -107,9 +109,12 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         Args:
             id: Eve Online ID of object
-            include_children: if child objects should be updated/created as well (only when a new object is created)
-            wait_for_children: when true child objects will be updated/created blocking (if any), else async (only when a new object is created)
-            enabled_sections: Sections to load regardless of current settings, e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
+            include_children: if child objects should be updated/created as well
+            (only when a new object is created)
+            wait_for_children: when true child objects will be updated/created blocking
+            (if any), else async (only when a new object is created)
+            enabled_sections: Sections to load regardless of current settings,
+            e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
             task_priority: priority of started tasks
 
         Returns:
@@ -145,15 +150,17 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """updates or creates an Eve universe object by fetching it from ESI (blocking).
         Will always get/create parent objects
 
         Args:
             id: Eve Online ID of object
             include_children: if child objects should be updated/created as well (if any)
-            wait_for_children: when true child objects will be updated/created blocking (if any), else async
-            enabled_sections: Sections to load regardless of current settings, e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
+            wait_for_children: when true child objects will be updated/created blocking
+            (if any), else async
+            enabled_sections: Sections to load regardless of current settings,
+            e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
             task_priority: priority of started tasks
 
         Returns:
@@ -209,7 +216,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         if id is not None and not self.model._is_list_only_endpoint():
             args = {self.model._esi_pk(): id}
         else:
-            args = dict()
+            args = {}
         category, method = self.model._esi_path_object()
         esi_data = getattr(
             getattr(esi.client, category),
@@ -253,8 +260,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         if not parent_eve_data_obj or not parent_obj:
             raise ValueError(
-                "%s: Tried to create inline object from empty parent object"
-                % self.model.__name__,
+                f"{self.model.__name__}: Tried to create inline object "
+                "from empty parent object"
             )
 
         for inline_field, model_name in inline_objects.items():
@@ -262,30 +269,26 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                 inline_field in parent_eve_data_obj
                 and parent_eve_data_obj[inline_field]
             ):
-                InlineModel = self.model.get_model_class(model_name)
-                esi_mapping = InlineModel._esi_mapping()
+                inline_model_class = self.model.get_model_class(model_name)
+                esi_mapping = inline_model_class._esi_mapping()
                 parent_fk = None
                 other_pk = None
-                ParentClass2 = None
+                parent_class_2 = None
                 for field_name, mapping in esi_mapping.items():
                     if mapping.is_pk:
                         if mapping.is_parent_fk:
                             parent_fk = field_name
                         else:
                             other_pk = (field_name, mapping)
-                            ParentClass2 = mapping.related_model
+                            parent_class_2 = mapping.related_model
 
                 if not parent_fk or not other_pk:
                     raise ValueError(
-                        "ESI Mapping for %s not valid: %s, %s"
-                        % (
-                            model_name,
-                            parent_fk,
-                            other_pk,
-                        )
+                        f"ESI Mapping for {model_name} not valid: "
+                        f"{parent_fk}, {other_pk}"
                     )
 
-                parent2_model_name = ParentClass2.__name__ if ParentClass2 else None
+                parent2_model_name = parent_class_2.__name__ if parent_class_2 else None
                 other_pk_info = {
                     "name": other_pk[0],
                     "esi_name": other_pk[1].esi_name,
@@ -332,17 +335,17 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         """Updates or creates a single inline object.
         Will automatically create additional parent objects as needed
         """
-        InlineModel = self.model.get_model_class(inline_model_name)
+        inline_model_class = self.model.get_model_class(inline_model_name)
 
         args = {f"{parent_fk}_id": parent_obj_id}
         esi_value = eve_data_obj.get(other_pk_info["esi_name"])
         if other_pk_info["is_fk"]:
-            ParentClass2 = self.model.get_model_class(parent2_model_name)
+            parent_class_2 = self.model.get_model_class(parent2_model_name)
             try:
-                value = ParentClass2.objects.get(id=esi_value)
-            except ParentClass2.DoesNotExist:
+                value = parent_class_2.objects.get(id=esi_value)
+            except parent_class_2.DoesNotExist:
                 try:
-                    value, _ = ParentClass2.objects.update_or_create_esi(id=esi_value)
+                    value, _ = parent_class_2.objects.update_or_create_esi(id=esi_value)
                 except AttributeError:
                     value = None
         else:
@@ -350,10 +353,10 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         key = other_pk_info["name"]
         args[key] = value  # type: ignore
-        args["defaults"] = InlineModel.objects._defaults_from_esi_obj(
+        args["defaults"] = inline_model_class.objects._defaults_from_esi_obj(
             eve_data_obj,
         )
-        InlineModel.objects.update_or_create(**args)
+        inline_model_class.objects.update_or_create(**args)
 
     def _update_or_create_children(
         self,
@@ -371,8 +374,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         if not parent_eve_data_obj:
             raise ValueError(
-                "%s: Tried to create children from empty parent object"
-                % self.model.__name__,
+                f"{self.model.__name__}: Tried to create children "
+                "from empty parent object"
             )
 
         for key, child_class in self.model._children(enabled_sections).items():
@@ -381,8 +384,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                     # TODO: Refactor this hack
                     id = obj["planet_id"] if key == "planets" else obj
                     if wait_for_children:
-                        ChildClass = self.model.get_model_class(child_class)
-                        ChildClass.objects.update_or_create_esi(
+                        child_model_class = self.model.get_model_class(child_class)
+                        child_model_class.objects.update_or_create_esi(
                             id=id,
                             include_children=include_children,
                             wait_for_children=wait_for_children,
@@ -629,7 +632,7 @@ class EveStargateManager(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """updates or creates an EveStargate object by fetching it from ESI (blocking).
         Will always get/create parent objects
 
@@ -680,7 +683,7 @@ class EveStationManager(EveUniverseEntityModelManager):
         from .models import EveStationService
 
         if "services" in parent_eve_data_obj:
-            services = list()
+            services = []
             for service_name in parent_eve_data_obj["services"]:
                 service, _ = EveStationService.objects.get_or_create(name=service_name)
                 services.append(service)
@@ -702,7 +705,7 @@ class EveTypeManager(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         obj, created = super().update_or_create_esi(
             id=id,
             include_children=include_children,
@@ -763,7 +766,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """gets or creates an EvEntity object.
 
         The object is automatically fetched from ESI if it does not exist (blocking)
@@ -797,7 +800,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """Update or create an EveEntity object by fetching it from ESI (blocking).
 
         Args:
@@ -899,6 +902,8 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         """Fetch entities matching given names.
         Will fetch missing entities from ESI if needed or requested.
 
+        Note that names that are not found by ESI are ignored.
+
         Args:
             names: Names of entities to fetch
             update: When True will always update from ESI
@@ -906,44 +911,52 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         Returns:
             query with matching entities.
         """
-        names = list(set(names))
-        query = self.filter(name__in=names)
-        if update or not query.exists():
-            result = self._fetch_names_from_esi(names)
-            if result:
-                result_compressed = {
-                    category: entities
-                    for category, entities in result.items()
-                    if entities
-                }
-                for category_key, entities in result_compressed.items():
-                    try:
-                        category = self._map_category_key_to_category(category_key)
-                    except ValueError:
-                        logger.warning(
-                            "Ignoring entities with unknown category %s: %s",
-                            category_key,
-                            entities,
-                        )
-                    else:
-                        for entity in entities:
-                            self.update_or_create(
-                                id=entity["id"],
-                                defaults={"name": entity["name"], "category": category},
-                            )
-        return query
+        names = set(names)
+        if update:
+            names_to_fetch = names
+        else:
+            existing_names = set(
+                self.filter(name__in=names).values_list("name", flat=True)
+            )
+            names_to_fetch = names - existing_names
+        if names_to_fetch:
+            esi_result = self._fetch_names_from_esi(names_to_fetch)
+            if esi_result:
+                self._update_or_create_entities(esi_result)
+        return self.filter(name__in=names)
 
-    def _fetch_names_from_esi(self, names: List[str]) -> dict:
+    def _update_or_create_entities(self, esi_result):
+        for category_key, entities in esi_result.items():
+            try:
+                category = self._map_category_key_to_category(category_key)
+            except ValueError:
+                logger.warning(
+                    "Ignoring entities with unknown category %s: %s",
+                    category_key,
+                    entities,
+                )
+                continue
+
+            for entity in entities:
+                self.update_or_create(
+                    id=entity["id"],
+                    defaults={"name": entity["name"], "category": category},
+                )
+
+    def _fetch_names_from_esi(self, names: Iterable[str]) -> dict:
         logger.info("Trying to fetch EveEntities from ESI by name")
         result = defaultdict(list)
-        for chunk_names in chunks(names, 500):
+        for chunk_names in chunks(list(names), 500):
             result_chunk = esi.client.Universe.post_universe_ids(
                 names=chunk_names
             ).results()
             for category, entities in result_chunk.items():
                 if entities:
                     result[category] += entities
-        return result
+        result_compressed = {
+            category: entities for category, entities in result.items() if entities
+        }
+        return result_compressed
 
     def _map_category_key_to_category(self, category_key: str) -> str:
         """Map category keys from ESI result to categories."""
@@ -986,7 +999,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         """Updates all Eve entity objects by id from ESI."""
         if not ids:
             return 0
-        ids = list(set([int(id) for id in ids if id not in self.model.ESI_INVALID_IDS]))
+        ids = list(set((int(id) for id in ids if id not in self.model.ESI_INVALID_IDS)))
         logger.info("Updating %d entities from ESI", len(ids))
         resolved_counter = 0
         for chunk_ids in chunks(ids, POST_UNIVERSE_NAMES_MAX_ITEMS):
@@ -1026,10 +1039,12 @@ EveEntityManager = EveEntityManagerBase.from_queryset(EveEntityQuerySet)
 
 class EveMarketPriceManager(models.Manager):
     def update_from_esi(self, minutes_until_stale: Optional[int] = None) -> int:
-        """Updates market prices from ESI. Will only create new price objects for EveTypes that already exist in the database.
+        """Updates market prices from ESI. Will only create new price objects
+        for EveTypes that already exist in the database.
 
         Args:
-            minutes_until_stale: only prices older then given minutes are regarding as stale and will be updated. Will use default (60) if not specified.
+            minutes_until_stale: only prices older then given minutes are regarding
+            as stale and will be updated. Will use default (60) if not specified.
 
         Returns:
             Count of updated types
@@ -1100,12 +1115,12 @@ class ApiCacheManager(ABC):
         return 3600 * 24
 
     @classmethod
-    def _response_to_cache(cls, r: requests.Response) -> dict:
-        data_all = dict()
-        for row in r.json():
+    def _response_to_cache(cls, response: requests.Response) -> dict:
+        data_all = {}
+        for row in response.json():
             type_id = row["typeID"]
             if type_id not in data_all:
-                data_all[type_id] = list()
+                data_all[type_id] = []
             data_all[type_id].append(row)
         cache.set(
             key=cls.sde_cache_key,
@@ -1118,11 +1133,12 @@ class ApiCacheManager(ABC):
     def _fetch_sde_data_cached(cls) -> dict:
         data = cache.get(cls.sde_cache_key)
         if not data:
-            r = requests.get(
-                urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls.sde_api_route)
+            response = requests.get(
+                urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls.sde_api_route),
+                timeout=10,
             )
-            r.raise_for_status()
-            data = cls._response_to_cache(r)
+            response.raise_for_status()
+            data = cls._response_to_cache(response)
             cache.set(
                 key=cls.sde_cache_key,
                 value=data,

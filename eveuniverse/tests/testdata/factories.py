@@ -1,4 +1,4 @@
-from ...models import EveEntity
+from eveuniverse.models import EveEntity
 
 _items = {
     40170698: {

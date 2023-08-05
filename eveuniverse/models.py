@@ -1,5 +1,7 @@
 """Eve universe models."""
 
+# pylint: disable = too-few-public-methods
+
 import enum
 import inspect
 import math
@@ -101,20 +103,22 @@ class EveUniverseBaseModel(models.Model):
             ],
             key=lambda x: x.name,
         )
-        fields_2 = list()
-        for f in fields:
-            if f.many_to_one or f.one_to_one:
-                name = f"{f.name}_id"
+        fields_2 = []
+        for field in fields:
+            if field.many_to_one or field.one_to_one:
+                name = f"{field.name}_id"
                 value = getattr(self, name)
-            elif f.many_to_many:
-                name = f.name
-                value = ", ".join(sorted([str(x) for x in getattr(self, f.name).all()]))
+            elif field.many_to_many:
+                name = field.name
+                value = ", ".join(
+                    sorted([str(x) for x in getattr(self, field.name).all()])
+                )
             else:
-                name = f.name
-                value = getattr(self, f.name)
+                name = field.name
+                value = getattr(self, field.name)
 
             if isinstance(value, str):
-                if isinstance(f, models.TextField) and len(value) > 32:
+                if isinstance(field, models.TextField) and len(value) > 32:
                     value = f"{value[:32]}..."
                 text = f"{name}='{value}'"
             else:
@@ -126,20 +130,22 @@ class EveUniverseBaseModel(models.Model):
 
     @classmethod
     def all_models(cls) -> List[Dict[models.Model, int]]:
-        """returns a list of all Eve Universe model classes sorted by load order"""
-        mappings = list()
-        for _, ModelClass in inspect.getmembers(sys.modules[__name__], inspect.isclass):
+        """Return a list of all Eve Universe model classes sorted by load order."""
+        mappings = []
+        for _, model_class in inspect.getmembers(
+            sys.modules[__name__], inspect.isclass
+        ):
             if issubclass(
-                ModelClass, (EveUniverseEntityModel, EveUniverseInlineModel)
-            ) and ModelClass not in (
+                model_class, (EveUniverseEntityModel, EveUniverseInlineModel)
+            ) and model_class not in (
                 cls,
                 EveUniverseEntityModel,
                 EveUniverseInlineModel,
             ):
                 mappings.append(
                     {
-                        "model": ModelClass,
-                        "load_order": ModelClass._eve_universe_meta_attr_strict(
+                        "model": model_class,
+                        "load_order": model_class._eve_universe_meta_attr_strict(
                             "load_order"
                         ),
                     }
@@ -158,7 +164,7 @@ class EveUniverseBaseModel(models.Model):
         try:
             return classes[model_name]
         except KeyError:
-            raise ValueError("Unknown model_name: %s" % model_name) from None
+            raise ValueError(f"Unknown model_name: {model_name}") from None
 
     @classmethod
     def _esi_mapping(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
@@ -167,7 +173,7 @@ class EveUniverseBaseModel(models.Model):
         parent_fk = cls._eve_universe_meta_attr("parent_fk")
         dont_create_related = cls._eve_universe_meta_attr("dont_create_related")
         disabled_fields = cls._disabled_fields(enabled_sections)
-        mapping = dict()
+        mapping = {}
         for field in [
             field
             for field in cls._meta.get_fields()
@@ -189,10 +195,7 @@ class EveUniverseBaseModel(models.Model):
             else:
                 is_pk = False
 
-            if parent_fk and is_pk and field.name in parent_fk:
-                is_parent_fk = True
-            else:
-                is_parent_fk = False
+            is_parent_fk = bool(parent_fk and is_pk and field.name in parent_fk)
 
             if isinstance(field, models.ForeignKey):
                 is_fk = True
@@ -244,8 +247,8 @@ class EveUniverseBaseModel(models.Model):
             value = None
             if is_mandatory:
                 raise ValueError(
-                    "Mandatory attribute EveUniverseMeta.%s not defined "
-                    "for class %s" % (attr_name, cls.__name__)
+                    f"Mandatory attribute EveUniverseMeta.{attr_name} not defined "
+                    f"for class {cls.__name__}"
                 ) from None
 
         return value
@@ -356,13 +359,13 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         """returns the mapping of children for this class"""
         mappings = cls._eve_universe_meta_attr("children")
-        return mappings if mappings else dict()
+        return mappings if mappings else {}
 
     @classmethod
     def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         """returns a dict of inline objects if any"""
         inline_objects = cls._eve_universe_meta_attr("inline_objects")
-        return inline_objects if inline_objects else dict()
+        return inline_objects if inline_objects else {}
 
     @classmethod
     def _is_list_only_endpoint(cls) -> bool:
@@ -397,7 +400,8 @@ class EveEntity(EveUniverseEntityModel):
     alliance, character, constellation, faction, type, region, solar system, station
 
 
-    This is a special model model dedicated to quick resolution of Eve IDs to names and their categories, e.g. for characters. See also manager methods.
+    This is a special model model dedicated to quick resolution of Eve IDs to names
+    and their categories, e.g. for characters. See also manager methods.
     """
 
     # NPC IDs
@@ -444,7 +448,7 @@ class EveEntity(EveUniverseEntityModel):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._CATEGORIES = self.categories()
+        self._categories = self.categories()
 
     def __str__(self) -> str:
         if self.name:
@@ -539,25 +543,33 @@ class EveEntity(EveUniverseEntityModel):
         """
         if self.is_alliance:
             return dotlan.alliance_url(self.name)
-        elif self.is_character:
+
+        if self.is_character:
             return evewho.character_url(self.id)
-        elif self.is_corporation:
+
+        if self.is_corporation:
             return dotlan.corporation_url(self.name)
-        elif self.is_faction:
+
+        if self.is_faction:
             return dotlan.faction_url(self.name)
-        elif self.is_region:
+
+        if self.is_region:
             return dotlan.region_url(self.name)
-        elif self.is_solar_system:
+
+        if self.is_solar_system:
             return dotlan.solar_system_url(self.name)
-        elif self.is_station:
+
+        if self.is_station:
             return dotlan.station_url(self.name)
-        elif self.is_type:
+
+        if self.is_type:
             return eveitems.type_url(self.id)
+
         return ""
 
     def is_category(self, category: str) -> bool:
         """returns True if this entity has the given category, else False"""
-        return category in self._CATEGORIES and self.category == category
+        return category in self._categories and self.category == category
 
     def update_from_esi(self) -> "EveEntity":
         """Update the current object from ESI
@@ -586,9 +598,9 @@ class EveEntity(EveUniverseEntityModel):
         }
         if self.category not in map_category_2_other:
             return ""
-        else:
-            func = map_category_2_other[self.category]
-            return getattr(eveimageserver, func)(self.id, size=size)
+
+        func = map_category_2_other[self.category]
+        return getattr(eveimageserver, func)(self.id, size=size)
 
     @classmethod
     def categories(cls) -> Set[str]:
@@ -1006,12 +1018,10 @@ class EveMarketPrice(models.Model):
         return f"{self.eve_type}: {self.average_price}"
 
     def __repr__(self) -> str:
-        return "{}(eve_type='{}', adjusted_price={}, average_price={}, updated_at={})".format(
-            type(self).__name__,
-            self.eve_type,
-            self.adjusted_price,
-            self.average_price,
-            self.updated_at.isoformat(),
+        return (
+            f"{type(self).__name__}(eve_type='{self.eve_type}', "
+            f"adjusted_price={self.adjusted_price}, average_price={self.average_price}, "
+            f"updated_at={self.updated_at})"
         )
 
 
@@ -1102,7 +1112,7 @@ class EvePlanet(EveUniverseEntityModel):
     @classmethod
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         enabled_sections = cls.determine_effective_sections(enabled_sections)
-        children = dict()
+        children = {}
         if cls.Section.ASTEROID_BELTS in enabled_sections:
             children["asteroid_belts"] = "EveAsteroidBelt"
         if cls.Section.MOONS in enabled_sections:
@@ -1334,7 +1344,8 @@ class EveSolarSystem(EveUniverseEntityModel):
             destination_id: ID of the other solar system to use in calculation
 
         Returns:
-            List of solar system IDs incl. origin and destination or None if no route can be found (e.g. if one system is in WH space)
+            List of solar system IDs incl. origin and destination
+            or None if no route can be found (e.g. if one system is in WH space)
         """
 
         try:
@@ -1375,10 +1386,10 @@ class EveSolarSystem(EveUniverseEntityModel):
             EveGroupId.STATION: EveStation,
         }
         try:
-            MyClass = class_mapping[eve_type.eve_group_id]
+            my_class = class_mapping[eve_type.eve_group_id]
         except KeyError:
             return None
-        obj, _ = MyClass.objects.get_or_create_esi(id=item.id)
+        obj, _ = my_class.objects.get_or_create_esi(id=item.id)
         return self.NearestCelestial(
             eve_type=eve_type, eve_object=obj, distance=item.distance
         )
@@ -1386,7 +1397,7 @@ class EveSolarSystem(EveUniverseEntityModel):
     @classmethod
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
         enabled_sections = cls.determine_effective_sections(enabled_sections)
-        children = dict()
+        children = {}
         if cls.Section.PLANETS in enabled_sections:
             children["planets"] = "EvePlanet"
         if cls.Section.STARGATES in enabled_sections:
@@ -1405,7 +1416,7 @@ class EveSolarSystem(EveUniverseEntityModel):
     @classmethod
     def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         if not enabled_sections or cls.Section.PLANETS not in enabled_sections:
-            return dict()
+            return {}
         return super()._inline_objects()
 
 
@@ -1675,7 +1686,8 @@ class EveType(EveUniverseEntityModel):
                 return eveskinserver.type_icon_url(self.id, size=size)
 
             if size < 32 or size > 128 or (size & (size - 1) != 0):
-                raise ValueError("Invalid size: {}".format(size))
+                raise ValueError(f"Invalid size: {size}")
+
             filename = f"eveuniverse/skin_generic_{size}.png"
             return staticfiles_storage.url(filename)
 
@@ -1698,7 +1710,7 @@ class EveType(EveUniverseEntityModel):
     @classmethod
     def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         if not enabled_sections or cls.Section.DOGMAS not in enabled_sections:
-            return dict()
+            return {}
         return super()._inline_objects()
 
     @classmethod

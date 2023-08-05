@@ -6,11 +6,10 @@ from typing import Iterable, List
 
 from django.core.serializers.json import DjangoJSONEncoder
 
+from eveuniverse import __title__
+from eveuniverse.core.esitools import is_esi_online
 from eveuniverse.models import EveSolarSystem, EveStargate, EveUniverseBaseModel
-
-from .. import __title__
-from ..core.esitools import is_esi_online
-from ..utils import LoggerAddTag
+from eveuniverse.utils import LoggerAddTag
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
@@ -20,6 +19,7 @@ _ModelSpec = namedtuple(
 )
 
 
+# pylint: disable = invalid-name
 def ModelSpec(
     model_name: str,
     ids: List[int],
@@ -28,7 +28,7 @@ def ModelSpec(
 ) -> _ModelSpec:
     """Wrapper for creating ModelSpec objects.
 
-    A Modelspec class defines what objects are to be loaded as test data
+    A ModelSpec class defines what objects are to be loaded as test data
 
     Args:
         model_name: Name of Eve Universe model
@@ -100,8 +100,8 @@ def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
             data[MyModel.__name__] = my_data
 
     print(f"Writing testdata to: {filepath}")
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, cls=DjangoJSONEncoder, indent=4, sort_keys=True)
+    with open(filepath, "w", encoding="utf-8") as file:
+        json.dump(data, file, cls=DjangoJSONEncoder, indent=4, sort_keys=True)
 
 
 def load_testdata_from_dict(testdata: dict) -> None:
@@ -146,7 +146,7 @@ def load_testdata_from_file(filepath: str) -> None:
     Args:
         filepath: Absolute path to the JSON file containing the testdata created by `create_testdata()`
     """
-    with open(filepath, "r", encoding="utf-8") as f:
-        testdata = json.load(f)
+    with open(filepath, "r", encoding="utf-8") as file:
+        testdata = json.load(file)
 
     load_testdata_from_dict(testdata)

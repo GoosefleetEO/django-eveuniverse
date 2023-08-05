@@ -13,11 +13,11 @@ class LoggerAddTag(logging.LoggerAdapter):
     """add custom tag to a logger"""
 
     def __init__(self, my_logger, prefix):
-        super(LoggerAddTag, self).__init__(my_logger, {})
+        super().__init__(my_logger, {})
         self.prefix = prefix
 
     def process(self, msg, kwargs):
-        return "[%s] %s" % (self.prefix, msg), kwargs
+        return f"[{self.prefix}] {msg}", kwargs
 
 
 logger = LoggerAddTag(logging.getLogger(__name__), __package__)
@@ -70,8 +70,10 @@ def clean_setting(
             cleaned_value = dirty_value
         else:
             logger.warning(
-                "Your setting for {} it not valid. Please correct it. "
-                "Using default for now: {}".format(name, default_value)
+                "Your setting for %s it not valid. Please correct it. "
+                "Using default for now: %s",
+                name,
+                default_value,
             )
             cleaned_value = default_value
     return cleaned_value

@@ -16,11 +16,11 @@ def type_materials_cache_content():
 
 
 def cache_content(table):
-    data_all = dict()
+    data_all = {}
     cached_data = sde_data[table]
     for row in cached_data:
         type_id = row["typeID"]
         if type_id not in data_all:
-            data_all[type_id] = list()
+            data_all[type_id] = []
         data_all[type_id].append(row)
     return data_all
