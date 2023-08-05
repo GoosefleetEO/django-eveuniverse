@@ -899,6 +899,8 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         """Fetch entities matching given names.
         Will fetch missing entities from ESI if needed or requested.
 
+        Note that names that are not found by ESI are ignored.
+
         Args:
             names: Names of entities to fetch
             update: When True will always update from ESI
@@ -915,29 +917,28 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
             )
             names_to_fetch = names - existing_names
         if names_to_fetch:
-            result = self._fetch_names_from_esi(names_to_fetch)
-            if result:
-                result_compressed = {
-                    category: entities
-                    for category, entities in result.items()
-                    if entities
-                }
-                for category_key, entities in result_compressed.items():
-                    try:
-                        category = self._map_category_key_to_category(category_key)
-                    except ValueError:
-                        logger.warning(
-                            "Ignoring entities with unknown category %s: %s",
-                            category_key,
-                            entities,
-                        )
-                    else:
-                        for entity in entities:
-                            self.update_or_create(
-                                id=entity["id"],
-                                defaults={"name": entity["name"], "category": category},
-                            )
+            esi_result = self._fetch_names_from_esi(names_to_fetch)
+            if esi_result:
+                self._update_or_create_entities(esi_result)
         return self.filter(name__in=names)
+
+    def _update_or_create_entities(self, esi_result):
+        for category_key, entities in esi_result.items():
+            try:
+                category = self._map_category_key_to_category(category_key)
+            except ValueError:
+                logger.warning(
+                    "Ignoring entities with unknown category %s: %s",
+                    category_key,
+                    entities,
+                )
+                continue
+
+            for entity in entities:
+                self.update_or_create(
+                    id=entity["id"],
+                    defaults={"name": entity["name"], "category": category},
+                )
 
     def _fetch_names_from_esi(self, names: Iterable[str]) -> dict:
         logger.info("Trying to fetch EveEntities from ESI by name")
@@ -949,7 +950,10 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
             for category, entities in result_chunk.items():
                 if entities:
                     result[category] += entities
-        return result
+        result_compressed = {
+            category: entities for category, entities in result.items() if entities
+        }
+        return result_compressed
 
     def _map_category_key_to_category(self, category_key: str) -> str:
         """Map category keys from ESI result to categories."""
