@@ -580,11 +580,39 @@ class TestEveEntityManagerFetchEntitiesByName(NoSocketsTestCase):
         self.assertEqual(objs[1001].name, "Bruce Wayne")
         self.assertTrue(objs[1001].is_character)
         self.assertEqual(objs[9991].name, "alpha")
-        self.assertTrue(objs[9992].is_character)
+        self.assertTrue(objs[9991].is_character)
         self.assertEqual(objs[9992].name, "bravo")
         self.assertTrue(objs[9992].is_character)
         self.assertEqual(objs[9993].name, "charlie")
         self.assertTrue(objs[9993].is_corporation)
+
+    def test_should_fetch_all_names_when_requested(self, mock_esi):
+        # given
+        mock_esi.client.Universe.post_universe_ids.return_value = BravadoOperationStub(
+            {
+                "characters": [
+                    {"id": 9991, "name": "alpha"},
+                    {"id": 1001, "name": "Bruce Wayne"},
+                ],
+            }
+        )
+        create_eve_entity(
+            id=1001, name="Bruce Wayne", category=EveEntity.CATEGORY_FACTION
+        )
+        # when
+        result_qs = EveEntity.objects.fetch_by_names_esi(
+            ["Bruce Wayne", "alpha"], update=True
+        )
+        # then
+        self.assertTrue(mock_esi.client.Universe.post_universe_ids.called)
+        _, kwargs = mock_esi.client.Universe.post_universe_ids.call_args
+        self.assertSetEqual(set(kwargs["names"]), {"Bruce Wayne", "alpha"})
+        objs: Dict[int, EveEntity] = {obj.id: obj for obj in result_qs}
+        self.assertSetEqual(set(objs.keys()), {1001, 9991})
+        self.assertEqual(objs[1001].name, "Bruce Wayne")
+        self.assertTrue(objs[1001].is_character)
+        self.assertEqual(objs[9991].name, "alpha")
+        self.assertTrue(objs[9991].is_character)
 
 
 class TestEveEntityProfileUrl(NoSocketsTestCase):
