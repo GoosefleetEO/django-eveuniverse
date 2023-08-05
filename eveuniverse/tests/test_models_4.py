@@ -276,41 +276,6 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
         self.assertEqual(EveEntity.objects.resolve_name(999), "")
         self.assertEqual(EveEntity.objects.resolve_name(None), "")
 
-    def test_can_fetch_entity_by_name_from_esi(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        result = EveEntity.objects.fetch_by_names_esi(["Bruce Wayne"])
-        # then
-        self.assertListEqual(list(result), list(EveEntity.objects.filter(id=1001)))
-
-    def test_can_fetch_entities_by_name_from_esi(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        result = EveEntity.objects.fetch_by_names_esi(["Bruce Wayne", "Caldari State"])
-        # then
-        self.assertListEqual(
-            list(result), list(EveEntity.objects.filter(id__in=[500001, 1001]))
-        )
-
-    def test_can_fetch_entities_by_name_from_esi_huge(self, mock_esi):
-        # given
-        def my_endpoint(names):
-            characters = [
-                {"id": int(name.split("_")[1]), "name": name} for name in names
-            ]
-            data = {"characters": characters}
-            return BravadoOperationStub(data)
-
-        mock_esi.client.Universe.post_universe_ids.side_effect = my_endpoint
-        names = [f"dummy_{num + 1001}" for num in range(600)]
-        # when
-        result = EveEntity.objects.fetch_by_names_esi(names)
-        # then
-        self.assertEqual(mock_esi.client.Universe.post_universe_ids.call_count, 2)
-        self.assertEqual(len(result), 600)
-
     def test_can_bulk_resolve_name(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -544,6 +509,59 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
         self.assertTrue(obj.is_station)
         obj = EveEntity(id=666)
         self.assertFalse(obj.is_station)
+
+
+@patch(MANAGERS_PATH + ".esi")
+class TestEveEntityManagerFetchEntitiesByName(NoSocketsTestCase):
+    def test_can_fetch_entity_by_name_from_esi(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        result = EveEntity.objects.fetch_by_names_esi(["Bruce Wayne"])
+        # then
+        self.assertListEqual(list(result), list(EveEntity.objects.filter(id=1001)))
+
+    def test_can_fetch_multiple_entities_by_name_from_esi(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        result = EveEntity.objects.fetch_by_names_esi(["Bruce Wayne", "Caldari State"])
+        # then
+        self.assertListEqual(
+            list(result), list(EveEntity.objects.filter(id__in=[500001, 1001]))
+        )
+
+    def test_should_make_multiple_esi_request_when_fetching_large_number_of_entities(
+        self, mock_esi
+    ):
+        # given
+        def my_endpoint(names):
+            characters = [
+                {"id": int(name.split("_")[1]), "name": name} for name in names
+            ]
+            data = {"characters": characters}
+            return BravadoOperationStub(data)
+
+        mock_esi.client.Universe.post_universe_ids.side_effect = my_endpoint
+        names = [f"dummy_{num + 1001}" for num in range(600)]
+        # when
+        result = EveEntity.objects.fetch_by_names_esi(names)
+        # then
+        self.assertEqual(mock_esi.client.Universe.post_universe_ids.call_count, 2)
+        self.assertEqual(len(result), 600)
+
+    def test_should_fetch_unknown_entities_from_esi_only(self, mock_esi):
+        # given
+        mock_esi.client.Universe.post_universe_ids.return_value = BravadoOperationStub(
+            []
+        )
+        create_eve_entity(
+            id=1001, name="Bruce Wayne", category=EveEntity.CATEGORY_CHARACTER
+        )
+        # when
+        EveEntity.objects.fetch_by_names_esi(["Bruce Wayne", "unknown"])
+        # then
+        self.assertTrue(mock_esi.client.Universe.post_universe_ids.called)
 
 
 class TestEveEntityProfileUrl(NoSocketsTestCase):
