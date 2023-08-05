@@ -1129,7 +1129,8 @@ class ApiCacheManager(ABC):
         data = cache.get(cls.sde_cache_key)
         if not data:
             r = requests.get(
-                urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls.sde_api_route)
+                urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls.sde_api_route),
+                timeout=10,
             )
             r.raise_for_status()
             data = cls._response_to_cache(r)
