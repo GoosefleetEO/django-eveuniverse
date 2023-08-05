@@ -23,34 +23,45 @@ pre-commit:
     - pip install pre-commit
     - pre-commit run --all-files
 
-test-py38-dj40:
+test-py38:
   extends: .tox_setup
   image: python:3.8-bullseye
   script:
     - tox -e py38-$DJANGO_VERSION
+    - bash <(curl -s https://codecov.io/bash)
   parallel:
     matrix:
       - DJANGO_VERSION: [django32, django40, django41, django42]
 
-# test-py39-dj40:
-#   extends: .tox_setup
-#   image: python:3.9-bullseye
-#   script:
-#     - tox -e py39-django40
+test-py39:
+  extends: .tox_setup
+  image: python:3.9-bullseye
+  script:
+    - tox -e py39-$DJANGO_VERSION
+    - bash <(curl -s https://codecov.io/bash)
+  parallel:
+    matrix:
+      - DJANGO_VERSION: [django32, django40, django41, django42]
 
-# test-py310-dj40:
-#   extends: .tox_setup
-#   image: python:3.10-bullseye
-#   script:
-#     - tox -e py310-django40
-#     - bash <(curl -s https://codecov.io/bash)
+test-py310:
+  extends: .tox_setup
+  image: python:3.10-bullseye
+  script:
+    - tox -e py310-$DJANGO_VERSION
+    - bash <(curl -s https://codecov.io/bash)
+  parallel:
+    matrix:
+      - DJANGO_VERSION: [django32, django40, django41, django42]
 
-# test-py311-dj40:
-#   extends: .tox_setup
-#   image: python:3.11-bullseye
-#   script:
-#   - tox -e py311-django40
-#   - bash <(curl -s https://codecov.io/bash)
+test-py311:
+  extends: .tox_setup
+  image: python:3.11-bullseye
+  script:
+    - tox -e py311-$DJANGO_VERSION
+    - bash <(curl -s https://codecov.io/bash)
+  parallel:
+    matrix:
+      - DJANGO_VERSION: [django40, django41, django42]
 
 test-docs:
   stage: test
