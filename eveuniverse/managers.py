@@ -4,7 +4,7 @@ import datetime as dt
 import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
+from typing import Any, Dict, Iterable, Optional, Set, Tuple, TypeVar
 from urllib.parse import urljoin
 
 import requests
@@ -906,10 +906,16 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         Returns:
             query with matching entities.
         """
-        names = list(set(names))
-        query = self.filter(name__in=names)
-        if update or not query.exists():
-            result = self._fetch_names_from_esi(names)
+        names = set(names)
+        if update:
+            names_to_fetch = names
+        else:
+            existing_names = set(
+                self.filter(name__in=names).values_list("name", flat=True)
+            )
+            names_to_fetch = names - existing_names
+        if names_to_fetch:
+            result = self._fetch_names_from_esi(names_to_fetch)
             if result:
                 result_compressed = {
                     category: entities
@@ -931,12 +937,12 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
                                 id=entity["id"],
                                 defaults={"name": entity["name"], "category": category},
                             )
-        return query
+        return self.filter(name__in=names)
 
-    def _fetch_names_from_esi(self, names: List[str]) -> dict:
+    def _fetch_names_from_esi(self, names: Iterable[str]) -> dict:
         logger.info("Trying to fetch EveEntities from ESI by name")
         result = defaultdict(list)
-        for chunk_names in chunks(names, 500):
+        for chunk_names in chunks(list(names), 500):
             result_chunk = esi.client.Universe.post_universe_ids(
                 names=chunk_names
             ).results()

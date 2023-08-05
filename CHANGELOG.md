@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Refactored GL script to use matrix
 - Refactoring
 
+### Fixed
+
+- `EveEntity.objects.fetch_by_names_esi()` will not fetch unknown names if some names are already known
+
 ## [1.3.0] - 2023-07-11
 
 ### Added
