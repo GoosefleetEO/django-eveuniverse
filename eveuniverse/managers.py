@@ -6,7 +6,7 @@ import datetime as dt
 import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
-from typing import Any, Dict, Iterable, Optional, Set, Tuple, TypeVar
+from typing import Any, Dict, Iterable, Optional, Set, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -90,9 +90,6 @@ class EveUniverseBaseModelManager(models.Manager):
         return defaults
 
 
-ModelType = TypeVar("ModelType", bound=models.Model)
-
-
 class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
     """Manager for most Eve models."""
 
@@ -104,7 +101,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """gets or creates an eve universe object.
 
         The object is automatically fetched from ESI if it does not exist (blocking).
@@ -153,7 +150,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """updates or creates an Eve universe object by fetching it from ESI (blocking).
         Will always get/create parent objects
 
@@ -635,7 +632,7 @@ class EveStargateManager(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """updates or creates an EveStargate object by fetching it from ESI (blocking).
         Will always get/create parent objects
 
@@ -708,7 +705,7 @@ class EveTypeManager(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         obj, created = super().update_or_create_esi(
             id=id,
             include_children=include_children,
@@ -769,7 +766,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """gets or creates an EvEntity object.
 
         The object is automatically fetched from ESI if it does not exist (blocking)
@@ -803,7 +800,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         wait_for_children: bool = True,
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
-    ) -> Tuple[ModelType, bool]:
+    ) -> Tuple[Any, bool]:
         """Update or create an EveEntity object by fetching it from ESI (blocking).
 
         Args:
