@@ -448,7 +448,7 @@ class EveEntity(EveUniverseEntityModel):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._CATEGORIES = self.categories()
+        self._categories = self.categories()
 
     def __str__(self) -> str:
         if self.name:
@@ -569,7 +569,7 @@ class EveEntity(EveUniverseEntityModel):
 
     def is_category(self, category: str) -> bool:
         """returns True if this entity has the given category, else False"""
-        return category in self._CATEGORIES and self.category == category
+        return category in self._categories and self.category == category
 
     def update_from_esi(self) -> "EveEntity":
         """Update the current object from ESI
@@ -1386,10 +1386,10 @@ class EveSolarSystem(EveUniverseEntityModel):
             EveGroupId.STATION: EveStation,
         }
         try:
-            MyClass = class_mapping[eve_type.eve_group_id]
+            my_class = class_mapping[eve_type.eve_group_id]
         except KeyError:
             return None
-        obj, _ = MyClass.objects.get_or_create_esi(id=item.id)
+        obj, _ = my_class.objects.get_or_create_esi(id=item.id)
         return self.NearestCelestial(
             eve_type=eve_type, eve_object=obj, distance=item.distance
         )

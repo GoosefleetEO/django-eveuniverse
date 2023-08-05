@@ -19,6 +19,7 @@ _ModelSpec = namedtuple(
 )
 
 
+# pylint: disable = invalid-name
 def ModelSpec(
     model_name: str,
     ids: List[int],

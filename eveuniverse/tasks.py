@@ -80,8 +80,8 @@ def update_or_create_eve_object(
         task_priority: priority of started tasks
     """
     logger.info("Updating/Creating %s with ID %s", model_name, id)
-    ModelClass = EveUniverseEntityModel.get_model_class(model_name)
-    ModelClass.objects.update_or_create_esi(  # type: ignore
+    model_class = EveUniverseEntityModel.get_model_class(model_name)
+    model_class.objects.update_or_create_esi(  # type: ignore
         id=id,
         include_children=include_children,
         wait_for_children=wait_for_children,

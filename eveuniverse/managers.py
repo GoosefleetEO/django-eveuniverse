@@ -338,7 +338,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         """Updates or creates a single inline object.
         Will automatically create additional parent objects as needed
         """
-        InlineModel = self.model.get_model_class(inline_model_name)
+        inline_model_class = self.model.get_model_class(inline_model_name)
 
         args = {f"{parent_fk}_id": parent_obj_id}
         esi_value = eve_data_obj.get(other_pk_info["esi_name"])
@@ -356,10 +356,10 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         key = other_pk_info["name"]
         args[key] = value  # type: ignore
-        args["defaults"] = InlineModel.objects._defaults_from_esi_obj(
+        args["defaults"] = inline_model_class.objects._defaults_from_esi_obj(
             eve_data_obj,
         )
-        InlineModel.objects.update_or_create(**args)
+        inline_model_class.objects.update_or_create(**args)
 
     def _update_or_create_children(
         self,

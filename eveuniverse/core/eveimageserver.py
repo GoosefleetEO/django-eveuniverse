@@ -114,7 +114,7 @@ def _eve_entity_image_url(
         f"{_EVE_IMAGE_SERVER_URL}/{endpoint}/{entity_id}/{my_variant.value}?size={size}"
     )
     if tenant:
-        result += "&tenant={}".format(tenant.value)
+        result += f"&tenant={tenant.value}"
 
     return result
 
