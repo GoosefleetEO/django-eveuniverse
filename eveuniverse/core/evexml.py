@@ -5,8 +5,9 @@ import unicodedata
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
-from ..constants import EveCategoryId, EveGroupId
-from ..models import EveEntity, EveType
+from eveuniverse.constants import EveCategoryId, EveGroupId
+from eveuniverse.models import EveEntity, EveType
+
 from . import zkillboard
 
 

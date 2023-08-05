@@ -6,11 +6,10 @@ from typing import Iterable, List
 
 from django.core.serializers.json import DjangoJSONEncoder
 
+from eveuniverse import __title__
+from eveuniverse.core.esitools import is_esi_online
 from eveuniverse.models import EveSolarSystem, EveStargate, EveUniverseBaseModel
-
-from .. import __title__
-from ..core.esitools import is_esi_online
-from ..utils import LoggerAddTag
+from eveuniverse.utils import LoggerAddTag
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 

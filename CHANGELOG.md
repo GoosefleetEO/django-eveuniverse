@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Refactored GL script to use matrix
+- Refactoring
 
 ## [1.3.0] - 2023-07-11
 

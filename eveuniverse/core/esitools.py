@@ -2,7 +2,7 @@
 
 from bravado.exception import HTTPError
 
-from ..providers import esi
+from eveuniverse.providers import esi
 
 
 def is_esi_online() -> bool:
