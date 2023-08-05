@@ -88,16 +88,16 @@ def _eve_entity_image_url(
     }
     if not entity_id:
         raise ValueError("Invalid entity_id: {}".format(entity_id))
-    else:
-        entity_id = int(entity_id)
+
+    entity_id = int(entity_id)
 
     if not size or size < 32 or size > 1024 or (size & (size - 1) != 0):
         raise ValueError("Invalid size: {}".format(size))
 
     if type(category) is not EsiCategory:
         raise ValueError("Invalid category {}".format(category))
-    else:
-        endpoint = categories[category]["endpoint"]
+
+    endpoint = categories[category]["endpoint"]
 
     if variant:
         if variant not in categories[category]["variants"]:

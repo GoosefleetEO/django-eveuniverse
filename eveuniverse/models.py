@@ -1,5 +1,7 @@
 """Eve universe models."""
 
+# pylint: disable = too-few-public-methods
+
 import enum
 import inspect
 import math
@@ -591,9 +593,9 @@ class EveEntity(EveUniverseEntityModel):
         }
         if self.category not in map_category_2_other:
             return ""
-        else:
-            func = map_category_2_other[self.category]
-            return getattr(eveimageserver, func)(self.id, size=size)
+
+        func = map_category_2_other[self.category]
+        return getattr(eveimageserver, func)(self.id, size=size)
 
     @classmethod
     def categories(cls) -> Set[str]:

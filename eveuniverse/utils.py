@@ -13,7 +13,7 @@ class LoggerAddTag(logging.LoggerAdapter):
     """add custom tag to a logger"""
 
     def __init__(self, my_logger, prefix):
-        super(LoggerAddTag, self).__init__(my_logger, {})
+        super().__init__(my_logger, {})
         self.prefix = prefix
 
     def process(self, msg, kwargs):
