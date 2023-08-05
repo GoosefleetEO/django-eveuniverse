@@ -28,7 +28,7 @@ def ModelSpec(
 ) -> _ModelSpec:
     """Wrapper for creating ModelSpec objects.
 
-    A Modelspec class defines what objects are to be loaded as test data
+    A ModelSpec class defines what objects are to be loaded as test data
 
     Args:
         model_name: Name of Eve Universe model

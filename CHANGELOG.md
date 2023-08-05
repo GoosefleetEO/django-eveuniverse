@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.3.1] - 2023-08-05
+
 ### Added
 
 - Added support for Django 4.0
@@ -15,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Refactored GL script to use matrix
 - Refactoring
+- Added pylint to tox
 
 ### Fixed
 
