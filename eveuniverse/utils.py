@@ -70,8 +70,10 @@ def clean_setting(
             cleaned_value = dirty_value
         else:
             logger.warning(
-                "Your setting for {} it not valid. Please correct it. "
-                "Using default for now: {}".format(name, default_value)
+                "Your setting for %s it not valid. Please correct it. "
+                "Using default for now: %s",
+                name,
+                default_value,
             )
             cleaned_value = default_value
     return cleaned_value

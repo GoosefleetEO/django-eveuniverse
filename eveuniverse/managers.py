@@ -1,6 +1,6 @@
 """Managers and Querysets for Eve universe models."""
 
-# pylint: disable = import-outside-toplevel
+# pylint: disable = import-outside-toplevel, missing-class-docstring
 
 import datetime as dt
 import logging
