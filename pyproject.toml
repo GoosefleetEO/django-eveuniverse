@@ -47,16 +47,25 @@ name = "eveuniverse"
 [tool.isort]
 profile = "black"
 
+
 [tool.pylint.'MASTER']
-ignore-patterns = "test_.*.py,__init__.py,generate_.*.py"
+ignore-patterns = ["__init__.py", "apps.py", "admin.py"]
+ignore-paths = ["^.*/tests/.*$", "^.*/migrations/.*$"]
 
 [tool.pylint.'BASIC']
-# Good variable names which should always be accepted, separated by a comma
-good-names = "i,j,k,x,f,ex"
+good-names = ["i", "j", "k", "x", "y", "z", "ex", "id"]
 
 [tool.pylint.'FORMAT']
-# Maximum number of characters on a single line.
-max-line-length = 100
+max-line-length = 120
 
 [tool.pylint.'MESSAGES CONTROL']
-disable = "R,C"
+disable = [
+    "cyclic-import",
+    "fixme",
+    # "import-outside-toplevel",
+    # "too-many-instance-attributes",
+    # "too-few-public-methods",
+    # "imported-auth-user",
+    # "redefined-builtin",
+    # "no-member",
+]
