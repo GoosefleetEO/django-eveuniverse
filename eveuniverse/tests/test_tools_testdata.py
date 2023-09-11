@@ -30,7 +30,7 @@ class TestTestData(NoSocketsTestCase):
     def _get_ids(testdata: dict, model_name: str) -> set:
         return {x["id"] for x in testdata[model_name]}
 
-    @patch("eveuniverse.models.EVEUNIVERSE_LOAD_STARGATES", True)
+    @patch("eveuniverse.models.universe.EVEUNIVERSE_LOAD_STARGATES", True)
     @patch("eveuniverse.tools.testdata.is_esi_online", lambda: True)
     @patch("eveuniverse.managers.esi")
     def test_create_testdata(self, mock_esi):

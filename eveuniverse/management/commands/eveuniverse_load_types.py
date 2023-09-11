@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from eveuniverse import __title__, tasks
 from eveuniverse.core.esitools import is_esi_online
-from eveuniverse.models import EveUniverseEntityModel
+from eveuniverse.models import determine_effective_sections
 from eveuniverse.utils import LoggerAddTag
 
 from . import EXPECTATION_TEXT, get_input
@@ -112,7 +112,7 @@ class Command(BaseCommand):
         self.write_to_be_loaded("Categories", category_ids, category_ids_with_dogma)
         self.write_to_be_loaded("Groups", group_ids, group_ids)
         self.write_to_be_loaded("Types", type_ids, type_ids_with_dogma)
-        additional_objects = list(EveUniverseEntityModel.determine_effective_sections())
+        additional_objects = list(determine_effective_sections())
         if additional_objects:
             self.stdout.write(
                 "It will also load the following additional entities when related to "

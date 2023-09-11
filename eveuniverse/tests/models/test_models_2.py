@@ -5,7 +5,6 @@ from django.test.utils import override_settings
 
 from eveuniverse.constants import EveCategoryId
 from eveuniverse.models import (
-    EsiMapping,
     EveAncestry,
     EveBloodline,
     EveCategory,
@@ -20,14 +19,15 @@ from eveuniverse.models import (
     EveType,
     EveTypeDogmaEffect,
     EveUnit,
-    EveUniverseEntityModel,
+    determine_effective_sections,
 )
+from eveuniverse.models.base import EsiMapping
 from eveuniverse.utils import NoSocketsTestCase
 
-from .testdata.esi import EsiClientStub
+from ..testdata.esi import EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000
-MODELS_PATH = "eveuniverse.models"
+MODELS_PATH = "eveuniverse.models.universe"
 MANAGERS_PATH = "eveuniverse.managers"
 
 
@@ -712,7 +712,7 @@ class TestDetermineEnabledSections(NoSocketsTestCase):
         ), patch(
             MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
-            result = EveUniverseEntityModel.determine_effective_sections()
+            result = determine_effective_sections()
         # then
         self.assertSetEqual(result, set())
 
@@ -735,7 +735,7 @@ class TestDetermineEnabledSections(NoSocketsTestCase):
         ), patch(
             MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
-            result = EveUniverseEntityModel.determine_effective_sections(None)
+            result = determine_effective_sections(None)
         # then
         self.assertSetEqual(result, set())
 
@@ -758,7 +758,7 @@ class TestDetermineEnabledSections(NoSocketsTestCase):
         ), patch(
             MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
-            result = EveUniverseEntityModel.determine_effective_sections()
+            result = determine_effective_sections()
         # then
         self.assertSetEqual(result, {EveType.Section.DOGMAS})
 
@@ -781,9 +781,7 @@ class TestDetermineEnabledSections(NoSocketsTestCase):
         ), patch(
             MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
-            result = EveUniverseEntityModel.determine_effective_sections(
-                ["type_materials"]
-            )
+            result = determine_effective_sections(["type_materials"])
         # then
         self.assertSetEqual(
             result, {EveType.Section.DOGMAS, EveType.Section.TYPE_MATERIALS}

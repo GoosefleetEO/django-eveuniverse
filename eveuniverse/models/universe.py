@@ -3,19 +3,17 @@
 # pylint: disable = too-few-public-methods
 
 import enum
-import inspect
 import math
 import re
-import sys
 from collections import namedtuple
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Iterable, List, Optional, Set
 
 from bitfield import BitField
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 from django.utils.functional import cached_property
 
-from .app_settings import (
+from eveuniverse.app_settings import (
     EVEUNIVERSE_LOAD_ASTEROID_BELTS,
     EVEUNIVERSE_LOAD_DOGMAS,
     EVEUNIVERSE_LOAD_GRAPHICS,
@@ -29,369 +27,63 @@ from .app_settings import (
     EVEUNIVERSE_LOAD_TYPE_MATERIALS,
     EVEUNIVERSE_USE_EVESKINSERVER,
 )
-from .constants import EveCategoryId, EveGroupId, EveRegionId
-from .core import dotlan, eveimageserver, eveitems, evesdeapi, eveskinserver, evewho
-from .managers import (
+from eveuniverse.constants import EveCategoryId, EveGroupId, EveRegionId
+from eveuniverse.core import (
+    dotlan,
+    eveimageserver,
+    eveitems,
+    evesdeapi,
+    eveskinserver,
+    evewho,
+)
+from eveuniverse.managers import (
     EveAsteroidBeltManager,
     EveEntityManager,
-    EveIndustryActivityDurationManager,
-    EveIndustryActivityMaterialManager,
-    EveIndustryActivityProductManager,
-    EveIndustryActivitySkillManager,
     EveMarketPriceManager,
     EveMoonManager,
     EvePlanetManager,
     EveStargateManager,
     EveStationManager,
     EveTypeManager,
-    EveTypeMaterialManager,
-    EveUniverseBaseModelManager,
-    EveUniverseEntityModelManager,
 )
-from .providers import esi
+from eveuniverse.providers import esi
 
-NAMES_MAX_LENGTH = 100
-
-
-EsiMapping = namedtuple(
-    "EsiMapping",
-    [
-        "esi_name",
-        "is_optional",
-        "is_pk",
-        "is_fk",
-        "related_model",
-        "is_parent_fk",
-        "is_charfield",
-        "create_related",
-    ],
+from .base import (
+    NAMES_MAX_LENGTH,
+    EveUniverseEntityModel,
+    EveUniverseInlineModel,
+    _SectionBase,
 )
-"""
-:meta private:
-"""
 
 
-class _SectionBase(str, enum.Enum):
-    """Base class for all Sections"""
-
-    @classmethod
-    def values(cls) -> list:
-        """Return values for the sections."""
-        return list(item.value for item in cls)
-
-    def __str__(self) -> str:
-        return self.value
-
-
-class EveUniverseBaseModel(models.Model):
-    """Base class for all Eve Universe Models.
-
-    :meta private:
-    """
-
-    objects = EveUniverseBaseModelManager()
-
-    class Meta:
-        abstract = True
-
-    def __repr__(self) -> str:
-        """General purpose __repr__ that works for all model classes"""
-        fields = sorted(
-            [
-                f
-                for f in self._meta.get_fields()
-                if isinstance(f, models.Field) and f.name != "last_updated"
-            ],
-            key=lambda x: x.name,
-        )
-        fields_2 = []
-        for field in fields:
-            if field.many_to_one or field.one_to_one:
-                name = f"{field.name}_id"
-                value = getattr(self, name)
-            elif field.many_to_many:
-                name = field.name
-                value = ", ".join(
-                    sorted([str(x) for x in getattr(self, field.name).all()])
-                )
-            else:
-                name = field.name
-                value = getattr(self, field.name)
-
-            if isinstance(value, str):
-                if isinstance(field, models.TextField) and len(value) > 32:
-                    value = f"{value[:32]}..."
-                text = f"{name}='{value}'"
-            else:
-                text = f"{name}={value}"
-
-            fields_2.append(text)
-
-        return f"{self.__class__.__name__}({', '.join(fields_2)})"
-
-    @classmethod
-    def all_models(cls) -> List[Dict[models.Model, int]]:
-        """Return a list of all Eve Universe model classes sorted by load order."""
-        mappings = []
-        for _, model_class in inspect.getmembers(
-            sys.modules[__name__], inspect.isclass
-        ):
-            if issubclass(
-                model_class, (EveUniverseEntityModel, EveUniverseInlineModel)
-            ) and model_class not in (
-                cls,
-                EveUniverseEntityModel,
-                EveUniverseInlineModel,
-            ):
-                mappings.append(
-                    {
-                        "model": model_class,
-                        "load_order": model_class._eve_universe_meta_attr_strict(
-                            "load_order"
-                        ),
-                    }
-                )
-
-        return [y["model"] for y in sorted(mappings, key=lambda x: x["load_order"])]
-
-    @classmethod
-    def get_model_class(cls, model_name: str):
-        """returns the model class for the given name"""
-        classes = {
-            x[0]: x[1]
-            for x in inspect.getmembers(sys.modules[__name__], inspect.isclass)
-            if issubclass(x[1], (EveUniverseBaseModel, EveUniverseInlineModel))
-        }
-        try:
-            return classes[model_name]
-        except KeyError:
-            raise ValueError(f"Unknown model_name: {model_name}") from None
-
-    @classmethod
-    def _esi_pk(cls) -> str:
-        """returns the name of the pk column on ESI that must exist"""
-        return cls._eve_universe_meta_attr_strict("esi_pk")
-
-    @classmethod
-    def _esi_mapping(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
-        field_mappings = cls._eve_universe_meta_attr("field_mappings")
-        functional_pk = cls._eve_universe_meta_attr("functional_pk")
-        parent_fk = cls._eve_universe_meta_attr("parent_fk")
-        dont_create_related = cls._eve_universe_meta_attr("dont_create_related")
-        disabled_fields = cls._disabled_fields(enabled_sections)
-        mapping = {}
-        for field in [
-            field
-            for field in cls._meta.get_fields()
-            if not field.auto_created
-            and field.name not in {"last_updated", "enabled_sections"}
-            and field.name not in disabled_fields
-            and not field.many_to_many
-        ]:
-            if field_mappings and field.name in field_mappings:
-                esi_name = field_mappings[field.name]
-            else:
-                esi_name = field.name
-
-            if field.primary_key is True:
-                is_pk = True
-                esi_name = cls._esi_pk()
-            elif functional_pk and field.name in functional_pk:
-                is_pk = True
-            else:
-                is_pk = False
-
-            is_parent_fk = bool(parent_fk and is_pk and field.name in parent_fk)
-
-            if isinstance(field, models.ForeignKey):
-                is_fk = True
-                related_model = field.related_model
-            else:
-                is_fk = False
-                related_model = None
-
-            if dont_create_related and field.name in dont_create_related:
-                create_related = False
-            else:
-                create_related = True
-
-            mapping[field.name] = EsiMapping(
-                esi_name=esi_name,
-                is_optional=field.has_default(),
-                is_pk=is_pk,
-                is_fk=is_fk,
-                related_model=related_model,
-                is_parent_fk=is_parent_fk,
-                is_charfield=isinstance(field, (models.CharField, models.TextField)),
-                create_related=create_related,
-            )
-
-        return mapping
-
-    @classmethod
-    def _disabled_fields(cls, _enabled_sections: Optional[Set[str]] = None) -> set:
-        """Return name of fields that must not be loaded from ESI."""
-        return set()
-
-    @classmethod
-    def _eve_universe_meta_attr(cls, attr_name: str) -> Optional[Any]:
-        """Return value of an attribute from EveUniverseMeta or None"""
-        return cls._eve_universe_meta_attr_flexible(attr_name, is_mandatory=False)
-
-    @classmethod
-    def _eve_universe_meta_attr_strict(cls, attr_name: str) -> Any:
-        """Return value of an attribute from EveUniverseMeta or raise exception."""
-        return cls._eve_universe_meta_attr_flexible(attr_name, is_mandatory=True)
-
-    @classmethod
-    def _eve_universe_meta_attr_flexible(
-        cls, attr_name: str, is_mandatory: bool = False
-    ) -> Optional[Any]:
-        try:
-            value = getattr(cls._EveUniverseMeta, attr_name)  # type: ignore
-        except AttributeError:
-            value = None
-            if is_mandatory:
-                raise ValueError(
-                    f"Mandatory attribute EveUniverseMeta.{attr_name} not defined "
-                    f"for class {cls.__name__}"
-                ) from None
-
-        return value
-
-
-class EveUniverseEntityModel(EveUniverseBaseModel):
-    """Base class for Eve Universe Entity models.
-
-    Entity models are normal Eve entities that have a dedicated ESI endpoint.
-
-    :meta private:
-    """
-
-    class Section(_SectionBase):
-        """A section."""
-
-    # sections
-    LOAD_DOGMAS = "dogmas"
-    # TODO: Implement other sections
-
-    # icons
-    DEFAULT_ICON_SIZE = 64
-
-    id = models.PositiveIntegerField(primary_key=True, help_text="Eve Online ID")
-    name = models.CharField(
-        max_length=NAMES_MAX_LENGTH,
-        default="",
-        db_index=True,
-        help_text="Eve Online name",
-    )
-    last_updated = models.DateTimeField(
-        auto_now=True,
-        help_text="When this object was last updated from ESI",
-        db_index=True,
-    )
-
-    objects = EveUniverseEntityModelManager()
-
-    class Meta:
-        abstract = True
-
-    def __str__(self) -> str:
-        return self.name
-
-    @staticmethod
-    def determine_effective_sections(
-        enabled_sections: Optional[Iterable[str]] = None,
-    ) -> Set[str]:
-        """Determine currently effective sections."""
-        enabled_sections = set(enabled_sections) if enabled_sections else set()
-        if EVEUNIVERSE_LOAD_ASTEROID_BELTS:
-            enabled_sections.add(EvePlanet.Section.ASTEROID_BELTS.value)
-        if EVEUNIVERSE_LOAD_DOGMAS:
-            enabled_sections.add(EveType.Section.DOGMAS.value)
-        if EVEUNIVERSE_LOAD_GRAPHICS:
-            enabled_sections.add(EveType.Section.GRAPHICS.value)
-        if EVEUNIVERSE_LOAD_MARKET_GROUPS:
-            enabled_sections.add(EveType.Section.MARKET_GROUPS.value)
-        if EVEUNIVERSE_LOAD_MOONS:
-            enabled_sections.add(EvePlanet.Section.MOONS.value)
-        if EVEUNIVERSE_LOAD_PLANETS:
-            enabled_sections.add(EveSolarSystem.Section.PLANETS.value)
-        if EVEUNIVERSE_LOAD_STARGATES:
-            enabled_sections.add(EveSolarSystem.Section.STARGATES.value)
-        if EVEUNIVERSE_LOAD_STARS:
-            enabled_sections.add(EveSolarSystem.Section.STARS.value)
-        if EVEUNIVERSE_LOAD_STATIONS:
-            enabled_sections.add(EveSolarSystem.Section.STATIONS.value)
-        if EVEUNIVERSE_LOAD_TYPE_MATERIALS:
-            enabled_sections.add(EveType.Section.TYPE_MATERIALS.value)
-        if EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES:
-            enabled_sections.add(EveType.Section.INDUSTRY_ACTIVITIES.value)
-        return enabled_sections
-
-    @classmethod
-    def eve_entity_category(cls) -> str:
-        """returns the EveEntity category of this model if one exists
-        else and empty string
-        """
-        return ""
-
-    @classmethod
-    def _has_esi_path_list(cls) -> bool:
-        return bool(cls._eve_universe_meta_attr("esi_path_list"))
-
-    @classmethod
-    def _esi_path_list(cls) -> Tuple[str, str]:
-        return cls._esi_path("list")
-
-    @classmethod
-    def _esi_path_object(cls) -> Tuple[str, str]:
-        return cls._esi_path("object")
-
-    @classmethod
-    def _esi_path(cls, variant: str) -> Tuple[str, str]:
-        attr_name = f"esi_path_{str(variant)}"
-        path = cls._eve_universe_meta_attr_strict(attr_name)
-        if len(path.split(".")) != 2:
-            raise ValueError(f"{attr_name} not valid")
-        return path.split(".")
-
-    @classmethod
-    def _children(cls, _enabled_sections: Optional[Iterable[str]] = None) -> dict:
-        """returns the mapping of children for this class"""
-        mappings = cls._eve_universe_meta_attr("children")
-        return mappings if mappings else {}
-
-    @classmethod
-    def _inline_objects(cls, _enabled_sections: Optional[Set[str]] = None) -> dict:
-        """returns a dict of inline objects if any"""
-        inline_objects = cls._eve_universe_meta_attr("inline_objects")
-        return inline_objects if inline_objects else {}
-
-    @classmethod
-    def _is_list_only_endpoint(cls) -> bool:
-        esi_path_list = cls._eve_universe_meta_attr("esi_path_list")
-        esi_path_object = cls._eve_universe_meta_attr("esi_path_object")
-        return (
-            bool(esi_path_list)
-            and bool(esi_path_object)
-            and esi_path_list == esi_path_object
-        )
-
-
-class EveUniverseInlineModel(EveUniverseBaseModel):
-    """Base class for Eve Universe Inline models.
-
-    Inline models are objects which do not have a dedicated ESI endpoint and are
-    provided through the endpoint of another entity
-
-    This class is also used for static Eve data.
-
-    :meta private:
-    """
-
-    class Meta:
-        abstract = True
+def determine_effective_sections(
+    enabled_sections: Optional[Iterable[str]] = None,
+) -> Set[str]:
+    """Determine currently effective sections."""
+    enabled_sections = set(enabled_sections) if enabled_sections else set()
+    if EVEUNIVERSE_LOAD_ASTEROID_BELTS:
+        enabled_sections.add(EvePlanet.Section.ASTEROID_BELTS.value)
+    if EVEUNIVERSE_LOAD_DOGMAS:
+        enabled_sections.add(EveType.Section.DOGMAS.value)
+    if EVEUNIVERSE_LOAD_GRAPHICS:
+        enabled_sections.add(EveType.Section.GRAPHICS.value)
+    if EVEUNIVERSE_LOAD_MARKET_GROUPS:
+        enabled_sections.add(EveType.Section.MARKET_GROUPS.value)
+    if EVEUNIVERSE_LOAD_MOONS:
+        enabled_sections.add(EvePlanet.Section.MOONS.value)
+    if EVEUNIVERSE_LOAD_PLANETS:
+        enabled_sections.add(EveSolarSystem.Section.PLANETS.value)
+    if EVEUNIVERSE_LOAD_STARGATES:
+        enabled_sections.add(EveSolarSystem.Section.STARGATES.value)
+    if EVEUNIVERSE_LOAD_STARS:
+        enabled_sections.add(EveSolarSystem.Section.STARS.value)
+    if EVEUNIVERSE_LOAD_STATIONS:
+        enabled_sections.add(EveSolarSystem.Section.STATIONS.value)
+    if EVEUNIVERSE_LOAD_TYPE_MATERIALS:
+        enabled_sections.add(EveType.Section.TYPE_MATERIALS.value)
+    if EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES:
+        enabled_sections.add(EveType.Section.INDUSTRY_ACTIVITIES.value)
+    return enabled_sections
 
 
 class EveEntity(EveUniverseEntityModel):
@@ -1115,7 +807,7 @@ class EvePlanet(EveUniverseEntityModel):
 
     @classmethod
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
-        enabled_sections = cls.determine_effective_sections(enabled_sections)
+        enabled_sections = determine_effective_sections(enabled_sections)
         children = {}
         if cls.Section.ASTEROID_BELTS in enabled_sections:
             children["asteroid_belts"] = "EveAsteroidBelt"
@@ -1400,7 +1092,7 @@ class EveSolarSystem(EveUniverseEntityModel):
 
     @classmethod
     def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
-        enabled_sections = cls.determine_effective_sections(enabled_sections)
+        enabled_sections = determine_effective_sections(enabled_sections)
         children = {}
         if cls.Section.PLANETS in enabled_sections:
             children["planets"] = "EvePlanet"
@@ -1412,7 +1104,7 @@ class EveSolarSystem(EveUniverseEntityModel):
 
     @classmethod
     def _disabled_fields(cls, enabled_sections: Optional[Set[str]] = None) -> set:
-        enabled_sections = cls.determine_effective_sections(enabled_sections)
+        enabled_sections = determine_effective_sections(enabled_sections)
         if cls.Section.STARS not in enabled_sections:
             return {"eve_star"}
         return set()
@@ -1703,7 +1395,7 @@ class EveType(EveUniverseEntityModel):
 
     @classmethod
     def _disabled_fields(cls, enabled_sections: Optional[Set[str]] = None) -> set:
-        enabled_sections = cls.determine_effective_sections(enabled_sections)
+        enabled_sections = determine_effective_sections(enabled_sections)
         disabled_fields = set()
         if cls.Section.GRAPHICS not in enabled_sections:
             disabled_fields.add("eve_graphic")
@@ -1800,180 +1492,3 @@ class EveUnit(EveUniverseEntityModel):
             "unit_name": "name",
         }
         load_order = 100
-
-
-#######################
-# SDE models
-
-
-class EveIndustryActivity(EveUniverseInlineModel):
-    """An industry activity in Eve Online."""
-
-    id = models.IntegerField(primary_key=True)
-    description = models.CharField(max_length=100)
-    name = models.CharField(max_length=30)
-
-    class _EveUniverseMeta:
-        load_order = 101
-
-
-class EveIndustryActivityDuration(EveUniverseInlineModel):
-    """Number of seconds it takes to create a blueprint product."""
-
-    eve_type = models.ForeignKey(
-        EveType,
-        on_delete=models.CASCADE,
-        help_text="Blueprint type",
-        related_name="industry_durations",
-    )
-    activity = models.ForeignKey(EveIndustryActivity, on_delete=models.CASCADE)
-    time = models.PositiveIntegerField()
-
-    objects = EveIndustryActivityDurationManager()
-
-    class _EveUniverseMeta:
-        load_order = 136
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["eve_type", "activity"],
-                name="fpk_eveindustryactivity",
-            )
-        ]
-
-
-class EveIndustryActivityMaterial(EveUniverseInlineModel):
-    """The materials and amounts required to create a blueprint product."""
-
-    eve_type = models.ForeignKey(
-        EveType,
-        on_delete=models.CASCADE,
-        help_text="Blueprint type",
-        related_name="industry_materials",
-    )
-    activity = models.ForeignKey(EveIndustryActivity, on_delete=models.CASCADE)
-    material_eve_type = models.ForeignKey(
-        EveType,
-        on_delete=models.CASCADE,
-        related_name="+",
-        help_text="Material required type",
-    )
-    quantity = models.PositiveIntegerField()
-
-    objects = EveIndustryActivityMaterialManager()
-
-    class _EveUniverseMeta:
-        load_order = 137
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=[
-                    "eve_type",
-                    "material_eve_type",
-                    "activity",
-                ],
-                name="fpk_eveindustryactivitymaterial",
-            )
-        ]
-
-
-class EveIndustryActivityProduct(EveUniverseInlineModel):
-    """Quantities of products for blueprints."""
-
-    eve_type = models.ForeignKey(
-        EveType,
-        on_delete=models.CASCADE,
-        help_text="Blueprint type",
-        related_name="industry_products",
-    )
-    activity = models.ForeignKey(EveIndustryActivity, on_delete=models.CASCADE)
-    product_eve_type = models.ForeignKey(
-        EveType, on_delete=models.CASCADE, related_name="+", help_text="Result type"
-    )
-    quantity = models.PositiveIntegerField()
-
-    objects = EveIndustryActivityProductManager()
-
-    class _EveUniverseMeta:
-        load_order = 138
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=[
-                    "eve_type",
-                    "product_eve_type",
-                    "activity",
-                ],
-                name="fpk_eveindustryactivityproduct",
-            )
-        ]
-
-
-class EveIndustryActivitySkill(EveUniverseInlineModel):
-    """Levels of skills required for blueprint run."""
-
-    eve_type = models.ForeignKey(
-        EveType,
-        on_delete=models.CASCADE,
-        help_text="Blueprint type",
-        related_name="industry_skills",
-    )
-    activity = models.ForeignKey(EveIndustryActivity, on_delete=models.CASCADE)
-    skill_eve_type = models.ForeignKey(
-        EveType, on_delete=models.CASCADE, related_name="+", help_text="Skill book type"
-    )
-
-    level = models.PositiveIntegerField(db_index=True)
-
-    objects = EveIndustryActivitySkillManager()
-
-    class _EveUniverseMeta:
-        load_order = 139
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["eve_type", "skill_eve_type", "activity"],
-                name="fpk_eveindustryactivityskill",
-            )
-        ]
-
-
-class EveTypeMaterial(EveUniverseInlineModel):
-    """Material type for an Eve online type"""
-
-    eve_type = models.ForeignKey(
-        EveType, on_delete=models.CASCADE, related_name="materials"
-    )
-    material_eve_type = models.ForeignKey(
-        EveType, on_delete=models.CASCADE, related_name="material_types"
-    )
-    quantity = models.PositiveIntegerField()
-
-    objects = EveTypeMaterialManager()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["eve_type", "material_eve_type"],
-                name="fpk_evetypematerial",
-            )
-        ]
-
-    class _EveUniverseMeta:
-        load_order = 135
-
-    def __str__(self) -> str:
-        return f"{self.eve_type}-{self.material_eve_type}"
-
-    def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}("
-            f"eve_type={repr(self.eve_type)}, "
-            f"material_eve_type={repr(self.material_eve_type)}, "
-            f"quantity={self.quantity}"
-            ")"
-        )

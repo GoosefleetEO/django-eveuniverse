@@ -9,7 +9,7 @@ from eveuniverse.utils import NoSocketsTestCase
 
 from .testdata.esi import EsiClientStub
 
-MODELS_PATH = "eveuniverse.models"
+MODELS_PATH = "eveuniverse.models.universe"
 PACKAGE_PATH = "eveuniverse.management.commands"
 
 

@@ -120,8 +120,10 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         Returns:
             A tuple consisting of the requested object and a created flag
         """
+        from .models import determine_effective_sections
+
         id = int(id)
-        effective_sections = self.model.determine_effective_sections(enabled_sections)
+        effective_sections = determine_effective_sections(enabled_sections)
         try:
             enabled_sections_filter = self._enabled_sections_filter(effective_sections)
             obj = self.filter(**enabled_sections_filter).get(id=id)
@@ -166,8 +168,10 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         Returns:
             A tuple consisting of the requested object and a created flag
         """
+        from .models import determine_effective_sections
+
         id = int(id)
-        effective_sections = self.model.determine_effective_sections(enabled_sections)
+        effective_sections = determine_effective_sections(enabled_sections)
         eve_data_obj = self._transform_esi_response_for_list_endpoints(
             id, self._fetch_from_esi(id=id)
         )
@@ -431,11 +435,12 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             wait_for_children: when false all objects will be loaded async, else blocking
             enabled_sections: Sections to load regardless of current settings
         """
+        from .models import determine_effective_sections
         from .tasks import (
             update_or_create_eve_object as task_update_or_create_eve_object,
         )
 
-        effective_sections = self.model.determine_effective_sections(enabled_sections)
+        effective_sections = determine_effective_sections(enabled_sections)
 
         if self.model._is_list_only_endpoint():
             esi_pk = self.model._esi_pk()
@@ -504,8 +509,10 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         Returns:
             Queryset with all requested eve objects
         """
+        from .models import determine_effective_sections
+
         ids = set(map(int, ids))
-        effective_sections = self.model.determine_effective_sections(enabled_sections)
+        effective_sections = determine_effective_sections(enabled_sections)
         enabled_sections_filter = self._enabled_sections_filter(effective_sections)
         existing_ids = set(
             self.filter(id__in=ids)
@@ -720,6 +727,8 @@ class EveTypeManager(EveUniverseEntityModelManager):
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
     ) -> Tuple[Any, bool]:
+        from .models import determine_effective_sections
+
         obj, created = super().update_or_create_esi(
             id=id,
             include_children=include_children,
@@ -727,7 +736,7 @@ class EveTypeManager(EveUniverseEntityModelManager):
             enabled_sections=enabled_sections,
             task_priority=task_priority,
         )
-        enabled_sections = self.model.determine_effective_sections(enabled_sections)
+        enabled_sections = determine_effective_sections(enabled_sections)
         if enabled_sections:
             if self.model.Section.TYPE_MATERIALS in enabled_sections:
                 from .models import EveTypeMaterial

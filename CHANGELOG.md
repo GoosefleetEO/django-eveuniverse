@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Removed local swagger spec file
+- Refactoring based on feedback from pylint
 
 ## [1.3.1] - 2023-08-05
 

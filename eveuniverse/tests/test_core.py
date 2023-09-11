@@ -29,6 +29,8 @@ from .testdata.factories import (
     create_evesdeapi_response,
 )
 
+MODEL_PATH = "eveuniverse.models.universe"
+
 
 class TestDotlan(TestCase):
     def test_alliance_url(self):
@@ -460,22 +462,22 @@ class TestEveXml(NoSocketsTestCase):
                 "",
             ),
         ]
-        with patch("eveuniverse.models.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
-            "eveuniverse.models.EVEUNIVERSE_LOAD_DOGMAS", False
-        ), patch("eveuniverse.models.EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
-            "eveuniverse.models.EVEUNIVERSE_LOAD_MARKET_GROUPS", False
+        with patch(MODEL_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
+            MODEL_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False
+        ), patch(MODEL_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
+            MODEL_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False
         ), patch(
-            "eveuniverse.models.EVEUNIVERSE_LOAD_MOONS", False
+            MODEL_PATH + ".EVEUNIVERSE_LOAD_MOONS", False
         ), patch(
-            "eveuniverse.models.EVEUNIVERSE_LOAD_PLANETS", False
+            MODEL_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False
         ), patch(
-            "eveuniverse.models.EVEUNIVERSE_LOAD_STARGATES", False
+            MODEL_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False
         ), patch(
-            "eveuniverse.models.EVEUNIVERSE_LOAD_STARS", False
+            MODEL_PATH + ".EVEUNIVERSE_LOAD_STARS", False
         ), patch(
-            "eveuniverse.models.EVEUNIVERSE_LOAD_STATIONS", False
+            MODEL_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False
         ), patch(
-            "eveuniverse.models.EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
+            MODEL_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
             for test, input, expected in my_tests:
                 with self.subTest(test=test):

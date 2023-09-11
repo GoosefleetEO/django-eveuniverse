@@ -21,10 +21,10 @@ from eveuniverse.models import (
 )
 from eveuniverse.utils import NoSocketsTestCase
 
-from .testdata.esi import EsiClientStub
-from .testdata.sde import cache_content, sde_data, type_materials_cache_content
+from ..testdata.esi import EsiClientStub
+from ..testdata.sde import cache_content, sde_data, type_materials_cache_content
 
-MODELS_PATH = "eveuniverse.models"
+MODELS_PATH = "eveuniverse.models.universe"
 MANAGERS_PATH = "eveuniverse.managers"
 
 

@@ -7,10 +7,18 @@ from celery import shared_task
 from celery_once import QueueOnce as BaseQueueOnce
 from django.db.utils import OperationalError
 
-from . import __title__, models
+from . import __title__
 from .app_settings import EVEUNIVERSE_LOAD_TASKS_PRIORITY, EVEUNIVERSE_TASKS_TIME_LIMIT
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS, EveCategoryId
-from .models import EveEntity, EveMarketPrice, EveType, EveUniverseEntityModel
+from .models import (
+    EveCategory,
+    EveEntity,
+    EveMarketPrice,
+    EveRegion,
+    EveType,
+    EveUniverseEntityModel,
+    determine_effective_sections,
+)
 from .providers import esi
 from .utils import LoggerAddTag, chunks
 
@@ -162,11 +170,9 @@ def load_map(enabled_sections: Optional[List[str]] = None) -> None:
     logger.info(
         "Loading complete map with all regions, constellations, solar systems "
         "and the following additional entities if related to the map: %s",
-        ", ".join(
-            EveUniverseEntityModel.determine_effective_sections(enabled_sections)
-        ),
+        ", ".join(determine_effective_sections(enabled_sections)),
     )
-    category, method = models.EveRegion._esi_path_list()
+    category, method = EveRegion._esi_path_list()
     all_ids = getattr(getattr(esi.client, category), method)().results()
     for id in all_ids:
         update_or_create_eve_object.delay(
@@ -188,11 +194,9 @@ def load_all_types(enabled_sections: Optional[List[str]] = None) -> None:
     """
     logger.info(
         "Loading all eve types from ESI including these sections: %s",
-        ", ".join(
-            EveUniverseEntityModel.determine_effective_sections(enabled_sections)
-        ),
+        ", ".join(determine_effective_sections(enabled_sections)),
     )
-    category, method = models.EveCategory._esi_path_list()
+    category, method = EveCategory._esi_path_list()
     result = getattr(getattr(esi.client, category), method)().results()
     if not result:
         raise ValueError("Did not receive category IDs from ESI.")
