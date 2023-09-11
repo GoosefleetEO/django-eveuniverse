@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Changed
+
+- Removed local swagger spec file
+
 ## [1.3.1] - 2023-08-05
 
 ### Added
