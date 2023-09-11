@@ -1802,43 +1802,6 @@ class EveUnit(EveUniverseEntityModel):
 # SDE models
 
 
-class EveTypeMaterial(EveUniverseInlineModel):
-    """Material type for an Eve online type"""
-
-    eve_type = models.ForeignKey(
-        EveType, on_delete=models.CASCADE, related_name="materials"
-    )
-    material_eve_type = models.ForeignKey(
-        EveType, on_delete=models.CASCADE, related_name="material_types"
-    )
-    quantity = models.PositiveIntegerField()
-
-    objects = EveTypeMaterialManager()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["eve_type", "material_eve_type"],
-                name="fpk_evetypematerial",
-            )
-        ]
-
-    class EveUniverseMeta:
-        load_order = 135
-
-    def __str__(self) -> str:
-        return f"{self.eve_type}-{self.material_eve_type}"
-
-    def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}("
-            f"eve_type={repr(self.eve_type)}, "
-            f"material_eve_type={repr(self.material_eve_type)}, "
-            f"quantity={self.quantity}"
-            ")"
-        )
-
-
 class EveIndustryActivity(EveUniverseInlineModel):
     """An industry activity in Eve Online."""
 
@@ -1973,3 +1936,40 @@ class EveIndustryActivitySkill(EveUniverseInlineModel):
                 name="fpk_eveindustryactivityskill",
             )
         ]
+
+
+class EveTypeMaterial(EveUniverseInlineModel):
+    """Material type for an Eve online type"""
+
+    eve_type = models.ForeignKey(
+        EveType, on_delete=models.CASCADE, related_name="materials"
+    )
+    material_eve_type = models.ForeignKey(
+        EveType, on_delete=models.CASCADE, related_name="material_types"
+    )
+    quantity = models.PositiveIntegerField()
+
+    objects = EveTypeMaterialManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["eve_type", "material_eve_type"],
+                name="fpk_evetypematerial",
+            )
+        ]
+
+    class EveUniverseMeta:
+        load_order = 135
+
+    def __str__(self) -> str:
+        return f"{self.eve_type}-{self.material_eve_type}"
+
+    def __repr__(self) -> str:
+        return (
+            f"{type(self).__name__}("
+            f"eve_type={repr(self.eve_type)}, "
+            f"material_eve_type={repr(self.material_eve_type)}, "
+            f"quantity={self.quantity}"
+            ")"
+        )
