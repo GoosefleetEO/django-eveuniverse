@@ -175,7 +175,7 @@ def _load_esi_data():
     entity_classes = [
         x
         for x in [x[1] for x in inspect.getmembers(eveuniverse_models, inspect.isclass)]
-        if hasattr(x, "EveUniverseMeta")
+        if hasattr(x, "_EveUniverseMeta")
         and hasattr(x, "_is_list_only_endpoint")
         and not x._is_list_only_endpoint()
         and x._has_esi_path_list()

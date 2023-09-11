@@ -242,7 +242,7 @@ class EveUniverseBaseModel(models.Model):
         cls, attr_name: str, is_mandatory: bool = False
     ) -> Optional[Any]:
         try:
-            value = getattr(cls.EveUniverseMeta, attr_name)  # type: ignore
+            value = getattr(cls._EveUniverseMeta, attr_name)  # type: ignore
         except AttributeError:
             value = None
             if is_mandatory:
@@ -441,7 +441,7 @@ class EveEntity(EveUniverseEntityModel):
 
     objects = EveEntityManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "ids"
         esi_path_object = "Universe.post_universe_names"
         load_order = 110
@@ -623,7 +623,7 @@ class EveAncestry(EveUniverseEntityModel):
     icon_id = models.PositiveIntegerField(default=None, null=True, db_index=True)
     short_description = models.TextField(default="")
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "id"
         esi_path_list = "Universe.get_universe_ancestries"
         esi_path_object = "Universe.get_universe_ancestries"
@@ -649,7 +649,7 @@ class EveAsteroidBelt(EveUniverseEntityModel):
 
     objects = EveAsteroidBeltManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "asteroid_belt_id"
         esi_path_object = "Universe.get_universe_asteroid_belts_asteroid_belt_id"
         field_mappings = {
@@ -682,7 +682,7 @@ class EveBloodline(EveUniverseEntityModel):
     perception = models.PositiveIntegerField()
     willpower = models.PositiveIntegerField()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "bloodline_id"
         esi_path_list = "Universe.get_universe_bloodlines"
         esi_path_object = "Universe.get_universe_bloodlines"
@@ -695,7 +695,7 @@ class EveCategory(EveUniverseEntityModel):
 
     published = models.BooleanField()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "category_id"
         esi_path_list = "Universe.get_universe_categories"
         esi_path_object = "Universe.get_universe_categories_category_id"
@@ -719,7 +719,7 @@ class EveConstellation(EveUniverseEntityModel):
         null=True, default=None, blank=True, help_text="z position in the solar system"
     )
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "constellation_id"
         esi_path_list = "Universe.get_universe_constellations"
         esi_path_object = "Universe.get_universe_constellations_constellation_id"
@@ -755,7 +755,7 @@ class EveDogmaAttribute(EveUniverseEntityModel):
     published = models.BooleanField(default=None, null=True)
     stackable = models.BooleanField(default=None, null=True)
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "attribute_id"
         esi_path_list = "Dogma.get_dogma_attributes"
         esi_path_object = "Dogma.get_dogma_attributes_attribute_id"
@@ -823,7 +823,7 @@ class EveDogmaEffect(EveUniverseEntityModel):
         related_name="tracking_speed_attribute_effects",
     )
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "effect_id"
         esi_path_list = "Dogma.get_dogma_effects"
         esi_path_object = "Dogma.get_dogma_effects_effect_id"
@@ -880,7 +880,7 @@ class EveDogmaEffectModifier(EveUniverseInlineModel):
             )
         ]
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         parent_fk = "eve_dogma_effect"
         functional_pk = [
             "eve_dogma_effect",
@@ -914,7 +914,7 @@ class EveFaction(EveUniverseEntityModel):
     station_count = models.PositiveIntegerField()
     station_system_count = models.PositiveIntegerField()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "faction_id"
         esi_path_list = "Universe.get_universe_factions"
         esi_path_object = "Universe.get_universe_factions"
@@ -952,7 +952,7 @@ class EveGraphic(EveUniverseEntityModel):
     sof_hull_name = models.CharField(max_length=FILENAME_MAX_CHARS, default="")
     sof_race_name = models.CharField(max_length=FILENAME_MAX_CHARS, default="")
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "graphic_id"
         esi_path_list = "Universe.get_universe_graphics"
         esi_path_object = "Universe.get_universe_graphics_graphic_id"
@@ -967,7 +967,7 @@ class EveGroup(EveUniverseEntityModel):
     )
     published = models.BooleanField()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "group_id"
         esi_path_list = "Universe.get_universe_groups"
         esi_path_object = "Universe.get_universe_groups_group_id"
@@ -988,7 +988,7 @@ class EveMarketGroup(EveUniverseEntityModel):
         related_name="market_group_children",
     )
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "market_group_id"
         esi_path_list = "Market.get_markets_groups"
         esi_path_object = "Market.get_markets_groups_market_group_id"
@@ -1043,7 +1043,7 @@ class EveMoon(EveUniverseEntityModel):
 
     objects = EveMoonManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "moon_id"
         esi_path_object = "Universe.get_universe_moons_moon_id"
         field_mappings = {
@@ -1088,7 +1088,7 @@ class EvePlanet(EveUniverseEntityModel):
 
     objects = EvePlanetManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "planet_id"
         esi_path_object = "Universe.get_universe_planets_planet_id"
         field_mappings = {
@@ -1126,7 +1126,7 @@ class EveRace(EveUniverseEntityModel):
     alliance_id = models.PositiveIntegerField(db_index=True)
     description = models.TextField()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "race_id"
         esi_path_list = "Universe.get_universe_races"
         esi_path_object = "Universe.get_universe_races"
@@ -1138,7 +1138,7 @@ class EveRegion(EveUniverseEntityModel):
 
     description = models.TextField(default="")
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "region_id"
         esi_path_list = "Universe.get_universe_regions"
         esi_path_object = "Universe.get_universe_regions_region_id"
@@ -1193,7 +1193,7 @@ class EveSolarSystem(EveUniverseEntityModel):
         ),  # no index, because MySQL does not support it for bitwise operations
     )  # type: ignore
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "system_id"
         esi_path_list = "Universe.get_universe_systems"
         esi_path_object = "Universe.get_universe_systems_system_id"
@@ -1432,7 +1432,7 @@ class EveStar(EveUniverseEntityModel):
     spectral_class = models.CharField(max_length=16)
     temperature = models.PositiveIntegerField()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "star_id"
         esi_path_object = "Universe.get_universe_stars_star_id"
         field_mappings = {"eve_type": "type_id"}
@@ -1471,7 +1471,7 @@ class EveStargate(EveUniverseEntityModel):
 
     objects = EveStargateManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "stargate_id"
         esi_path_object = "Universe.get_universe_stargates_stargate_id"
         field_mappings = {
@@ -1528,7 +1528,7 @@ class EveStation(EveUniverseEntityModel):
 
     objects = EveStationManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "station_id"
         esi_path_object = "Universe.get_universe_stations_station_id"
         field_mappings = {
@@ -1606,7 +1606,7 @@ class EveType(EveUniverseEntityModel):
 
     objects = EveTypeManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "type_id"
         esi_path_list = "Universe.get_universe_types"
         esi_path_object = "Universe.get_universe_types_type_id"
@@ -1739,7 +1739,7 @@ class EveTypeDogmaAttribute(EveUniverseInlineModel):
             )
         ]
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         parent_fk = "eve_type"
         functional_pk = [
             "eve_type",
@@ -1770,7 +1770,7 @@ class EveTypeDogmaEffect(EveUniverseInlineModel):
             )
         ]
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         parent_fk = "eve_type"
         functional_pk = [
             "eve_type",
@@ -1788,7 +1788,7 @@ class EveUnit(EveUniverseEntityModel):
 
     objects = models.Manager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         esi_pk = "unit_id"
         esi_path_object = None
         field_mappings = {
@@ -1809,7 +1809,7 @@ class EveIndustryActivity(EveUniverseInlineModel):
     description = models.CharField(max_length=100)
     name = models.CharField(max_length=30)
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         load_order = 101
 
 
@@ -1827,7 +1827,7 @@ class EveIndustryActivityDuration(EveUniverseInlineModel):
 
     objects = EveIndustryActivityDurationManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         load_order = 136
 
     class Meta:
@@ -1859,7 +1859,7 @@ class EveIndustryActivityMaterial(EveUniverseInlineModel):
 
     objects = EveIndustryActivityMaterialManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         load_order = 137
 
     class Meta:
@@ -1892,7 +1892,7 @@ class EveIndustryActivityProduct(EveUniverseInlineModel):
 
     objects = EveIndustryActivityProductManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         load_order = 138
 
     class Meta:
@@ -1926,7 +1926,7 @@ class EveIndustryActivitySkill(EveUniverseInlineModel):
 
     objects = EveIndustryActivitySkillManager()
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         load_order = 139
 
     class Meta:
@@ -1959,7 +1959,7 @@ class EveTypeMaterial(EveUniverseInlineModel):
             )
         ]
 
-    class EveUniverseMeta:
+    class _EveUniverseMeta:
         load_order = 135
 
     def __str__(self) -> str:
