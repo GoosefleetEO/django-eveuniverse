@@ -1,4 +1,4 @@
-"""Helper functions and classes."""
+"""Helper functions and classes for Eve Universe."""
 
 import hashlib
 import json

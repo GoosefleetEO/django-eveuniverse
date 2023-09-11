@@ -18,6 +18,7 @@ logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 # logging.getLogger("esi").setLevel(logging.INFO)
 
 
+# pylint: disable = abstract-method
 class QueueOnce(BaseQueueOnce):
     """Make sure all redundant tasks will abort gracefully."""
 

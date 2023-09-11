@@ -1,3 +1,5 @@
+"""Utility functions and classes for Eve Universe."""
+
 import logging
 import socket
 from typing import Any, Optional
@@ -61,6 +63,7 @@ def clean_setting(
         cleaned_value = default_value
     else:
         dirty_value = getattr(settings, name)
+        # pylint: disable = too-many-boolean-expressions
         if (
             isinstance(dirty_value, required_type)
             and (min_value is None or dirty_value >= min_value)
@@ -80,6 +83,8 @@ def clean_setting(
 
 
 class SocketAccessError(Exception):
+    """Custom exception for NoSocketsTestCase."""
+
     pass
 
 
@@ -88,15 +93,18 @@ class NoSocketsTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """:private:"""
         cls.socket_original = socket.socket
         socket.socket = cls.guard
         return super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
+        """:private:"""
         socket.socket = cls.socket_original
         return super().tearDownClass()
 
     @staticmethod
     def guard(*args, **kwargs):
+        """:private:"""
         raise SocketAccessError("Attempted to access network")

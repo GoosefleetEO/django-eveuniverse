@@ -1,3 +1,5 @@
+"""Tools for generating fixtures from production data for Eve Universe models."""
+
 import json
 import logging
 from collections import OrderedDict, namedtuple

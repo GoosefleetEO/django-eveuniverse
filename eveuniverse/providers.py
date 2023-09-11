@@ -1,3 +1,5 @@
+"""Shared ESI provider for Eve Universe."""
+
 from esi.clients import EsiClientProvider
 
 from . import __version__

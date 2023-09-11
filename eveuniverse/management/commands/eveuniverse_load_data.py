@@ -1,3 +1,5 @@
+"""Load data management command for Eve Universe."""
+
 import logging
 from enum import Enum
 

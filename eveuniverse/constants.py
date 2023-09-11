@@ -1,7 +1,11 @@
+"""Global constants for Eve Universe."""
+
 from enum import IntEnum
 
 
 class EveCategoryId(IntEnum):
+    """An Eve category ID."""
+
     SHIP = 6
     BLUEPRINT = 9
     STRUCTURE = 65
@@ -9,6 +13,8 @@ class EveCategoryId(IntEnum):
 
 
 class EveGroupId(IntEnum):
+    """An Eve group ID."""
+
     CHARACTER = 1
     CORPORATION = 2
     SOLAR_SYSTEM = 5
@@ -22,6 +28,8 @@ class EveGroupId(IntEnum):
 
 
 class EveRegionId(IntEnum):
+    """An Eve region ID."""
+
     POCHVEN = 10000070
 
 

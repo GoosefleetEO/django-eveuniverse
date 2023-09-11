@@ -1,3 +1,5 @@
+"""Settings for eveuniverse."""
+
 from .utils import clean_setting
 
 EVEUNIVERSE_BULK_METHODS_BATCH_SIZE = clean_setting(
