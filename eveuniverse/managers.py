@@ -1101,20 +1101,9 @@ class EveMarketPriceManager(models.Manager):
 
 
 class ApiCacheManager(ABC):
-    @property
-    @abstractmethod
-    def sde_cache_key(self) -> str:
-        pass
-
-    @property
-    @abstractmethod
-    def sde_api_route(self) -> str:
-        pass
-
-    @property
-    def sde_cache_timeout(self):
-        """Return the SDE cache timeout."""
-        return 3600 * 24
+    sde_cache_timeout = 3600 * 24
+    sde_cache_key = None
+    sde_api_route = ""
 
     @classmethod
     def _response_to_cache(cls, response: requests.Response) -> dict:
