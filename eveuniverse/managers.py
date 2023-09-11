@@ -1102,8 +1102,15 @@ class EveMarketPriceManager(models.Manager):
 
 class ApiCacheManager(ABC):
     sde_cache_timeout = 3600 * 24
-    sde_cache_key = "UNDEFINED"
+    sde_cache_key = ""
     sde_api_route = ""
+
+    def __init__(self) -> None:
+        if not self.sde_cache_key:
+            raise ValueError("Cache key not defined")
+
+        if not self.sde_api_route:
+            raise ValueError("API route not defined")
 
     @classmethod
     def _response_to_cache(cls, response: requests.Response) -> dict:
@@ -1137,10 +1144,9 @@ class ApiCacheManager(ABC):
             )
         return data
 
-    @classmethod
     @abstractmethod
-    def update_or_create_api(cls, *args, **kwargs) -> None:
-        """Update or create objects from the API."""
+    def update_or_create_api(self, *, eve_type) -> None:
+        """Update or create objects from the API for the given eve type."""
         pass
 
 
@@ -1150,7 +1156,6 @@ class EveTypeMaterialManager(models.Manager, ApiCacheManager):
     sde_api_route = "invTypeMaterials.json"
 
     def update_or_create_api(self, *, eve_type) -> None:
-        """updates or creates type material objects for the given eve type"""
         from .models import EveType
 
         type_material_data_all = self._fetch_sde_data_cached()
@@ -1195,7 +1200,6 @@ class EveIndustryActivityMaterialManager(models.Manager, ApiCacheManager):
     sde_api_route = "industryActivityMaterials.json"
 
     def update_or_create_api(self, *, eve_type) -> None:
-        """updates or creates industry material objects for the given industry activity"""
         from .models import EveIndustryActivity, EveType
 
         data_all = self._fetch_sde_data_cached()
