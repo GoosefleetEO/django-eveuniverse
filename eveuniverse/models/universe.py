@@ -360,6 +360,24 @@ class EveDogmaEffectModifier(EveUniverseInlineModel):
         load_order = 144
 
 
+class EveUnit(EveUniverseEntityModel):
+    """A unit in Eve Online"""
+
+    display_name = models.CharField(max_length=50, default="")
+    description = models.TextField(default="")
+
+    objects = models.Manager()
+
+    class _EveUniverseMeta:
+        esi_pk = "unit_id"
+        esi_path_object = None
+        field_mappings = {
+            "unit_id": "id",
+            "unit_name": "name",
+        }
+        load_order = 100
+
+
 class EveFaction(EveUniverseEntityModel):
     """A faction in Eve Online"""
 
@@ -1244,21 +1262,3 @@ class EveTypeDogmaEffect(EveUniverseInlineModel):
         ]
         field_mappings = {"eve_dogma_effect": "effect_id"}
         load_order = 146
-
-
-class EveUnit(EveUniverseEntityModel):
-    """A unit in Eve Online"""
-
-    display_name = models.CharField(max_length=50, default="")
-    description = models.TextField(default="")
-
-    objects = models.Manager()
-
-    class _EveUniverseMeta:
-        esi_pk = "unit_id"
-        esi_path_object = None
-        field_mappings = {
-            "unit_id": "id",
-            "unit_name": "name",
-        }
-        load_order = 100
