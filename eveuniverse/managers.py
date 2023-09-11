@@ -756,6 +756,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
     MAX_DEPTH = 5
 
     def get_queryset(self) -> models.QuerySet:
+        """:private:"""
         return EveEntityQuerySet(self.model, using=self._db)
 
     def get_or_create_esi(
@@ -1112,6 +1113,7 @@ class ApiCacheManager(ABC):
 
     @property
     def sde_cache_timeout(self):
+        """Return the SDE cache timeout."""
         return 3600 * 24
 
     @classmethod
@@ -1149,6 +1151,7 @@ class ApiCacheManager(ABC):
     @classmethod
     @abstractmethod
     def update_or_create_api(cls, *args, **kwargs) -> None:
+        """Update or create objects from the API."""
         pass
 
 

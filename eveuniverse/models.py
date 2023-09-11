@@ -76,6 +76,7 @@ class _SectionBase(str, enum.Enum):
 
     @classmethod
     def values(cls) -> list:
+        """Return values for the sections."""
         return list(item.value for item in cls)
 
     def __str__(self) -> str:
@@ -263,6 +264,8 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     """
 
     class Section(_SectionBase):
+        """A section."""
+
         pass
 
     # sections
