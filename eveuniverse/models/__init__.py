@@ -1,6 +1,7 @@
 # flake8: noqa
 
 from .base import EveUniverseBaseModel, EveUniverseEntityModel
+from .entities import EveEntity
 from .sde import (
     EveIndustryActivity,
     EveIndustryActivityDuration,
@@ -18,7 +19,6 @@ from .universe import (
     EveDogmaAttribute,
     EveDogmaEffect,
     EveDogmaEffectModifier,
-    EveEntity,
     EveFaction,
     EveGraphic,
     EveGroup,
