@@ -116,30 +116,34 @@ def load_testdata_from_dict(testdata: dict) -> None:
         model_name = MyModel.__name__
         if model_name in testdata:
             if MyModel.__name__ == "EveStargate":
-                for _ in range(2):
-                    for obj in deepcopy(testdata[model_name]):
-                        try:
-                            EveStargate.objects.get(
-                                id=obj["destination_eve_stargate_id"]
-                            )
-                        except EveStargate.DoesNotExist:
-                            del obj["destination_eve_stargate_id"]
-                            obj["destination_eve_stargate"] = None
-
-                        try:
-                            EveSolarSystem.objects.get(
-                                id=obj["destination_eve_solar_system_id"]
-                            )
-                        except EveSolarSystem.DoesNotExist:
-                            del obj["destination_eve_solar_system_id"]
-                            obj["destination_eve_solar_system"] = None
-
-                        id = obj["id"]
-                        del obj["id"]
-                        MyModel.objects.update_or_create(id=id, defaults=obj)
+                _process_eve_stargate(testdata, MyModel, model_name)
             else:
-                entries = [MyModel(**obj) for obj in testdata[model_name]]
-                MyModel.objects.bulk_create(entries, batch_size=500)
+                _process_other_model(testdata, MyModel, model_name)
+
+
+def _process_other_model(testdata, MyModel, model_name):
+    entries = [MyModel(**obj) for obj in testdata[model_name]]
+    MyModel.objects.bulk_create(entries, batch_size=500)
+
+
+def _process_eve_stargate(testdata, MyModel, model_name):
+    for _ in range(2):
+        for obj in deepcopy(testdata[model_name]):
+            try:
+                EveStargate.objects.get(id=obj["destination_eve_stargate_id"])
+            except EveStargate.DoesNotExist:
+                del obj["destination_eve_stargate_id"]
+                obj["destination_eve_stargate"] = None
+
+            try:
+                EveSolarSystem.objects.get(id=obj["destination_eve_solar_system_id"])
+            except EveSolarSystem.DoesNotExist:
+                del obj["destination_eve_solar_system_id"]
+                obj["destination_eve_solar_system"] = None
+
+            id = obj["id"]
+            del obj["id"]
+            MyModel.objects.update_or_create(id=id, defaults=obj)
 
 
 def load_testdata_from_file(filepath: str) -> None:

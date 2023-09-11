@@ -266,8 +266,6 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     class Section(_SectionBase):
         """A section."""
 
-        pass
-
     # sections
     LOAD_DOGMAS = "dogmas"
     # TODO: Implement other sections
@@ -545,30 +543,33 @@ class EveEntity(EveUniverseEntityModel):
         alliance, character, corporation, faction, region, solar system, station, type
         """
         if self.is_alliance:
-            return dotlan.alliance_url(self.name)
+            result = dotlan.alliance_url(self.name)
 
-        if self.is_character:
-            return evewho.character_url(self.id)
+        elif self.is_character:
+            result = evewho.character_url(self.id)
 
-        if self.is_corporation:
-            return dotlan.corporation_url(self.name)
+        elif self.is_corporation:
+            result = dotlan.corporation_url(self.name)
 
-        if self.is_faction:
-            return dotlan.faction_url(self.name)
+        elif self.is_faction:
+            result = dotlan.faction_url(self.name)
 
-        if self.is_region:
-            return dotlan.region_url(self.name)
+        elif self.is_region:
+            result = dotlan.region_url(self.name)
 
-        if self.is_solar_system:
-            return dotlan.solar_system_url(self.name)
+        elif self.is_solar_system:
+            result = dotlan.solar_system_url(self.name)
 
-        if self.is_station:
-            return dotlan.station_url(self.name)
+        elif self.is_station:
+            result = dotlan.station_url(self.name)
 
-        if self.is_type:
-            return eveitems.type_url(self.id)
+        elif self.is_type:
+            result = eveitems.type_url(self.id)
 
-        return ""
+        else:
+            result = ""
+
+        return result
 
     def is_category(self, category: str) -> bool:
         """returns True if this entity has the given category, else False"""

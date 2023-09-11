@@ -85,8 +85,6 @@ def clean_setting(
 class SocketAccessError(Exception):
     """Custom exception for NoSocketsTestCase."""
 
-    pass
-
 
 class NoSocketsTestCase(TestCase):
     """Variation of TestCase class that prevents any use of sockets"""

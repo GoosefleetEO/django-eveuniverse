@@ -1102,7 +1102,7 @@ class EveMarketPriceManager(models.Manager):
 
 class ApiCacheManager(ABC):
     sde_cache_timeout = 3600 * 24
-    sde_cache_key = None
+    sde_cache_key = "UNDEFINED"
     sde_api_route = ""
 
     @classmethod
