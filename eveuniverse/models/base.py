@@ -1,3 +1,5 @@
+"""Base models for Eve Universe."""
+
 import enum
 from collections import namedtuple
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple

@@ -1,3 +1,5 @@
+"""Entity models for Eve Universe."""
+
 from typing import Set
 
 from django.db import models

@@ -1,3 +1,5 @@
+"""SDE related models for Eve Universe."""
+
 from django.db import models
 
 from eveuniverse.managers import (
