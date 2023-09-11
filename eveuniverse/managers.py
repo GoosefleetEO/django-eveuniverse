@@ -39,53 +39,53 @@ class EveUniverseBaseModelManager(models.Manager):
     def _defaults_from_esi_obj(
         self, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
     ) -> dict:
-        """compiles defaults from an esi data object for update/creating the model"""
+        """Return defaults from an esi data object for update/creating the model."""
         defaults = {}
         for field_name, mapping in self.model._esi_mapping(enabled_sections).items():
-            if not mapping.is_pk:
-                if not isinstance(mapping.esi_name, tuple):
-                    if mapping.esi_name in eve_data_obj:
-                        esi_value = eve_data_obj[mapping.esi_name]
-                    else:
-                        esi_value = None
+            if mapping.is_pk:
+                continue
+
+            if not isinstance(mapping.esi_name, tuple):
+                if mapping.esi_name in eve_data_obj:
+                    esi_value = eve_data_obj[mapping.esi_name]
                 else:
-                    if (
-                        mapping.esi_name[0] in eve_data_obj
-                        and mapping.esi_name[1] in eve_data_obj[mapping.esi_name[0]]
-                    ):
-                        esi_value = eve_data_obj[mapping.esi_name[0]][
-                            mapping.esi_name[1]
-                        ]
+                    esi_value = None
+            else:
+                if (
+                    mapping.esi_name[0] in eve_data_obj
+                    and mapping.esi_name[1] in eve_data_obj[mapping.esi_name[0]]
+                ):
+                    esi_value = eve_data_obj[mapping.esi_name[0]][mapping.esi_name[1]]
+                else:
+                    esi_value = None
+
+            if esi_value is not None:
+                if mapping.is_fk:
+                    parent_class = mapping.related_model
+                    try:
+                        value = parent_class.objects.get(id=esi_value)
+                    except parent_class.DoesNotExist:
+                        value = None
+                        if mapping.create_related:
+                            try:
+                                (
+                                    value,
+                                    _,
+                                ) = parent_class.objects.update_or_create_esi(
+                                    id=esi_value,
+                                    include_children=False,
+                                    wait_for_children=True,
+                                )
+                            except AttributeError:
+                                pass
+
+                else:
+                    if mapping.is_charfield and esi_value is None:
+                        value = ""
                     else:
-                        esi_value = None
+                        value = esi_value
 
-                if esi_value is not None:
-                    if mapping.is_fk:
-                        parent_class = mapping.related_model
-                        try:
-                            value = parent_class.objects.get(id=esi_value)
-                        except parent_class.DoesNotExist:
-                            value = None
-                            if mapping.create_related:
-                                try:
-                                    (
-                                        value,
-                                        _,
-                                    ) = parent_class.objects.update_or_create_esi(
-                                        id=esi_value,
-                                        include_children=False,
-                                        wait_for_children=True,
-                                    )
-                                except AttributeError:
-                                    pass
-
-                    else:
-                        if mapping.is_charfield and esi_value is None:
-                            value = ""
-                        else:
-                            value = esi_value
-
-                    defaults[field_name] = value
+                defaults[field_name] = value
 
         return defaults
 
@@ -268,61 +268,63 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         for inline_field, model_name in inline_objects.items():
             if (
-                inline_field in parent_eve_data_obj
-                and parent_eve_data_obj[inline_field]
+                inline_field not in parent_eve_data_obj
+                or not parent_eve_data_obj[inline_field]
             ):
-                inline_model_class = self.model.get_model_class(model_name)
-                esi_mapping = inline_model_class._esi_mapping()
-                parent_fk = None
-                other_pk = None
-                parent_class_2 = None
-                for field_name, mapping in esi_mapping.items():
-                    if mapping.is_pk:
-                        if mapping.is_parent_fk:
-                            parent_fk = field_name
-                        else:
-                            other_pk = (field_name, mapping)
-                            parent_class_2 = mapping.related_model
+                continue
 
-                if not parent_fk or not other_pk:
-                    raise ValueError(
-                        f"ESI Mapping for {model_name} not valid: "
-                        f"{parent_fk}, {other_pk}"
-                    )
-
-                parent2_model_name = parent_class_2.__name__ if parent_class_2 else None
-                other_pk_info = {
-                    "name": other_pk[0],
-                    "esi_name": other_pk[1].esi_name,
-                    "is_fk": other_pk[1].is_fk,
-                }
-                for eve_data_obj in parent_eve_data_obj[inline_field]:
-                    if wait_for_children:
-                        self._update_or_create_inline_object(
-                            parent_obj_id=parent_obj.id,
-                            parent_fk=parent_fk,
-                            eve_data_obj=eve_data_obj,
-                            other_pk_info=other_pk_info,
-                            parent2_model_name=parent2_model_name,
-                            inline_model_name=model_name,
-                            enabled_sections=enabled_sections,
-                        )
+            inline_model_class = self.model.get_model_class(model_name)
+            esi_mapping = inline_model_class._esi_mapping()
+            parent_fk = None
+            other_pk = None
+            parent_class_2 = None
+            for field_name, mapping in esi_mapping.items():
+                if mapping.is_pk:
+                    if mapping.is_parent_fk:
+                        parent_fk = field_name
                     else:
-                        params: Dict[str, Any] = {
-                            "kwargs": {
-                                "parent_obj_id": parent_obj.id,
-                                "parent_fk": parent_fk,
-                                "eve_data_obj": eve_data_obj,
-                                "other_pk_info": other_pk_info,
-                                "parent2_model_name": parent2_model_name,
-                                "inline_model_name": model_name,
-                                "parent_model_name": type(parent_obj).__name__,
-                                "enabled_sections": list(enabled_sections),
-                            }
+                        other_pk = (field_name, mapping)
+                        parent_class_2 = mapping.related_model
+
+            if not parent_fk or not other_pk:
+                raise ValueError(
+                    f"ESI Mapping for {model_name} not valid: "
+                    f"{parent_fk}, {other_pk}"
+                )
+
+            parent2_model_name = parent_class_2.__name__ if parent_class_2 else None
+            other_pk_info = {
+                "name": other_pk[0],
+                "esi_name": other_pk[1].esi_name,
+                "is_fk": other_pk[1].is_fk,
+            }
+            for eve_data_obj in parent_eve_data_obj[inline_field]:
+                if wait_for_children:
+                    self._update_or_create_inline_object(
+                        parent_obj_id=parent_obj.id,
+                        parent_fk=parent_fk,
+                        eve_data_obj=eve_data_obj,
+                        other_pk_info=other_pk_info,
+                        parent2_model_name=parent2_model_name,
+                        inline_model_name=model_name,
+                        enabled_sections=enabled_sections,
+                    )
+                else:
+                    params: Dict[str, Any] = {
+                        "kwargs": {
+                            "parent_obj_id": parent_obj.id,
+                            "parent_fk": parent_fk,
+                            "eve_data_obj": eve_data_obj,
+                            "other_pk_info": other_pk_info,
+                            "parent2_model_name": parent2_model_name,
+                            "inline_model_name": model_name,
+                            "parent_model_name": type(parent_obj).__name__,
+                            "enabled_sections": list(enabled_sections),
                         }
-                        if task_priority:
-                            params["priority"] = task_priority
-                        task_update_or_create_inline_object.apply_async(**params)  # type: ignore
+                    }
+                    if task_priority:
+                        params["priority"] = task_priority
+                    task_update_or_create_inline_object.apply_async(**params)  # type: ignore
 
     def _update_or_create_inline_object(
         self,

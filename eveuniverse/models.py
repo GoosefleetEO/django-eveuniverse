@@ -168,6 +168,11 @@ class EveUniverseBaseModel(models.Model):
             raise ValueError(f"Unknown model_name: {model_name}") from None
 
     @classmethod
+    def _esi_pk(cls) -> str:
+        """returns the name of the pk column on ESI that must exist"""
+        return cls._eve_universe_meta_attr_strict("esi_pk")
+
+    @classmethod
     def _esi_mapping(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         field_mappings = cls._eve_universe_meta_attr("field_mappings")
         functional_pk = cls._eve_universe_meta_attr("functional_pk")
@@ -190,7 +195,7 @@ class EveUniverseBaseModel(models.Model):
 
             if field.primary_key is True:
                 is_pk = True
-                esi_name = cls._esi_pk()  # FIXME: This might fail
+                esi_name = cls._esi_pk()
             elif functional_pk and field.name in functional_pk:
                 is_pk = True
             else:
@@ -330,11 +335,6 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         else and empty string
         """
         return ""
-
-    @classmethod
-    def _esi_pk(cls) -> str:
-        """returns the name of the pk column on ESI that must exist"""
-        return cls._eve_universe_meta_attr_strict("esi_pk")
 
     @classmethod
     def _has_esi_path_list(cls) -> bool:
