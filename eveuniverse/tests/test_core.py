@@ -391,7 +391,7 @@ class TestEveXml(NoSocketsTestCase):
     def test_should_detect_non_url(self):
         self.assertFalse(evexml.is_url("no-url"))
 
-    @patch("eveuniverse.managers.esi")
+    @patch("eveuniverse.managers.universe.esi")
     def test_should_convert_links(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()

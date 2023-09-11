@@ -34,7 +34,7 @@ MANAGERS_PATH = "eveuniverse.managers"
 
 
 class TestTasks(NoSocketsTestCase):
-    @patch(MANAGERS_PATH + ".esi")
+    @patch(MANAGERS_PATH + ".universe.esi")
     def test_load_eve_object(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -44,7 +44,7 @@ class TestTasks(NoSocketsTestCase):
 
         self.assertTrue(EveRegion.objects.filter(id=10000002).exists())
 
-    @patch(MANAGERS_PATH + ".esi")
+    @patch(MANAGERS_PATH + ".universe.esi")
     def test_update_or_create_eve_object(self, mock_esi):
         mock_esi.client = EsiClientStub()
         obj, _ = EveRegion.objects.update_or_create_esi(id=10000002)
@@ -58,7 +58,7 @@ class TestTasks(NoSocketsTestCase):
         obj.refresh_from_db()
         self.assertNotEqual(obj.name, "Dummy")
 
-    @patch(MANAGERS_PATH + ".esi")
+    @patch(MANAGERS_PATH + ".universe.esi")
     def test_update_or_create_inline_object(self, mock_esi):
         mock_esi.client = EsiClientStub()
         eve_type, _ = EveType.objects.update_or_create_esi(id=603)
@@ -95,7 +95,7 @@ class TestTasks(NoSocketsTestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch(MANAGERS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".entities.esi")
 class TestTasks2(TestCase):
     def test_update_unresolved_eve_entities(self, mock_esi):
         # given
@@ -116,7 +116,7 @@ class TestTasks2(TestCase):
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(TASKS_PATH + ".esi")
-@patch(MANAGERS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".universe.esi")
 class TestLoadData(TestCase):
     def test_load_map(self, mock_esi_1, mock_esi_2):
         mock_esi_1.client = EsiClientStub()

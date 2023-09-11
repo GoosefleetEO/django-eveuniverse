@@ -17,7 +17,7 @@ from eveuniverse.utils import NoSocketsTestCase
 from ..testdata.esi import EsiClientStub
 
 MODELS_PATH = "eveuniverse.models.universe"
-MANAGERS_PATH = "eveuniverse.managers"
+MANAGERS_PATH = "eveuniverse.managers.universe"
 
 
 class TestEveTypeSection(NoSocketsTestCase):

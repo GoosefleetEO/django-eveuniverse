@@ -28,7 +28,7 @@ from ..testdata.esi import EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000
 MODELS_PATH = "eveuniverse.models.universe"
-MANAGERS_PATH = "eveuniverse.managers"
+MANAGERS_PATH = "eveuniverse.managers.universe"
 
 
 @patch(MANAGERS_PATH + ".esi")

@@ -32,7 +32,7 @@ class TestTestData(NoSocketsTestCase):
 
     @patch("eveuniverse.models.universe.EVEUNIVERSE_LOAD_STARGATES", True)
     @patch("eveuniverse.tools.testdata.is_esi_online", lambda: True)
-    @patch("eveuniverse.managers.esi")
+    @patch("eveuniverse.managers.universe.esi")
     def test_create_testdata(self, mock_esi):
         mock_esi.client = EsiClientStub()
 

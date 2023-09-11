@@ -1,27 +1,21 @@
 """Managers and Querysets for Eve universe models."""
 
-# pylint: disable = import-outside-toplevel, missing-class-docstring
+# pylint: disable = missing-class-docstring
 
 import datetime as dt
 import logging
-from abc import ABC, abstractmethod
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
-from urllib.parse import urljoin
 
-import requests
 from bravado.exception import HTTPNotFound
-from django.core.cache import cache
 from django.db import models, transaction
-from django.db.utils import IntegrityError
 from django.utils.timezone import now
 
-from . import __title__
-from .app_settings import EVEUNIVERSE_API_SDE_URL, EVEUNIVERSE_BULK_METHODS_BATCH_SIZE
-from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS
-from .helpers import EveEntityNameResolver, get_or_create_esi_or_none
-from .providers import esi
-from .utils import LoggerAddTag, chunks
+from eveuniverse import __title__
+from eveuniverse.app_settings import EVEUNIVERSE_BULK_METHODS_BATCH_SIZE
+from eveuniverse.helpers import get_or_create_esi_or_none
+from eveuniverse.providers import esi
+from eveuniverse.utils import LoggerAddTag
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
@@ -120,7 +114,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         Returns:
             A tuple consisting of the requested object and a created flag
         """
-        from .models import determine_effective_sections
+        from eveuniverse.models import determine_effective_sections
 
         id = int(id)
         effective_sections = determine_effective_sections(enabled_sections)
@@ -168,7 +162,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         Returns:
             A tuple consisting of the requested object and a created flag
         """
-        from .models import determine_effective_sections
+        from eveuniverse.models import determine_effective_sections
 
         id = int(id)
         effective_sections = determine_effective_sections(enabled_sections)
@@ -260,7 +254,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         """updates_or_creates eve objects that are returned "inline" from ESI
         for the parent eve objects as defined for this parent model (if any)
         """
-        from .tasks import (
+        from eveuniverse.tasks import (
             update_or_create_inline_object as task_update_or_create_inline_object,
         )
 
@@ -378,7 +372,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         task_priority: Optional[int] = None,
     ) -> None:
         """updates or creates child objects as defined for this parent model (if any)"""
-        from .tasks import (
+        from eveuniverse.tasks import (
             update_or_create_eve_object as task_update_or_create_eve_object,
         )
 
@@ -435,8 +429,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             wait_for_children: when false all objects will be loaded async, else blocking
             enabled_sections: Sections to load regardless of current settings
         """
-        from .models import determine_effective_sections
-        from .tasks import (
+        from eveuniverse.models import determine_effective_sections
+        from eveuniverse.tasks import (
             update_or_create_eve_object as task_update_or_create_eve_object,
         )
 
@@ -509,7 +503,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         Returns:
             Queryset with all requested eve objects
         """
-        from .models import determine_effective_sections
+        from eveuniverse.models import determine_effective_sections
 
         ids = set(map(int, ids))
         effective_sections = determine_effective_sections(enabled_sections)
@@ -539,7 +533,7 @@ class EvePlanetManager(EveUniverseEntityModelManager):
     def _fetch_from_esi(
         self, id: Optional[int] = None, enabled_sections: Optional[Iterable[str]] = None
     ) -> dict:
-        from .models import EveSolarSystem
+        from eveuniverse.models import EveSolarSystem
 
         if id is None:
             raise ValueError("id not defined")
@@ -587,7 +581,7 @@ class EvePlanetChildrenManager(EveUniverseEntityModelManager):
         id: Optional[int] = None,
         _enabled_sections: Optional[Iterable[str]] = None,
     ) -> dict:
-        from .models import EveSolarSystem
+        from eveuniverse.models import EveSolarSystem
 
         if not self._my_property_name:
             raise RuntimeWarning("my_property_name not initialized")
@@ -701,7 +695,7 @@ class EveStationManager(EveUniverseEntityModelManager):
         task_priority: Optional[int] = None,
     ) -> None:
         """updates_or_creates station service objects for EveStations"""
-        from .models import EveStationService
+        from eveuniverse.models import EveStationService
 
         if "services" in parent_eve_data_obj:
             services = []
@@ -727,7 +721,7 @@ class EveTypeManager(EveUniverseEntityModelManager):
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
     ) -> Tuple[Any, bool]:
-        from .models import determine_effective_sections
+        from eveuniverse.models import determine_effective_sections
 
         obj, created = super().update_or_create_esi(
             id=id,
@@ -739,11 +733,11 @@ class EveTypeManager(EveUniverseEntityModelManager):
         enabled_sections = determine_effective_sections(enabled_sections)
         if enabled_sections:
             if self.model.Section.TYPE_MATERIALS in enabled_sections:
-                from .models import EveTypeMaterial
+                from eveuniverse.models import EveTypeMaterial
 
                 EveTypeMaterial.objects.update_or_create_api(eve_type=obj)
             if self.model.Section.INDUSTRY_ACTIVITIES in enabled_sections:
-                from .models import (
+                from eveuniverse.models import (
                     EveIndustryActivityDuration,
                     EveIndustryActivityMaterial,
                     EveIndustryActivityProduct,
@@ -755,310 +749,6 @@ class EveTypeManager(EveUniverseEntityModelManager):
                 EveIndustryActivitySkill.objects.update_or_create_api(eve_type=obj)
                 EveIndustryActivityMaterial.objects.update_or_create_api(eve_type=obj)
         return obj, created
-
-
-class EveEntityQuerySet(models.QuerySet):
-    """Custom queryset for EveEntity."""
-
-    def update_from_esi(self) -> int:
-        """Updates all Eve entity objects in this queryset from ESI."""
-        from .models import EveEntity
-
-        return EveEntity.objects.update_from_esi_by_id(self.valid_ids())
-
-    def valid_ids(self) -> Set[int]:
-        """Determine valid Ids in this Queryset."""
-        return set(
-            self.exclude(id__in=self.model.ESI_INVALID_IDS).values_list("id", flat=True)
-        )
-
-
-class EveEntityManagerBase(EveUniverseEntityModelManager):
-    """Custom manager for EveEntity"""
-
-    MAX_DEPTH = 5
-
-    def get_queryset(self) -> models.QuerySet:
-        """:private:"""
-        return EveEntityQuerySet(self.model, using=self._db)
-
-    def get_or_create_esi(
-        self,
-        *,
-        id: int,
-        include_children: bool = False,
-        wait_for_children: bool = True,
-        enabled_sections: Optional[Iterable[str]] = None,
-        task_priority: Optional[int] = None,
-    ) -> Tuple[Any, bool]:
-        """gets or creates an EvEntity object.
-
-        The object is automatically fetched from ESI if it does not exist (blocking)
-        or if it has not yet been resolved.
-
-        Args:
-            id: Eve Online ID of object
-
-        Returns:
-            A tuple consisting of the requested EveEntity object and a created flag
-            Returns a None objects if the ID is invalid
-        """
-        id = int(id)
-        try:
-            obj = self.exclude(name="").get(id=id)
-            created = False
-        except self.model.DoesNotExist:
-            obj, created = self.update_or_create_esi(
-                id=id,
-                include_children=include_children,
-                wait_for_children=wait_for_children,
-            )
-
-        return obj, created
-
-    def update_or_create_esi(
-        self,
-        *,
-        id: int,
-        include_children: bool = False,
-        wait_for_children: bool = True,
-        enabled_sections: Optional[Iterable[str]] = None,
-        task_priority: Optional[int] = None,
-    ) -> Tuple[Any, bool]:
-        """Update or create an EveEntity object by fetching it from ESI (blocking).
-
-        Args:
-            id: Eve Online ID of object
-            include_children: (no effect)
-            wait_for_children: (no effect)
-
-        Returns:
-            A tuple consisting of the requested object and a created flag
-            When the ID is invalid the returned object will be None
-
-        Exceptions:
-            Raises all HTTP codes of ESI endpoint /universe/names except 404
-        """
-        id = int(id)
-        logger.info("%s: Trying to resolve ID to EveEntity with ESI", id)
-        if id in self.model.ESI_INVALID_IDS:
-            logger.info("%s: ID is not valid", id)
-            return None, False
-        try:
-            result = esi.client.Universe.post_universe_names(ids=[id]).results()
-        except HTTPNotFound:
-            logger.info("%s: ID is not valid", id)
-            return None, False
-        item = result[0]
-        return self.update_or_create(
-            id=item.get("id"),
-            defaults={"name": item.get("name"), "category": item.get("category")},
-        )
-
-    def bulk_create_esi(self, ids: Iterable[int]) -> int:
-        """bulk create and resolve multiple entities from ESI.
-        Will also resolve existing entities, that have no name.
-
-        Args:
-            ids: List of valid EveEntity IDs
-
-        Returns:
-            Count of updated entities
-        """
-        ids = set(map(int, ids))
-        existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
-        new_ids = ids.difference(existing_ids)
-
-        if not new_ids:
-            return 0
-
-        objects = [self.model(id=id) for id in new_ids]
-        self.bulk_create(
-            objects,
-            batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
-            ignore_conflicts=True,
-        )
-        to_update_qs = self.filter(id__in=new_ids) | self.filter(
-            id__in=ids.difference(new_ids), name=""
-        )
-        return to_update_qs.update_from_esi()  # type: ignore
-
-    def update_or_create_all_esi(
-        self,
-        *,
-        include_children: bool = False,
-        wait_for_children: bool = True,
-        enabled_sections: Optional[Iterable[str]] = None,
-        task_priority: Optional[int] = None,
-    ) -> None:
-        """not implemented - do not use"""
-        raise NotImplementedError()
-
-    def bulk_update_new_esi(self) -> int:
-        """updates all unresolved EveEntity objects in the database from ESI.
-
-        Returns:
-            Count of updated entities.
-        """
-        return self.filter(name="").update_from_esi()  # type: ignore
-
-    def bulk_update_all_esi(self):
-        """Updates all EveEntity objects in the database from ESI.
-
-        Returns:
-            Count of updated entities.
-        """
-        return self.all().update_from_esi()  # type: ignore
-
-    def resolve_name(self, id: int) -> str:
-        """Return the name for the given Eve entity ID
-        or an empty string if ID is not valid.
-        """
-        if id is not None:
-            obj, _ = self.get_or_create_esi(id=int(id))
-            if obj:
-                return obj.name
-        return ""
-
-    def fetch_by_names_esi(
-        self, names: Iterable[str], update: bool = False
-    ) -> models.QuerySet:
-        """Fetch entities matching given names.
-        Will fetch missing entities from ESI if needed or requested.
-
-        Note that names that are not found by ESI are ignored.
-
-        Args:
-            names: Names of entities to fetch
-            update: When True will always update from ESI
-
-        Returns:
-            query with matching entities.
-        """
-        names = set(names)
-        if update:
-            names_to_fetch = names
-        else:
-            existing_names = set(
-                self.filter(name__in=names).values_list("name", flat=True)
-            )
-            names_to_fetch = names - existing_names
-        if names_to_fetch:
-            esi_result = self._fetch_names_from_esi(names_to_fetch)
-            if esi_result:
-                self._update_or_create_entities(esi_result)
-        return self.filter(name__in=names)
-
-    def _update_or_create_entities(self, esi_result):
-        for category_key, entities in esi_result.items():
-            try:
-                category = self._map_category_key_to_category(category_key)
-            except ValueError:
-                logger.warning(
-                    "Ignoring entities with unknown category %s: %s",
-                    category_key,
-                    entities,
-                )
-                continue
-
-            for entity in entities:
-                self.update_or_create(
-                    id=entity["id"],
-                    defaults={"name": entity["name"], "category": category},
-                )
-
-    def _fetch_names_from_esi(self, names: Iterable[str]) -> dict:
-        logger.info("Trying to fetch EveEntities from ESI by name")
-        result = defaultdict(list)
-        for chunk_names in chunks(list(names), 500):
-            result_chunk = esi.client.Universe.post_universe_ids(
-                names=chunk_names
-            ).results()
-            for category, entities in result_chunk.items():
-                if entities:
-                    result[category] += entities
-        result_compressed = {
-            category: entities for category, entities in result.items() if entities
-        }
-        return result_compressed
-
-    def _map_category_key_to_category(self, category_key: str) -> str:
-        """Map category keys from ESI result to categories."""
-        my_map = {
-            "alliances": self.model.CATEGORY_ALLIANCE,
-            "characters": self.model.CATEGORY_CHARACTER,
-            "constellations": self.model.CATEGORY_CONSTELLATION,
-            "corporations": self.model.CATEGORY_CORPORATION,
-            "factions": self.model.CATEGORY_FACTION,
-            "inventory_types": self.model.CATEGORY_INVENTORY_TYPE,
-            "regions": self.model.CATEGORY_REGION,
-            "systems": self.model.CATEGORY_SOLAR_SYSTEM,
-            "stations": self.model.CATEGORY_STATION,
-        }
-        try:
-            return my_map[category_key]
-        except KeyError:
-            raise ValueError(f"Invalid category: {category_key}") from None
-
-    def bulk_resolve_names(self, ids: Iterable[int]) -> EveEntityNameResolver:
-        """returns a map of IDs to names in a resolver object for given IDs
-
-        Args:
-            ids: List of valid EveEntity IDs
-
-        Returns:
-            EveEntityNameResolver object helpful for quick resolving a large amount
-            of IDs
-        """
-        ids = set(map(int, ids))
-        self.bulk_create_esi(ids)
-        return EveEntityNameResolver(
-            {
-                row[0]: row[1]
-                for row in self.filter(id__in=ids).values_list("id", "name")
-            }
-        )
-
-    def update_from_esi_by_id(self, ids: Iterable[int]) -> int:
-        """Updates all Eve entity objects by id from ESI."""
-        if not ids:
-            return 0
-        ids = list(set((int(id) for id in ids if id not in self.model.ESI_INVALID_IDS)))
-        logger.info("Updating %d entities from ESI", len(ids))
-        resolved_counter = 0
-        for chunk_ids in chunks(ids, POST_UNIVERSE_NAMES_MAX_ITEMS):
-            logger.debug("Trying to resolve the following IDs from ESI:\n%s", chunk_ids)
-            resolved_counter = self._resolve_entities_from_esi(chunk_ids)
-        return resolved_counter
-
-    def _resolve_entities_from_esi(self, ids: list, depth: int = 1):
-        resolved_counter = 0
-        try:
-            items = esi.client.Universe.post_universe_names(ids=ids).results()
-        except HTTPNotFound:
-            # if API fails to resolve all IDs, we divide and conquer,
-            # trying to resolve each half of the ids separately
-            if len(ids) > 1 and depth < self.MAX_DEPTH:
-                resolved_counter += self._resolve_entities_from_esi(ids[::2], depth + 1)
-                resolved_counter += self._resolve_entities_from_esi(
-                    ids[1::2], depth + 1
-                )
-            else:
-                logger.warning("Failed to resolve invalid IDs: %s", ids)
-        else:
-            resolved_counter += len(items)
-            for item in items:
-                try:
-                    self.update_or_create(
-                        id=item["id"],
-                        defaults={"name": item["name"], "category": item["category"]},
-                    )
-                except IntegrityError:
-                    pass
-        return resolved_counter
-
-
-EveEntityManager = EveEntityManagerBase.from_queryset(EveEntityQuerySet)
 
 
 class EveMarketPriceManager(models.Manager):
@@ -1073,7 +763,7 @@ class EveMarketPriceManager(models.Manager):
         Returns:
             Count of updated types
         """
-        from .models import EveType
+        from eveuniverse.models import EveType
 
         minutes_until_stale = (
             self.model.DEFAULT_MINUTES_UNTIL_STALE
@@ -1121,177 +811,3 @@ class EveMarketPriceManager(models.Manager):
                 "Completed updating market prices for %s types.", len(need_updating_ids)
             )
             return len(market_prices)
-
-
-class ApiCacheManager(ABC):
-    sde_cache_timeout = 3600 * 24
-    sde_cache_key = ""
-    sde_api_route = ""
-
-    def __init__(self) -> None:
-        if not self.sde_cache_key:
-            raise ValueError("Cache key not defined")
-
-        if not self.sde_api_route:
-            raise ValueError("API route not defined")
-
-    @classmethod
-    def _response_to_cache(cls, response: requests.Response) -> dict:
-        data_all = {}
-        for row in response.json():
-            type_id = row["typeID"]
-            if type_id not in data_all:
-                data_all[type_id] = []
-            data_all[type_id].append(row)
-        cache.set(
-            key=cls.sde_cache_key,
-            value=data_all,
-            timeout=cls.sde_cache_timeout,
-        )
-        return data_all
-
-    @classmethod
-    def _fetch_sde_data_cached(cls) -> dict:
-        data = cache.get(cls.sde_cache_key)
-        if not data:
-            response = requests.get(
-                urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls.sde_api_route),
-                timeout=10,
-            )
-            response.raise_for_status()
-            data = cls._response_to_cache(response)
-            cache.set(
-                key=cls.sde_cache_key,
-                value=data,
-                timeout=cls.sde_cache_timeout,
-            )
-        return data
-
-    @abstractmethod
-    def update_or_create_api(self, *, eve_type) -> None:
-        """Update or create objects from the API for the given eve type."""
-
-
-class EveTypeMaterialManager(models.Manager, ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_TYPE_MATERIALS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "invTypeMaterials.json"
-
-    def update_or_create_api(self, *, eve_type) -> None:
-        from .models import EveType
-
-        type_material_data_all = self._fetch_sde_data_cached()
-        for type_material_data in type_material_data_all.get(eve_type.id, []):
-            material_eve_type, _ = EveType.objects.get_or_create_esi(
-                id=type_material_data.get("materialTypeID")
-            )
-            self.update_or_create(
-                eve_type=eve_type,
-                material_eve_type=material_eve_type,
-                defaults={
-                    "quantity": type_material_data.get("quantity"),
-                },
-            )
-
-
-class EveIndustryActivityDurationManager(models.Manager, ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_DURATIONS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "industryActivity.json"  # not related to EveIndustryActivity
-
-    def update_or_create_api(self, *, eve_type) -> None:
-        from eveuniverse.models import EveIndustryActivity
-
-        industry_activity_data_all = self._fetch_sde_data_cached()
-        for industry_activity_data in industry_activity_data_all.get(eve_type.id, []):
-            activity = EveIndustryActivity.objects.get(
-                pk=industry_activity_data.get("activityID")
-            )
-            self.update_or_create(
-                eve_type=eve_type,
-                activity=activity,
-                defaults={
-                    "time": industry_activity_data.get("time"),
-                },
-            )
-
-
-class EveIndustryActivityMaterialManager(models.Manager, ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_MATERIALS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "industryActivityMaterials.json"
-
-    def update_or_create_api(self, *, eve_type) -> None:
-        from .models import EveIndustryActivity, EveType
-
-        data_all = self._fetch_sde_data_cached()
-        activity_data = data_all.get(eve_type.id, {})
-        for industry_material_data in activity_data:
-            material_eve_type, _ = EveType.objects.get_or_create_esi(
-                id=industry_material_data.get("materialTypeID")
-            )
-            activity = EveIndustryActivity.objects.get(
-                pk=industry_material_data.get("activityID")
-            )
-            self.update_or_create(
-                eve_type=eve_type,
-                material_eve_type=material_eve_type,
-                activity=activity,
-                defaults={
-                    "quantity": industry_material_data.get("quantity"),
-                },
-            )
-
-
-class EveIndustryActivityProductManager(models.Manager, ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_PRODUCTS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "industryActivityProducts.json"
-
-    def update_or_create_api(self, *, eve_type) -> None:
-        from .models import EveIndustryActivity, EveType
-
-        data_all = self._fetch_sde_data_cached()
-        activity_data = data_all.get(eve_type.id, {})
-        for industry_products_data in activity_data:
-            product_eve_type, _ = EveType.objects.get_or_create_esi(
-                id=industry_products_data.get("productTypeID")
-            )
-            activity = EveIndustryActivity.objects.get(
-                pk=industry_products_data.get("activityID")
-            )
-            self.update_or_create(
-                eve_type=eve_type,
-                product_eve_type=product_eve_type,
-                activity=activity,
-                defaults={
-                    "quantity": industry_products_data.get("quantity"),
-                },
-            )
-
-
-class EveIndustryActivitySkillManager(models.Manager, ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_SKILLS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "industryActivitySkills.json"
-
-    def update_or_create_api(self, *, eve_type) -> None:
-        from .models import EveIndustryActivity, EveType
-
-        data_all = self._fetch_sde_data_cached()
-        activity_data = data_all.get(eve_type.id, {})
-        for industry_skill_data in activity_data:
-            skill_eve_type, _ = EveType.objects.get_or_create_esi(
-                id=industry_skill_data.get("skillID")
-            )
-            activity = EveIndustryActivity.objects.get(
-                pk=industry_skill_data.get("activityID")
-            )
-            self.update_or_create(
-                eve_type=eve_type,
-                skill_eve_type=skill_eve_type,
-                activity=activity,
-                defaults={
-                    "level": industry_skill_data.get("level"),
-                },
-            )

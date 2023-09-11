@@ -37,7 +37,7 @@ from ..testdata.esi import BravadoOperationStub, EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000
 MODELS_PATH = "eveuniverse.models.universe"
-MANAGERS_PATH = "eveuniverse.managers"
+MANAGERS_PATH = "eveuniverse.managers.universe"
 
 
 @patch(MANAGERS_PATH + ".esi")
@@ -510,7 +510,7 @@ class TestEveMarketPriceManager(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        with patch("eveuniverse.managers.esi") as mock_esi:
+        with patch("eveuniverse.managers.universe.esi") as mock_esi:
             mock_esi.client = EsiClientStub()
             EveType.objects.get_or_create_esi(id=603)
 

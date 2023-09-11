@@ -30,9 +30,9 @@ def get_cache_content(cache_key):
     return cache_content(table=table_name)
 
 
-@patch(MANAGERS_PATH + ".EVEUNIVERSE_API_SDE_URL", "https://sde.eve-o.tech/latest")
-@patch(MANAGERS_PATH + ".cache")
-@patch(MANAGERS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".sde.EVEUNIVERSE_API_SDE_URL", "https://sde.eve-o.tech/latest")
+@patch(MANAGERS_PATH + ".sde.cache")
+@patch(MANAGERS_PATH + ".universe.esi")
 @requests_mock.Mocker()
 class TestEveTypeMaterial(NoSocketsTestCase):
     def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
@@ -184,8 +184,8 @@ class TestEveTypeMaterial(NoSocketsTestCase):
         )
 
 
-@patch(MANAGERS_PATH + ".cache")
-@patch(MANAGERS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".sde.cache")
+@patch(MANAGERS_PATH + ".universe.esi")
 @requests_mock.Mocker()
 class TestEveIndustryActivityDuration(NoSocketsTestCase):
     def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
@@ -252,8 +252,8 @@ class TestEveIndustryActivityDuration(NoSocketsTestCase):
         )
 
 
-@patch(MANAGERS_PATH + ".cache")
-@patch(MANAGERS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".sde.cache")
+@patch(MANAGERS_PATH + ".universe.esi")
 @requests_mock.Mocker()
 class TestEveIndustryActivityMaterial(NoSocketsTestCase):
     def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
@@ -325,8 +325,8 @@ class TestEveIndustryActivityMaterial(NoSocketsTestCase):
         )
 
 
-@patch(MANAGERS_PATH + ".cache")
-@patch(MANAGERS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".sde.cache")
+@patch(MANAGERS_PATH + ".universe.esi")
 @requests_mock.Mocker()
 class TestEveIndustryActivityProduct(NoSocketsTestCase):
     def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
@@ -385,8 +385,8 @@ class TestEveIndustryActivityProduct(NoSocketsTestCase):
         )
 
 
-@patch(MANAGERS_PATH + ".cache")
-@patch(MANAGERS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".sde.cache")
+@patch(MANAGERS_PATH + ".universe.esi")
 @requests_mock.Mocker()
 class TestEveIndustryActivitySkill(NoSocketsTestCase):
     def test_should_create_new_instance(self, mock_esi, mock_cache, requests_mocker):
@@ -446,8 +446,8 @@ class TestEveIndustryActivitySkill(NoSocketsTestCase):
         self.assertEqual(obj.level, 1)
 
 
-@patch(MANAGERS_PATH + ".cache")
-@patch(MANAGERS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".sde.cache")
+@patch(MANAGERS_PATH + ".universe.esi")
 class TestEveTypeWithSections(NoSocketsTestCase):
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
