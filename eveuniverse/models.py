@@ -224,7 +224,7 @@ class EveUniverseBaseModel(models.Model):
         return mapping
 
     @classmethod
-    def _disabled_fields(cls, enabled_sections: Optional[Set[str]] = None) -> set:
+    def _disabled_fields(cls, _enabled_sections: Optional[Set[str]] = None) -> set:
         """Return name of fields that must not be loaded from ESI."""
         return set()
 
@@ -357,13 +357,13 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         return path.split(".")
 
     @classmethod
-    def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
+    def _children(cls, _enabled_sections: Optional[Iterable[str]] = None) -> dict:
         """returns the mapping of children for this class"""
         mappings = cls._eve_universe_meta_attr("children")
         return mappings if mappings else {}
 
     @classmethod
-    def _inline_objects(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
+    def _inline_objects(cls, _enabled_sections: Optional[Set[str]] = None) -> dict:
         """returns a dict of inline objects if any"""
         inline_objects = cls._eve_universe_meta_attr("inline_objects")
         return inline_objects if inline_objects else {}

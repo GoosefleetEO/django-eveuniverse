@@ -169,7 +169,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         id = int(id)
         effective_sections = self.model.determine_effective_sections(enabled_sections)
         eve_data_obj = self._transform_esi_response_for_list_endpoints(
-            id, self._fetch_from_esi(id=id, enabled_sections=effective_sections)
+            id, self._fetch_from_esi(id=id)
         )
         if eve_data_obj:
             defaults = self._defaults_from_esi_obj(eve_data_obj, effective_sections)
@@ -208,7 +208,9 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         return obj, created
 
     def _fetch_from_esi(
-        self, id: Optional[int] = None, enabled_sections: Optional[Iterable[str]] = None
+        self,
+        id: Optional[int] = None,
+        _enabled_sections: Optional[Iterable[str]] = None,
     ) -> dict:
         """make request to ESI and return response data.
         Can handle raw ESI response from both list and normal endpoints.
@@ -345,7 +347,9 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                 value = parent_class_2.objects.get(id=esi_value)
             except parent_class_2.DoesNotExist:
                 try:
-                    value, _ = parent_class_2.objects.update_or_create_esi(id=esi_value)
+                    value, _ = parent_class_2.objects.update_or_create_esi(
+                        id=esi_value, enabled_sections=enabled_sections
+                    )
                 except AttributeError:
                     value = None
         else:
@@ -524,9 +528,12 @@ class EvePlanetManager(EveUniverseEntityModelManager):
     """
 
     def _fetch_from_esi(
-        self, id: int, enabled_sections: Optional[Iterable[str]] = None
+        self, id: Optional[int] = None, enabled_sections: Optional[Iterable[str]] = None
     ) -> dict:
         from .models import EveSolarSystem
+
+        if id is None:
+            raise ValueError("id not defined")
 
         esi_data = super()._fetch_from_esi(id=id)
         # no need to proceed if all children have been disabled
@@ -567,12 +574,17 @@ class EvePlanetChildrenManager(EveUniverseEntityModelManager):
         self._my_property_name = None
 
     def _fetch_from_esi(
-        self, id: int, enabled_sections: Optional[Iterable[str]] = None
+        self,
+        id: Optional[int] = None,
+        _enabled_sections: Optional[Iterable[str]] = None,
     ) -> dict:
         from .models import EveSolarSystem
 
         if not self._my_property_name:
             raise RuntimeWarning("my_property_name not initialized")
+
+        if id is None:
+            raise ValueError("missing id")
 
         esi_data = super()._fetch_from_esi(id=id)
         if "system_id" not in esi_data:
@@ -1147,7 +1159,6 @@ class ApiCacheManager(ABC):
     @abstractmethod
     def update_or_create_api(self, *, eve_type) -> None:
         """Update or create objects from the API for the given eve type."""
-        pass
 
 
 class EveTypeMaterialManager(models.Manager, ApiCacheManager):
