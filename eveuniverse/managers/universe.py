@@ -108,7 +108,7 @@ class EveUniverseEntityModelManager(models.Manager):
         id = int(id)
         effective_sections = determine_effective_sections(enabled_sections)
         eve_data_obj = self._transform_esi_response_for_list_endpoints(
-            id, self._fetch_from_esi(id=id)
+            self.model, id, self._fetch_from_esi(id=id)
         )
         if eve_data_obj:
             defaults = self.model.defaults_from_esi_obj(
@@ -123,6 +123,7 @@ class EveUniverseEntityModelManager(models.Manager):
                         updated_sections = True
                 if updated_sections:
                     obj.save()
+
             inline_objects = self.model._inline_objects(effective_sections)
             if inline_objects:
                 self._update_or_create_inline_objects(
@@ -133,6 +134,7 @@ class EveUniverseEntityModelManager(models.Manager):
                     enabled_sections=effective_sections,
                     task_priority=task_priority,
                 )
+
             if include_children:
                 self._update_or_create_children(
                     parent_eve_data_obj=eve_data_obj,
@@ -148,6 +150,26 @@ class EveUniverseEntityModelManager(models.Manager):
             )
         return obj, created
 
+    @staticmethod
+    def _transform_esi_response_for_list_endpoints(
+        model_class, id: int, esi_data
+    ) -> dict:
+        """Transforms raw ESI response from list endpoints if this is one
+        else just passes the ESI response through
+        """
+        if not model_class._is_list_only_endpoint():
+            return esi_data
+
+        esi_pk = model_class._esi_pk()
+        for row in esi_data:
+            if esi_pk in row and row[esi_pk] == id:
+                return row
+
+        raise HTTPNotFound(
+            FakeResponse(status_code=404),  # type: ignore
+            message=f"{model_class.__name__} object with id {id} not found",
+        )
+
     def _fetch_from_esi(
         self,
         id: Optional[int] = None,
@@ -157,32 +179,12 @@ class EveUniverseEntityModelManager(models.Manager):
         Can handle raw ESI response from both list and normal endpoints.
         """
         if id is not None and not self.model._is_list_only_endpoint():
-            args = {self.model._esi_pk(): id}
+            params = {self.model._esi_pk(): id}
         else:
-            args = {}
+            params = {}
         category, method = self.model._esi_path_object()
-        esi_data = getattr(
-            getattr(esi.client, category),
-            method,
-        )(**args).results()
+        esi_data = getattr(getattr(esi.client, category), method)(**params).results()
         return esi_data
-
-    def _transform_esi_response_for_list_endpoints(self, id: int, esi_data) -> dict:
-        """Transforms raw ESI response from list endpoints if this is one
-        else just passes the ESI response through
-        """
-        if not self.model._is_list_only_endpoint():
-            return esi_data
-
-        esi_pk = self.model._esi_pk()
-        for row in esi_data:
-            if esi_pk in row and row[esi_pk] == id:
-                return row
-
-        raise HTTPNotFound(
-            FakeResponse(status_code=404),  # type: ignore
-            message=f"{self.model.__name__} object with id {id} not found",
-        )
 
     def _update_or_create_inline_objects(
         self,
@@ -207,7 +209,7 @@ class EveUniverseEntityModelManager(models.Manager):
                 "from empty parent object"
             )
 
-        for inline_field, model_name in inline_objects.items():
+        for inline_field, inline_model_name in inline_objects.items():
             if (
                 inline_field not in parent_eve_data_obj
                 or not parent_eve_data_obj[inline_field]
@@ -215,7 +217,7 @@ class EveUniverseEntityModelManager(models.Manager):
                 continue
 
             parent_fk, parent2_model_name, other_pk_info = self._identify_parent(
-                model_name
+                self.model, inline_model_name
             )
 
             for eve_data_obj in parent_eve_data_obj[inline_field]:
@@ -226,7 +228,7 @@ class EveUniverseEntityModelManager(models.Manager):
                         eve_data_obj=eve_data_obj,
                         other_pk_info=other_pk_info,
                         parent2_model_name=parent2_model_name,
-                        inline_model_name=model_name,
+                        inline_model_name=inline_model_name,
                         enabled_sections=enabled_sections,
                     )
                 else:
@@ -237,7 +239,7 @@ class EveUniverseEntityModelManager(models.Manager):
                             "eve_data_obj": eve_data_obj,
                             "other_pk_info": other_pk_info,
                             "parent2_model_name": parent2_model_name,
-                            "inline_model_name": model_name,
+                            "inline_model_name": inline_model_name,
                             "parent_model_name": type(parent_obj).__name__,
                             "enabled_sections": list(enabled_sections),
                         }
@@ -246,8 +248,9 @@ class EveUniverseEntityModelManager(models.Manager):
                         params["priority"] = task_priority
                     task_update_or_create_inline_object.apply_async(**params)  # type: ignore
 
-    def _identify_parent(self, model_name: str) -> tuple:
-        inline_model_class = self.model.get_model_class(model_name)
+    @staticmethod
+    def _identify_parent(model_class, inline_model_name: str) -> tuple:
+        inline_model_class = model_class.get_model_class(inline_model_name)
         esi_mapping = inline_model_class._esi_mapping()
         parent_fk = None
         other_pk = None
@@ -262,7 +265,7 @@ class EveUniverseEntityModelManager(models.Manager):
 
         if not parent_fk or not other_pk:
             raise ValueError(
-                f"ESI Mapping for {model_name} not valid: " f"{parent_fk}, {other_pk}"
+                f"ESI Mapping for {inline_model_name} not valid: {parent_fk}, {other_pk}"
             )
 
         parent2_model_name = parent_class_2.__name__ if parent_class_2 else None
