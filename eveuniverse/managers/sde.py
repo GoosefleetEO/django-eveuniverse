@@ -1,7 +1,5 @@
 """Managers and Querysets for Eve universe models."""
 
-# pylint: disable = missing-class-docstring
-
 import logging
 from abc import ABC, abstractmethod
 from urllib.parse import urljoin
@@ -69,6 +67,8 @@ class _ApiCacheManager(ABC):
 
 
 class EveTypeMaterialManager(models.Manager, _ApiCacheManager):
+    """Custom manager for EveTypeMaterial."""
+
     _sde_cache_key = "EVEUNIVERSE_TYPE_MATERIALS_REQUEST"
     _sde_cache_timeout = 3600 * 24
     _sde_api_route = "invTypeMaterials.json"
@@ -91,6 +91,8 @@ class EveTypeMaterialManager(models.Manager, _ApiCacheManager):
 
 
 class EveIndustryActivityDurationManager(models.Manager, _ApiCacheManager):
+    """Custom manager for EveIndustryActivityDuration."""
+
     _sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_DURATIONS_REQUEST"
     _sde_cache_timeout = 3600 * 24
     _sde_api_route = "industryActivity.json"  # not related to EveIndustryActivity
@@ -113,6 +115,8 @@ class EveIndustryActivityDurationManager(models.Manager, _ApiCacheManager):
 
 
 class EveIndustryActivityMaterialManager(models.Manager, _ApiCacheManager):
+    """Custom manager for EveIndustryActivityMaterial."""
+
     _sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_MATERIALS_REQUEST"
     _sde_cache_timeout = 3600 * 24
     _sde_api_route = "industryActivityMaterials.json"
@@ -140,6 +144,8 @@ class EveIndustryActivityMaterialManager(models.Manager, _ApiCacheManager):
 
 
 class EveIndustryActivityProductManager(models.Manager, _ApiCacheManager):
+    """Custom manager for EveIndustryActivityProduct."""
+
     _sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_PRODUCTS_REQUEST"
     _sde_cache_timeout = 3600 * 24
     _sde_api_route = "industryActivityProducts.json"
@@ -167,6 +173,8 @@ class EveIndustryActivityProductManager(models.Manager, _ApiCacheManager):
 
 
 class EveIndustryActivitySkillManager(models.Manager, _ApiCacheManager):
+    """Custom manager for EveIndustryActivitySkill."""
+
     _sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_SKILLS_REQUEST"
     _sde_cache_timeout = 3600 * 24
     _sde_api_route = "industryActivitySkills.json"

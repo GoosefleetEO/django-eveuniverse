@@ -1,7 +1,5 @@
 """Managers and Querysets for EveEntity models."""
 
-# pylint: disable = missing-class-docstring
-
 import logging
 from collections import defaultdict
 from typing import Any, Iterable, Optional, Set, Tuple

@@ -1,6 +1,5 @@
 """Managers and Querysets for Eve universe models."""
 
-# pylint: disable = missing-class-docstring
 
 import datetime as dt
 import logging
@@ -20,9 +19,7 @@ from eveuniverse.utils import LoggerAddTag
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
 FakeResponse = namedtuple("FakeResponse", ["status_code"])
-"""
-:meta private:
-"""
+""":meta private:"""
 
 
 class EveUniverseEntityModelManager(models.Manager):
@@ -315,9 +312,7 @@ class EveUniverseEntityModelManager(models.Manager):
 
 
 class EvePlanetManager(EveUniverseEntityModelManager):
-    """
-    :meta private:
-    """
+    """:meta private:"""
 
     def _fetch_from_esi(
         self, id: Optional[int] = None, enabled_sections: Optional[Iterable[str]] = None
@@ -357,9 +352,7 @@ class EvePlanetManager(EveUniverseEntityModelManager):
 
 
 class EvePlanetChildrenManager(EveUniverseEntityModelManager):
-    """
-    :meta private:
-    """
+    """:meta private:"""
 
     def __init__(self) -> None:
         super().__init__()
@@ -403,9 +396,7 @@ class EvePlanetChildrenManager(EveUniverseEntityModelManager):
 
 
 class EveAsteroidBeltManager(EvePlanetChildrenManager):
-    """
-    :meta private:
-    """
+    """:meta private:"""
 
     def __init__(self) -> None:
         super().__init__()
@@ -413,9 +404,7 @@ class EveAsteroidBeltManager(EvePlanetChildrenManager):
 
 
 class EveMoonManager(EvePlanetChildrenManager):
-    """
-    :meta private:
-    """
+    """:meta private:"""
 
     def __init__(self) -> None:
         super().__init__()
@@ -468,9 +457,7 @@ class EveStargateManager(EveUniverseEntityModelManager):
 
 
 class EveTypeManager(EveUniverseEntityModelManager):
-    """
-    :meta private:
-    """
+    """:meta private:"""
 
     def update_or_create_esi(
         self,
@@ -512,6 +499,8 @@ class EveTypeManager(EveUniverseEntityModelManager):
 
 
 class EveMarketPriceManager(models.Manager):
+    """Custom manager for EveMarketPrice."""
+
     def update_from_esi(self, minutes_until_stale: Optional[int] = None) -> int:
         """Updates market prices from ESI. Will only create new price objects
         for EveTypes that already exist in the database.
