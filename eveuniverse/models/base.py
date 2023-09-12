@@ -7,10 +7,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 from django.apps import apps
 from django.db import models
 
-from eveuniverse.managers import (
-    EveUniverseBaseModelManager,
-    EveUniverseEntityModelManager,
-)
+from eveuniverse.managers import EveUniverseEntityModelManager
 
 NAMES_MAX_LENGTH = 100
 
@@ -49,8 +46,6 @@ class EveUniverseBaseModel(models.Model):
 
     :meta private:
     """
-
-    objects = EveUniverseBaseModelManager()
 
     class Meta:
         abstract = True

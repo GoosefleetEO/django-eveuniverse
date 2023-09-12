@@ -25,13 +25,7 @@ FakeResponse = namedtuple("FakeResponse", ["status_code"])
 """
 
 
-class EveUniverseBaseModelManager(models.Manager):
-    """
-    :meta private:
-    """
-
-
-class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
+class EveUniverseEntityModelManager(models.Manager):
     """Manager for most Eve models."""
 
     def get_or_create_esi(

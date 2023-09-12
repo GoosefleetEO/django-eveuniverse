@@ -16,6 +16,5 @@ from .universe import (
     EveStargateManager,
     EveStationManager,
     EveTypeManager,
-    EveUniverseBaseModelManager,
     EveUniverseEntityModelManager,
 )
