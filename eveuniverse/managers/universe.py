@@ -136,7 +136,7 @@ class EveUniverseEntityModelManager(models.Manager):
                 )
 
             if include_children:
-                self._update_or_create_children(
+                self.model.update_or_create_children(
                     parent_eve_data_obj=eve_data_obj,
                     include_children=include_children,
                     wait_for_children=wait_for_children,
@@ -313,56 +313,6 @@ class EveUniverseEntityModelManager(models.Manager):
             eve_data_obj, enabled_sections=enabled_sections
         )
         inline_model_class.objects.update_or_create(**args)
-
-    def _update_or_create_children(
-        self,
-        *,
-        parent_eve_data_obj: dict,
-        include_children: bool,
-        wait_for_children: bool,
-        enabled_sections: Iterable[str],
-        task_priority: Optional[int] = None,
-    ) -> None:
-        """updates or creates child objects as defined for this parent model (if any)"""
-        from eveuniverse.tasks import (
-            update_or_create_eve_object as task_update_or_create_eve_object,
-        )
-
-        if not parent_eve_data_obj:
-            raise ValueError(
-                f"{self.model.__name__}: Tried to create children "
-                "from empty parent object"
-            )
-
-        for key, child_class in self.model._children(enabled_sections).items():
-            if key in parent_eve_data_obj and parent_eve_data_obj[key]:
-                for obj in parent_eve_data_obj[key]:
-                    # TODO: Refactor this hack
-                    id = obj["planet_id"] if key == "planets" else obj
-                    if wait_for_children:
-                        child_model_class = self.model.get_model_class(child_class)
-                        child_model_class.objects.update_or_create_esi(
-                            id=id,
-                            include_children=include_children,
-                            wait_for_children=wait_for_children,
-                            enabled_sections=enabled_sections,
-                            task_priority=task_priority,
-                        )
-
-                    else:
-                        params: Dict[str, Any] = {
-                            "kwargs": {
-                                "model_name": child_class,
-                                "id": id,
-                                "include_children": include_children,
-                                "wait_for_children": wait_for_children,
-                                "enabled_sections": list(enabled_sections),
-                                "task_priority": task_priority,
-                            },
-                        }
-                        if task_priority:
-                            params["priority"] = task_priority
-                        task_update_or_create_eve_object.apply_async(**params)  # type: ignore
 
     def update_or_create_all_esi(
         self,
