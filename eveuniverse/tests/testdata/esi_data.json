@@ -409,6 +409,19 @@
                 "systems": [
                     31000005
                 ]
+            },
+            "22000003": {
+                "constellation_id": 22000003,
+                "name": "ADC03",
+                "position": {
+                    "x": 3312576327659413000,
+                    "y": 4964240214910986000,
+                    "z": -5630149537255527000
+                },
+                "region_id": 12000001,
+                "systems": [
+                    32000018
+                ]
             }
         },
         "get_universe_factions": [
@@ -798,6 +811,13 @@
                 ],
                 "name": "G-R00031",
                 "region_id": 11000031
+            },
+            "12000001": {
+                "constellations": [
+                    22000003
+                ],
+                "name": "ADR01",
+                "region_id": 12000001
             }
         },
         "get_universe_stars_star_id": {
@@ -1134,6 +1154,17 @@
                 "security_status": -0.9900000095367432,
                 "star_id": 40487620,
                 "system_id": 31000005
+            },
+            "32000018": {
+                "constellation_id": 22000003,
+                "name": "AD018",
+                "position": {
+                    "x": 3305352692700368400,
+                    "y": 4929396848420115000,
+                    "z": -5643645046617679000
+                },
+                "security_status": -0.9900000095367432,
+                "system_id": 32000018
             }
         },
         "get_universe_types_type_id": {

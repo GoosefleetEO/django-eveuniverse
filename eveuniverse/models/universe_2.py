@@ -266,41 +266,50 @@ class EveSolarSystem(EveUniverseEntityModel):
 
     @property
     def profile_url(self) -> str:
-        """URL to default third party website with profile info about this entity."""
+        """Return URL to default third party website
+        with profile info about this solar system.
+        """
         return dotlan.solar_system_url(self.name)
 
     @property
     def is_high_sec(self) -> bool:
-        """returns True if this solar system is in high sec, else False"""
+        """Return True when this solar system is in high sec, else False."""
         return round(self.security_status, 1) >= 0.5
 
     @property
     def is_low_sec(self) -> bool:
-        """returns True if this solar system is in low sec, else False"""
+        """Return True when this solar system is in low sec, else False."""
         return 0 < round(self.security_status, 1) < 0.5
 
     @property
     def is_null_sec(self) -> bool:
-        """returns True if this solar system is in null sec, else False"""
+        """Return True when this solar system is in null sec, else False."""
         return (
             not self.is_w_space
             and not self.is_trig_space
+            and not self.is_abyssal_deadspace
             and round(self.security_status, 1) <= 0
             and not self.is_w_space
         )
 
     @property
     def is_w_space(self) -> bool:
-        """returns True if this solar system is in wormhole space, else False"""
-        return 31000000 <= self.id < 32000000
+        """Return True when this solar system is in wormhole space, else False."""
+        return 31_000_000 <= self.id < 32_000_000
 
     @cached_property
     def is_trig_space(self) -> bool:
-        """returns True if this solar system is in Triglavian space, else False"""
+        """Return True when this solar system is in Triglavian space, else False."""
         return self.eve_constellation.eve_region_id == EveRegionId.POCHVEN
+
+    @property
+    def is_abyssal_deadspace(self) -> bool:
+        """Return True when this solar system is in abyssal deadspace, else False."""
+        return 32_000_000 <= self.id < 33_000_000
 
     @classmethod
     def eve_entity_category(cls) -> str:
+        """Return related EveEntity category."""
         return EveEntity.CATEGORY_SOLAR_SYSTEM
 
     def distance_to(self, destination: "EveSolarSystem") -> Optional[float]:

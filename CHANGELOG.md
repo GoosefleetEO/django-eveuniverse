@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+
+- Added abyssal deadspace property to EveSolarSystem
+
 ### Changed
 
 - Removed local swagger spec file

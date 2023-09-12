@@ -839,6 +839,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(jita.is_null_sec)
         self.assertFalse(jita.is_w_space)
         self.assertFalse(jita.is_trig_space)
+        self.assertFalse(jita.is_abyssal_deadspace)
 
     def test_can_identify_lowsec_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -849,6 +850,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(enaluri.is_null_sec)
         self.assertFalse(enaluri.is_w_space)
         self.assertFalse(enaluri.is_trig_space)
+        self.assertFalse(enaluri.is_abyssal_deadspace)
 
     def test_can_identify_nullsec_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -859,6 +861,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(hed_gp.is_high_sec)
         self.assertFalse(hed_gp.is_w_space)
         self.assertFalse(hed_gp.is_trig_space)
+        self.assertFalse(hed_gp.is_abyssal_deadspace)
 
     def test_can_identify_ws_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -869,6 +872,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(thera.is_low_sec)
         self.assertFalse(thera.is_high_sec)
         self.assertFalse(thera.is_trig_space)
+        self.assertFalse(thera.is_abyssal_deadspace)
 
     def test_can_identify_trig_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -879,6 +883,20 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(otela.is_low_sec)
         self.assertFalse(otela.is_high_sec)
         self.assertTrue(otela.is_trig_space)
+        self.assertFalse(otela.is_abyssal_deadspace)
+
+    def test_can_identify_abyssal_deadspace(self, mock_esi):
+        mock_esi.client = EsiClientStub()
+
+        solar_system: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(
+            id=32000018
+        )[0]
+        self.assertFalse(solar_system.is_w_space)
+        self.assertFalse(solar_system.is_null_sec)
+        self.assertFalse(solar_system.is_low_sec)
+        self.assertFalse(solar_system.is_high_sec)
+        self.assertFalse(solar_system.is_trig_space)
+        self.assertTrue(solar_system.is_abyssal_deadspace)
 
     """
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", True)
