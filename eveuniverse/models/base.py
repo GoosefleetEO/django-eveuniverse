@@ -224,7 +224,6 @@ class EveUniverseBaseModel(models.Model):
 
         return value
 
-    # TODO: Add unit tests
     @classmethod
     def defaults_from_esi_obj(
         cls, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
@@ -257,13 +256,13 @@ class EveUniverseBaseModel(models.Model):
         return defaults
 
     @staticmethod
-    def _esi_value_from_tuple(eve_data_obj, mapping) -> Optional[Any]:
+    def _esi_value_from_tuple(eve_data_obj: dict, mapping) -> Optional[Any]:
         if mapping.esi_name in eve_data_obj:
             return eve_data_obj[mapping.esi_name]
         return None
 
     @staticmethod
-    def _esi_value_from_non_tuple(eve_data_obj, mapping) -> Optional[Any]:
+    def _esi_value_from_non_tuple(eve_data_obj: dict, mapping) -> Optional[Any]:
         if (
             mapping.esi_name[0] in eve_data_obj
             and mapping.esi_name[1] in eve_data_obj[mapping.esi_name[0]]

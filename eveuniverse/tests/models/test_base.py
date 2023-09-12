@@ -1,3 +1,7 @@
+from unittest.mock import patch
+
+from django.test import TestCase
+
 from eveuniverse.models import (
     EveAncestry,
     EveAsteroidBelt,
@@ -32,18 +36,30 @@ from eveuniverse.models import (
     EveUnit,
 )
 from eveuniverse.models.base import EveUniverseBaseModel
-from eveuniverse.utils import NoSocketsTestCase
 
 
-class TestEveUniverseBaseModel(NoSocketsTestCase):
-    def test_get_model_class(self):
-        self.assertIs(
-            EveUniverseBaseModel.get_model_class("EveSolarSystem"), EveSolarSystem
-        )
+class TestEveUniverseBaseModelGetModelClass(TestCase):
+    def test_should_return_class_when_it_is_valid(self):
+        # when
+        result = EveUniverseBaseModel.get_model_class("EveSolarSystem")
+        # then
+        self.assertIs(result, EveSolarSystem)
 
+    def test_should_raise_error_when_requesting_non_existing_class(self):
+        # when/then
         with self.assertRaises(LookupError):
             EveUniverseBaseModel.get_model_class("Unknown Class")
 
+    @patch("eveuniverse.models.base.apps.get_model")
+    def test_should_raise_error_when_requesting_invalid_class(self, mock_get_model):
+        # given
+        mock_get_model.return_value = TestCase
+        # when/then
+        with self.assertRaises(TypeError):
+            EveUniverseBaseModel.get_model_class("EveUniverseBaseModel")
+
+
+class TestEveUniverseBaseModel(TestCase):
     def test_all_models(self):
         models = EveUniverseBaseModel.all_models()
         self.maxDiff = None

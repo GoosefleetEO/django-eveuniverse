@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.test.utils import override_settings
 
+from eveuniverse.constants import EveCategoryId, EveGroupId
 from eveuniverse.models import (
     EveCategory,
     EveConstellation,
@@ -17,6 +18,7 @@ from eveuniverse.tasks import (
     create_eve_entities,
     load_all_types,
     load_eve_object,
+    load_eve_types,
     load_map,
     load_ship_types,
     load_structure_types,
@@ -193,3 +195,24 @@ class TestLoadAllTypes(NoSocketsTestCase):
         # then
         _, kwargs = mock_update_or_create_eve_object.delay.call_args
         self.assertEqual(kwargs["enabled_sections"], ["alpha", "bravo"])
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+@patch(TASKS_PATH + ".esi")
+@patch(MANAGERS_PATH + ".universe.esi")
+class TestLoadEveTypes(TestCase):
+    def test_should_load_all_types(self, mock_esi_1, mock_esi_2):
+        # given
+        mock_esi_1.client = EsiClientStub()
+        mock_esi_2.client = EsiClientStub()
+        category_ids = [EveCategoryId.STRUCTURE]
+        group_ids = [EveGroupId.PLANET]
+        type_ids = [603]
+        # when
+        load_eve_types.delay(
+            category_ids=category_ids, group_ids=group_ids, type_ids=type_ids
+        )
+        # then
+        self.assertTrue(EveCategory.objects.filter(id=EveCategoryId.STRUCTURE).exists())
+        self.assertTrue(EveGroup.objects.filter(id=EveGroupId.PLANET).exists())
+        self.assertTrue(EveType.objects.filter(id=603).exists())
