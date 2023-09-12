@@ -17,7 +17,9 @@ from eveuniverse.utils import LoggerAddTag
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
 
-class ApiCacheManager(ABC):
+class _ApiCacheManager(ABC):
+    """A base class for adding ability to fetch objects from API with cache."""
+
     sde_cache_timeout = 3600 * 24
     sde_cache_key = ""
     sde_api_route = ""
@@ -66,7 +68,7 @@ class ApiCacheManager(ABC):
         """Update or create objects from the API for the given eve type."""
 
 
-class EveTypeMaterialManager(models.Manager, ApiCacheManager):
+class EveTypeMaterialManager(models.Manager, _ApiCacheManager):
     sde_cache_key = "EVEUNIVERSE_TYPE_MATERIALS_REQUEST"
     sde_cache_timeout = 3600 * 24
     sde_api_route = "invTypeMaterials.json"
@@ -88,7 +90,7 @@ class EveTypeMaterialManager(models.Manager, ApiCacheManager):
             )
 
 
-class EveIndustryActivityDurationManager(models.Manager, ApiCacheManager):
+class EveIndustryActivityDurationManager(models.Manager, _ApiCacheManager):
     sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_DURATIONS_REQUEST"
     sde_cache_timeout = 3600 * 24
     sde_api_route = "industryActivity.json"  # not related to EveIndustryActivity
@@ -110,7 +112,7 @@ class EveIndustryActivityDurationManager(models.Manager, ApiCacheManager):
             )
 
 
-class EveIndustryActivityMaterialManager(models.Manager, ApiCacheManager):
+class EveIndustryActivityMaterialManager(models.Manager, _ApiCacheManager):
     sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_MATERIALS_REQUEST"
     sde_cache_timeout = 3600 * 24
     sde_api_route = "industryActivityMaterials.json"
@@ -137,7 +139,7 @@ class EveIndustryActivityMaterialManager(models.Manager, ApiCacheManager):
             )
 
 
-class EveIndustryActivityProductManager(models.Manager, ApiCacheManager):
+class EveIndustryActivityProductManager(models.Manager, _ApiCacheManager):
     sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_PRODUCTS_REQUEST"
     sde_cache_timeout = 3600 * 24
     sde_api_route = "industryActivityProducts.json"
@@ -164,7 +166,7 @@ class EveIndustryActivityProductManager(models.Manager, ApiCacheManager):
             )
 
 
-class EveIndustryActivitySkillManager(models.Manager, ApiCacheManager):
+class EveIndustryActivitySkillManager(models.Manager, _ApiCacheManager):
     sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_SKILLS_REQUEST"
     sde_cache_timeout = 3600 * 24
     sde_api_route = "industryActivitySkills.json"

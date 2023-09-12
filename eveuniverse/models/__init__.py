@@ -1,3 +1,5 @@
+"""Models for Eve Universe."""
+
 from .base import (
     EveUniverseBaseModel,
     EveUniverseEntityModel,

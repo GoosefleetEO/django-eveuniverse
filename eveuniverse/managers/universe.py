@@ -26,7 +26,7 @@ FakeResponse = namedtuple("FakeResponse", ["status_code"])
 
 
 class EveUniverseEntityModelManager(models.Manager):
-    """Manager for most Eve models."""
+    """Custom manager adding the ability to fetch objects from ESI."""
 
     def get_or_create_esi(
         self,

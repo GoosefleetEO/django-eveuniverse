@@ -313,7 +313,7 @@ For more information see: `eveuniverse.tasks.update_unresolved_eve_entities`
 
 ```{eval-rst}
 .. seealso::
-    For more features and details please see :ref:`api-managers-eve-entity`.
+    For more features and details please see :ref:`api-manager-methods`.
 ```
 
 ```{eval-rst}

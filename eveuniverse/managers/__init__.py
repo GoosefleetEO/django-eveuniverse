@@ -1,3 +1,5 @@
+"""Custom managers for Eve Universe models."""
+
 from .entities import EveEntityManager
 from .sde import (
     EveIndustryActivityDurationManager,
