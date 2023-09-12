@@ -55,23 +55,7 @@ class EveUniverseBaseModelManager(models.Manager):
 
             if esi_value is not None:
                 if mapping.is_fk:
-                    parent_class = mapping.related_model
-                    try:
-                        value = parent_class.objects.get(id=esi_value)
-                    except parent_class.DoesNotExist:
-                        value = None
-                        if mapping.create_related:
-                            try:
-                                (
-                                    value,
-                                    _,
-                                ) = parent_class.objects.update_or_create_esi(
-                                    id=esi_value,
-                                    include_children=False,
-                                    wait_for_children=True,
-                                )
-                            except AttributeError:
-                                pass
+                    value = self._gather_value_from_fk(mapping, esi_value)
 
                 else:
                     if mapping.is_charfield and esi_value is None:
@@ -82,6 +66,26 @@ class EveUniverseBaseModelManager(models.Manager):
                 defaults[field_name] = value
 
         return defaults
+
+    def _gather_value_from_fk(self, mapping, esi_value):
+        parent_class = mapping.related_model
+        try:
+            value = parent_class.objects.get(id=esi_value)
+        except parent_class.DoesNotExist:
+            value = None
+            if mapping.create_related:
+                try:
+                    (
+                        value,
+                        _,
+                    ) = parent_class.objects.update_or_create_esi(
+                        id=esi_value,
+                        include_children=False,
+                        wait_for_children=True,
+                    )
+                except AttributeError:
+                    pass
+        return value
 
 
 class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
