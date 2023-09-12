@@ -16,7 +16,7 @@ from eveuniverse.utils import NoSocketsTestCase
 
 from ..testdata.esi import EsiClientStub
 
-MODELS_PATH = "eveuniverse.models.universe"
+MODELS_PATH = "eveuniverse.models"
 MANAGERS_PATH = "eveuniverse.managers.universe"
 
 
@@ -39,10 +39,10 @@ class TestEveTypeSection(NoSocketsTestCase):
 
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemWithSections(NoSocketsTestCase):
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_without_sections(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -52,10 +52,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
         self.assertEqual(obj.id, 30045339)
         self.assertEqual(obj.enabled_sections._value, 0)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_planets_global(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -70,10 +70,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             set(obj.eve_planets.values_list("id", flat=True)), {40349467, 40349471}
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_planets_on_demand(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -90,10 +90,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             set(obj.eve_planets.values_list("id", flat=True)), {40349467, 40349471}
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_stargates_global(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -108,10 +108,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             set(obj.eve_stargates.values_list("id", flat=True)), {50016284, 50016286}
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_stargates_on_demand(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -128,10 +128,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             set(obj.eve_stargates.values_list("id", flat=True)), {50016284, 50016286}
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_stars_global(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -144,10 +144,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.stars)
         self.assertEqual(obj.eve_star_id, 40349466)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_stars_on_demand(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -162,10 +162,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.stars)
         self.assertEqual(obj.eve_star_id, 40349466)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", True)
     def test_should_create_solar_system_with_stations_global(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -180,10 +180,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             set(obj.eve_stations.values_list("id", flat=True)), {60015068, 60015069}
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_stations_on_demand(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -200,10 +200,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             set(obj.eve_stations.values_list("id", flat=True)), {60015068, 60015069}
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_stargates_on_demand_2(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -220,10 +220,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             set(obj.eve_stargates.values_list("id", flat=True)), {50016284, 50016286}
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_planets_moons_asteroid_belts_on_demand(
         self, mock_esi
     ):
@@ -257,10 +257,10 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
 
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemBulkWithSection(NoSocketsTestCase):
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_planets_global(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -280,10 +280,10 @@ class TestEveSolarSystemBulkWithSection(NoSocketsTestCase):
             {40009077, 40349467, 40349471},
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_planets_on_demand(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -305,10 +305,10 @@ class TestEveSolarSystemBulkWithSection(NoSocketsTestCase):
             {40009077, 40349467, 40349471},
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_get_solar_system_with_planets_global(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -330,10 +330,10 @@ class TestEveSolarSystemBulkWithSection(NoSocketsTestCase):
             {40009077, 40349467, 40349471},
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_get_all_solar_system_with_planets_on_demand_from_scratch(
         self, mock_esi
     ):
@@ -360,13 +360,13 @@ class TestEveSolarSystemBulkWithSection(NoSocketsTestCase):
         )
 
     @patch(
-        MODELS_PATH + ".EveSolarSystem.objects.update_or_create_esi",
+        MODELS_PATH + ".universe_2.EveSolarSystem.objects.update_or_create_esi",
         wraps=EveSolarSystem.objects.update_or_create_esi,
     )
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_get_all_solar_system_with_planets_on_demand(
         self, spy_manager, mock_esi
     ):
@@ -395,13 +395,13 @@ class TestEveSolarSystemBulkWithSection(NoSocketsTestCase):
         self.assertEqual(spy_manager.call_count, 3)
 
     @patch(
-        MODELS_PATH + ".EveSolarSystem.objects.update_or_create_esi",
+        MODELS_PATH + ".universe_2.EveSolarSystem.objects.update_or_create_esi",
         wraps=EveSolarSystem.objects.update_or_create_esi,
     )
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_get_one_and_load_one_solar_system_with_planets(
         self, spy_manager, mock_esi
     ):
@@ -436,8 +436,8 @@ class TestEveSolarSystemBulkWithSection(NoSocketsTestCase):
 
 @patch(MANAGERS_PATH + ".esi")
 class TestEvePlanetWithSections(NoSocketsTestCase):
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False)
     def test_should_create_new_instance_without_sections(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -449,8 +449,8 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
         self.assertEqual(obj.eve_moons.count(), 0)
         self.assertEqual(obj.enabled_sections._value, 0)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False)
     def test_should_create_new_instance_with_asteroid_belts_global(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -467,8 +467,8 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.asteroid_belts)
         self.assertFalse(obj.enabled_sections.moons)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False)
     def test_should_create_new_instance_with_asteroid_belts_on_demand(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -487,8 +487,8 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.asteroid_belts)
         self.assertFalse(obj.enabled_sections.moons)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", True)
     def test_should_create_new_instance_with_moons_global(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -505,8 +505,8 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
         self.assertFalse(obj.enabled_sections.asteroid_belts)
         self.assertTrue(obj.enabled_sections.moons)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False)
     def test_should_create_new_instance_with_moons_on_demand(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -526,17 +526,17 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.moons)
 
 
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False)
-@patch(MODELS_PATH + ".evesdeapi")
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_TYPE_MATERIALS", False)
+@patch(MODELS_PATH + ".universe_2.evesdeapi")
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemNearestCelestial(NoSocketsTestCase):
     def test_should_return_stargate(self, mock_esi, mock_evesdeapi):

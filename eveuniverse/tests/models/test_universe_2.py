@@ -27,15 +27,15 @@ from eveuniverse.utils import NoSocketsTestCase
 from ..testdata.esi import EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000
-MODELS_PATH = "eveuniverse.models.universe"
+MODELS_PATH = "eveuniverse.models"
 MANAGERS_PATH = "eveuniverse.managers.universe"
 
 
 @patch(MANAGERS_PATH + ".esi")
 class TestEveType(NoSocketsTestCase):
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
     def test_can_create_type_from_esi_excluding_all(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -61,9 +61,9 @@ class TestEveType(NoSocketsTestCase):
         self.assertEqual(obj.dogma_effects.count(), 0)
         self.assertEqual(obj.eve_entity_category(), EveEntity.CATEGORY_INVENTORY_TYPE)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", True)
     def test_can_create_type_from_esi_including_dogmas(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -91,8 +91,8 @@ class TestEveType(NoSocketsTestCase):
         ).first()
         self.assertTrue(dogma_effect_2.is_default)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
     def test_when_disabled_can_create_type_from_esi_excluding_dogmas(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -103,8 +103,8 @@ class TestEveType(NoSocketsTestCase):
         self.assertEqual(obj.dogma_attributes.count(), 0)
         self.assertEqual(obj.dogma_effects.count(), 0)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", True)
     def test_when_disabled_can_create_type_from_esi_excluding_market_groups(
         self, mock_esi
     ):
@@ -127,9 +127,9 @@ class TestEveType(NoSocketsTestCase):
             {1816, 1817},
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
     def test_can_create_type_from_esi_including_dogmas_when_disabled_1(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -151,9 +151,9 @@ class TestEveType(NoSocketsTestCase):
             {1816, 1817},
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
     def test_can_create_type_from_esi_including_dogmas_when_disabled_2(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -178,9 +178,9 @@ class TestEveType(NoSocketsTestCase):
     @override_settings(
         CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True
     )
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
     def test_can_create_type_from_esi_including_children_as_task(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
@@ -207,9 +207,9 @@ class TestEveType(NoSocketsTestCase):
     @override_settings(
         CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True
     )
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
     def test_can_create_type_from_esi_including_children_as_task_with_priority(
         self, mock_esi
     ):
@@ -238,8 +238,8 @@ class TestEveType(NoSocketsTestCase):
             {1816, 1817},
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
     def test_can_create_render_url(self, mock_esi):
         mock_esi.client = EsiClientStub()
 
@@ -251,8 +251,8 @@ class TestEveType(NoSocketsTestCase):
         )
 
 
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
 @patch(MANAGERS_PATH + ".esi")
 class TestEveTypeIconUrl(NoSocketsTestCase):
     def test_can_create_icon_url_1(self, mock_esi):
@@ -293,7 +293,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
             "https://images.evetech.net/types/603/bp?size=256",
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", False)
+    @patch(MODELS_PATH + ".universe_1.EVEUNIVERSE_USE_EVESKINSERVER", False)
     def test_can_create_icon_url_5(self, mock_esi):
         """when called for SKIN type, will return dummy SKIN URL with requested size"""
         mock_esi.client = EsiClientStub()
@@ -301,7 +301,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
 
         self.assertIn("skin_generic_64.png", eve_type.icon_url(size=64))
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", False)
+    @patch(MODELS_PATH + ".universe_1.EVEUNIVERSE_USE_EVESKINSERVER", False)
     def test_can_create_icon_url_5a(self, mock_esi):
         """when called for SKIN type, will return dummy SKIN URL with requested size"""
         mock_esi.client = EsiClientStub()
@@ -309,7 +309,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
 
         self.assertIn("skin_generic_32.png", eve_type.icon_url(size=32))
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", False)
+    @patch(MODELS_PATH + ".universe_1.EVEUNIVERSE_USE_EVESKINSERVER", False)
     def test_can_create_icon_url_5b(self, mock_esi):
         """when called for SKIN type, will return dummy SKIN URL with requested size"""
         mock_esi.client = EsiClientStub()
@@ -317,7 +317,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
 
         self.assertIn("skin_generic_128.png", eve_type.icon_url(size=128))
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", False)
+    @patch(MODELS_PATH + ".universe_1.EVEUNIVERSE_USE_EVESKINSERVER", False)
     def test_can_create_icon_url_5c(self, mock_esi):
         """when called for SKIN type and size is invalid, then raise exception"""
         mock_esi.client = EsiClientStub()
@@ -332,7 +332,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
         with self.assertRaises(ValueError):
             eve_type.icon_url(size=31)
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", False)
+    @patch(MODELS_PATH + ".universe_1.EVEUNIVERSE_USE_EVESKINSERVER", False)
     def test_can_create_icon_url_6(self, mock_esi):
         """when called for non SKIN type and SKIN is forced, then return SKIN URL"""
         mock_esi.client = EsiClientStub()
@@ -343,7 +343,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
             eve_type.icon_url(size=128, category_id=EveCategoryId.SKIN),
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", False)
+    @patch(MODELS_PATH + ".universe_1.EVEUNIVERSE_USE_EVESKINSERVER", False)
     def test_can_create_icon_url_7(self, mock_esi):
         """when called for SKIN type and regular is forced, then return regular URL"""
         mock_esi.client = EsiClientStub()
@@ -354,7 +354,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
             "https://images.evetech.net/types/34599/icon?size=256",
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", True)
+    @patch(MODELS_PATH + ".universe_1.EVEUNIVERSE_USE_EVESKINSERVER", True)
     def test_can_create_icon_url_8(self, mock_esi):
         """
         when called for SKIN type and eveskinserver is enabled,
@@ -368,7 +368,7 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
             "https://eveskinserver.kalkoken.net/skin/34599/icon?size=256",
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_USE_EVESKINSERVER", True)
+    @patch(MODELS_PATH + ".universe_1.EVEUNIVERSE_USE_EVESKINSERVER", True)
     def test_can_create_icon_url_9(self, mock_esi):
         """can use variants"""
         mock_esi.client = EsiClientStub()
@@ -392,8 +392,8 @@ class TestEveTypeIconUrl(NoSocketsTestCase):
         )
 
 
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
-@patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False)
+@patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False)
 @patch(MANAGERS_PATH + ".esi")
 class TestEveTypeProfileUrl(NoSocketsTestCase):
     def test_can_url(self, mock_esi):
@@ -666,9 +666,9 @@ class TestEsiMapping(NoSocketsTestCase):
             ),
         )
 
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", True)
-    @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", True)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", True)
     def test_EveType_mapping(self):
         mapping = EveType._esi_mapping()
         self.assertSetEqual(
@@ -695,22 +695,22 @@ class TestEsiMapping(NoSocketsTestCase):
 class TestDetermineEnabledSections(NoSocketsTestCase):
     def test_should_return_empty_1(self):
         # when
-        with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False
-        ), patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False
+        with patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False
+        ), patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
             result = determine_effective_sections()
         # then
@@ -718,22 +718,22 @@ class TestDetermineEnabledSections(NoSocketsTestCase):
 
     def test_should_return_empty_2(self):
         # when
-        with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", False
-        ), patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False
+        with patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", False
+        ), patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
             result = determine_effective_sections(None)
         # then
@@ -741,22 +741,22 @@ class TestDetermineEnabledSections(NoSocketsTestCase):
 
     def test_should_return_global_section(self):
         # when
-        with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", True
-        ), patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False
+        with patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", True
+        ), patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
             result = determine_effective_sections()
         # then
@@ -764,22 +764,22 @@ class TestDetermineEnabledSections(NoSocketsTestCase):
 
     def test_should_combine_global_and_local_sections(self):
         # when
-        with patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_DOGMAS", True
-        ), patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_MARKET_GROUPS", False
+        with patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False), patch(
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", True
+        ), patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_GRAPHICS", False), patch(
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_MOONS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_PLANETS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STARS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_STATIONS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False
         ), patch(
-            MODELS_PATH + ".EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
+            MODELS_PATH + ".base.EVEUNIVERSE_LOAD_TYPE_MATERIALS", False
         ):
             result = determine_effective_sections(["type_materials"])
         # then

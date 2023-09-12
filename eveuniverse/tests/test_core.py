@@ -29,7 +29,7 @@ from .testdata.factories import (
     create_evesdeapi_response,
 )
 
-MODEL_PATH = "eveuniverse.models.universe"
+MODEL_PATH = "eveuniverse.models.base"
 
 
 class TestDotlan(TestCase):

@@ -1,6 +1,8 @@
-# flake8: noqa
-
-from .base import EveUniverseBaseModel, EveUniverseEntityModel
+from .base import (
+    EveUniverseBaseModel,
+    EveUniverseEntityModel,
+    determine_effective_sections,
+)
 from .entities import EveEntity
 from .sde import (
     EveIndustryActivity,
@@ -10,12 +12,10 @@ from .sde import (
     EveIndustryActivitySkill,
     EveTypeMaterial,
 )
-from .universe import (
+from .universe_1 import (
     EveAncestry,
-    EveAsteroidBelt,
     EveBloodline,
     EveCategory,
-    EveConstellation,
     EveDogmaAttribute,
     EveDogmaEffect,
     EveDogmaEffectModifier,
@@ -24,18 +24,61 @@ from .universe import (
     EveGroup,
     EveMarketGroup,
     EveMarketPrice,
+    EveRace,
+    EveType,
+    EveTypeDogmaAttribute,
+    EveTypeDogmaEffect,
+    EveUnit,
+)
+from .universe_2 import (
+    EveAsteroidBelt,
+    EveConstellation,
     EveMoon,
     EvePlanet,
-    EveRace,
     EveRegion,
     EveSolarSystem,
     EveStar,
     EveStargate,
     EveStation,
     EveStationService,
-    EveType,
-    EveTypeDogmaAttribute,
-    EveTypeDogmaEffect,
-    EveUnit,
-    determine_effective_sections,
 )
+
+__all__ = [
+    "EveUniverseBaseModel",
+    "EveUniverseEntityModel",
+    "determine_effective_sections",
+    "EveEntity",
+    "EveIndustryActivity",
+    "EveIndustryActivityDuration",
+    "EveIndustryActivityMaterial",
+    "EveIndustryActivityProduct",
+    "EveIndustryActivitySkill",
+    "EveTypeMaterial",
+    "EveAncestry",
+    "EveBloodline",
+    "EveCategory",
+    "EveDogmaAttribute",
+    "EveDogmaEffect",
+    "EveDogmaEffectModifier",
+    "EveFaction",
+    "EveGraphic",
+    "EveGroup",
+    "EveMarketGroup",
+    "EveMarketPrice",
+    "EveRace",
+    "EveType",
+    "EveTypeDogmaAttribute",
+    "EveTypeDogmaEffect",
+    "EveUnit",
+    "EveAsteroidBelt",
+    "EveConstellation",
+    "EveMoon",
+    "EvePlanet",
+    "EveRegion",
+    "EveSolarSystem",
+    "EveStar",
+    "EveStargate",
+    "EveStation",
+    "EveStationService",
+    "EveType",
+]

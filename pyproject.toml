@@ -67,7 +67,7 @@ disable = [
     "import-outside-toplevel",
     "duplicate-code",
     "too-few-public-methods",
-    # "protected-access",
+    "protected-access",
     # "too-many-instance-attributes",
     # "no-member",
 ]

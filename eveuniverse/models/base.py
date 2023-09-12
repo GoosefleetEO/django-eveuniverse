@@ -7,6 +7,19 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 from django.apps import apps
 from django.db import models
 
+from eveuniverse.app_settings import (
+    EVEUNIVERSE_LOAD_ASTEROID_BELTS,
+    EVEUNIVERSE_LOAD_DOGMAS,
+    EVEUNIVERSE_LOAD_GRAPHICS,
+    EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES,
+    EVEUNIVERSE_LOAD_MARKET_GROUPS,
+    EVEUNIVERSE_LOAD_MOONS,
+    EVEUNIVERSE_LOAD_PLANETS,
+    EVEUNIVERSE_LOAD_STARGATES,
+    EVEUNIVERSE_LOAD_STARS,
+    EVEUNIVERSE_LOAD_STATIONS,
+    EVEUNIVERSE_LOAD_TYPE_MATERIALS,
+)
 from eveuniverse.managers import EveUniverseEntityModelManager
 
 NAMES_MAX_LENGTH = 100
@@ -561,3 +574,36 @@ class EveUniverseInlineModel(EveUniverseBaseModel):
 
     class Meta:
         abstract = True
+
+
+def determine_effective_sections(
+    enabled_sections: Optional[Iterable[str]] = None,
+) -> Set[str]:
+    """Determine currently effective sections."""
+    from .universe_1 import EveType
+    from .universe_2 import EvePlanet, EveSolarSystem
+
+    enabled_sections = set(enabled_sections) if enabled_sections else set()
+    if EVEUNIVERSE_LOAD_ASTEROID_BELTS:
+        enabled_sections.add(EvePlanet.Section.ASTEROID_BELTS.value)
+    if EVEUNIVERSE_LOAD_DOGMAS:
+        enabled_sections.add(EveType.Section.DOGMAS.value)
+    if EVEUNIVERSE_LOAD_GRAPHICS:
+        enabled_sections.add(EveType.Section.GRAPHICS.value)
+    if EVEUNIVERSE_LOAD_MARKET_GROUPS:
+        enabled_sections.add(EveType.Section.MARKET_GROUPS.value)
+    if EVEUNIVERSE_LOAD_MOONS:
+        enabled_sections.add(EvePlanet.Section.MOONS.value)
+    if EVEUNIVERSE_LOAD_PLANETS:
+        enabled_sections.add(EveSolarSystem.Section.PLANETS.value)
+    if EVEUNIVERSE_LOAD_STARGATES:
+        enabled_sections.add(EveSolarSystem.Section.STARGATES.value)
+    if EVEUNIVERSE_LOAD_STARS:
+        enabled_sections.add(EveSolarSystem.Section.STARS.value)
+    if EVEUNIVERSE_LOAD_STATIONS:
+        enabled_sections.add(EveSolarSystem.Section.STATIONS.value)
+    if EVEUNIVERSE_LOAD_TYPE_MATERIALS:
+        enabled_sections.add(EveType.Section.TYPE_MATERIALS.value)
+    if EVEUNIVERSE_LOAD_INDUSTRY_ACTIVITIES:
+        enabled_sections.add(EveType.Section.INDUSTRY_ACTIVITIES.value)
+    return enabled_sections

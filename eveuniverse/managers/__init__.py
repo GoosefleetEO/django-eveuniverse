@@ -1,5 +1,3 @@
-# flake8: noqa
-
 from .entities import EveEntityManager
 from .sde import (
     EveIndustryActivityDurationManager,
@@ -17,3 +15,19 @@ from .universe import (
     EveTypeManager,
     EveUniverseEntityModelManager,
 )
+
+__all__ = [
+    "EveEntityManager",
+    "EveIndustryActivityDurationManager",
+    "EveIndustryActivityMaterialManager",
+    "EveIndustryActivityProductManager",
+    "EveIndustryActivitySkillManager",
+    "EveTypeMaterialManager",
+    "EveAsteroidBeltManager",
+    "EveMarketPriceManager",
+    "EveMoonManager",
+    "EvePlanetManager",
+    "EveStargateManager",
+    "EveTypeManager",
+    "EveUniverseEntityModelManager",
+]

@@ -15,7 +15,7 @@ from eveuniverse.utils import NoSocketsTestCase
 from ..testdata.esi import EsiClientStub
 from ..testdata.sde import cache_content, sde_data, type_materials_cache_content
 
-MODELS_PATH = "eveuniverse.models.universe"
+MODELS_PATH = "eveuniverse.models.base"
 MANAGERS_PATH = "eveuniverse.managers"
 
 

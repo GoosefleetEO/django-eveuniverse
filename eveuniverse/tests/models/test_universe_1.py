@@ -36,7 +36,7 @@ from eveuniverse.utils import NoSocketsTestCase
 from ..testdata.esi import BravadoOperationStub, EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000
-MODELS_PATH = "eveuniverse.models.universe"
+MODELS_PATH = "eveuniverse.models.base"
 MANAGERS_PATH = "eveuniverse.managers.universe"
 
 
@@ -990,7 +990,7 @@ class TestEveSolarSystemDistanceTo(NoSocketsTestCase):
 
 
 @patch(MANAGERS_PATH + ".esi")
-@patch("eveuniverse.models.universe.esi")
+@patch("eveuniverse.models.universe_2.esi")
 class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
     def test_can_calculate_jumps(self, mock_esi_2, mock_esi_1):
         # given
@@ -1067,7 +1067,7 @@ class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
         self.assertIsNone(otela.jumps_to(enaluri))
 
 
-@patch(MODELS_PATH + ".esi")
+@patch("eveuniverse.models.universe_2.esi")
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemRouteTo(NoSocketsTestCase):
     def test_should_return_valid_route(self, mock_esi_1, mock_esi_2):

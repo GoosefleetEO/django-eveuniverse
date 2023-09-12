@@ -11,7 +11,7 @@ from eveuniverse.managers import (
 )
 
 from .base import EveUniverseInlineModel
-from .universe import EveType
+from .universe_1 import EveType
 
 
 class EveIndustryActivity(EveUniverseInlineModel):
