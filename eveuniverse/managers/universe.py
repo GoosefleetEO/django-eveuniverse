@@ -5,7 +5,7 @@
 import datetime as dt
 import logging
 from collections import namedtuple
-from typing import Any, Dict, Iterable, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 from bravado.exception import HTTPNotFound
 from django.db import models, transaction
@@ -29,63 +29,6 @@ class EveUniverseBaseModelManager(models.Manager):
     """
     :meta private:
     """
-
-    def _defaults_from_esi_obj(
-        self, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
-    ) -> dict:
-        """Return defaults from an esi data object for update/creating the model."""
-        defaults = {}
-        for field_name, mapping in self.model._esi_mapping(enabled_sections).items():
-            if mapping.is_pk:
-                continue
-
-            if not isinstance(mapping.esi_name, tuple):
-                if mapping.esi_name in eve_data_obj:
-                    esi_value = eve_data_obj[mapping.esi_name]
-                else:
-                    esi_value = None
-            else:
-                if (
-                    mapping.esi_name[0] in eve_data_obj
-                    and mapping.esi_name[1] in eve_data_obj[mapping.esi_name[0]]
-                ):
-                    esi_value = eve_data_obj[mapping.esi_name[0]][mapping.esi_name[1]]
-                else:
-                    esi_value = None
-
-            if esi_value is not None:
-                if mapping.is_fk:
-                    value = self._gather_value_from_fk(mapping, esi_value)
-
-                else:
-                    if mapping.is_charfield and esi_value is None:
-                        value = ""
-                    else:
-                        value = esi_value
-
-                defaults[field_name] = value
-
-        return defaults
-
-    def _gather_value_from_fk(self, mapping, esi_value):
-        parent_class = mapping.related_model
-        try:
-            value = parent_class.objects.get(id=esi_value)
-        except parent_class.DoesNotExist:
-            value = None
-            if mapping.create_related:
-                try:
-                    (
-                        value,
-                        _,
-                    ) = parent_class.objects.update_or_create_esi(
-                        id=esi_value,
-                        include_children=False,
-                        wait_for_children=True,
-                    )
-                except AttributeError:
-                    pass
-        return value
 
 
 class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
@@ -174,7 +117,9 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             id, self._fetch_from_esi(id=id)
         )
         if eve_data_obj:
-            defaults = self._defaults_from_esi_obj(eve_data_obj, effective_sections)
+            defaults = self.model.defaults_from_esi_obj(
+                eve_data_obj, effective_sections
+            )
             obj, created = self.update_or_create(id=id, defaults=defaults)
             if effective_sections and hasattr(obj, "enabled_sections"):
                 updated_sections = False
@@ -305,7 +250,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                     }
                     if task_priority:
                         params["priority"] = task_priority
-                    task_update_or_create_inline_object.apply_async(**params)
+                    task_update_or_create_inline_object.apply_async(**params)  # type: ignore
 
     def _identify_parent(self, model_name: str) -> tuple:
         inline_model_class = self.model.get_model_class(model_name)
@@ -367,8 +312,8 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
 
         key = other_pk_info["name"]
         args[key] = value  # type: ignore
-        args["defaults"] = inline_model_class.objects._defaults_from_esi_obj(
-            eve_data_obj,
+        args["defaults"] = inline_model_class.defaults_from_esi_obj(
+            eve_data_obj, enabled_sections=enabled_sections
         )
         inline_model_class.objects.update_or_create(**args)
 
@@ -463,7 +408,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         for eve_data_obj in self._fetch_from_esi():
             params = {
                 "id": eve_data_obj[esi_pk],
-                "defaults": self._defaults_from_esi_obj(
+                "defaults": self.model.defaults_from_esi_obj(
                     eve_data_obj=eve_data_obj, enabled_sections=effective_sections
                 ),
             }

@@ -216,6 +216,70 @@ class EveUniverseBaseModel(models.Model):
 
         return value
 
+    # TODO: Add unit tests
+    @classmethod
+    def defaults_from_esi_obj(
+        cls, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
+    ) -> dict:
+        """Return defaults from an esi data object
+        for update/creating objects of this model.
+        """
+        defaults = {}
+        for field_name, mapping in cls._esi_mapping(enabled_sections).items():
+            if mapping.is_pk:
+                continue
+
+            if not isinstance(mapping.esi_name, tuple):
+                esi_value = cls._esi_value_from_tuple(eve_data_obj, mapping)
+            else:
+                esi_value = cls._esi_value_from_non_tuple(eve_data_obj, mapping)
+
+            if esi_value is not None:
+                if mapping.is_fk:
+                    value = cls._gather_value_from_fk(mapping, esi_value)
+
+                else:
+                    if mapping.is_charfield and esi_value is None:
+                        value = ""
+                    else:
+                        value = esi_value
+
+                defaults[field_name] = value
+
+        return defaults
+
+    @staticmethod
+    def _esi_value_from_tuple(eve_data_obj, mapping) -> Optional[Any]:
+        if mapping.esi_name in eve_data_obj:
+            return eve_data_obj[mapping.esi_name]
+        return None
+
+    @staticmethod
+    def _esi_value_from_non_tuple(eve_data_obj, mapping) -> Optional[Any]:
+        if (
+            mapping.esi_name[0] in eve_data_obj
+            and mapping.esi_name[1] in eve_data_obj[mapping.esi_name[0]]
+        ):
+            return eve_data_obj[mapping.esi_name[0]][mapping.esi_name[1]]
+
+        return None
+
+    @staticmethod
+    def _gather_value_from_fk(mapping, esi_value):
+        parent_class = mapping.related_model
+        try:
+            value = parent_class.objects.get(id=esi_value)
+        except parent_class.DoesNotExist:
+            value = None
+            if mapping.create_related:
+                try:
+                    value = parent_class.objects.update_or_create_esi(
+                        id=esi_value, include_children=False, wait_for_children=True
+                    )[0]
+                except AttributeError:
+                    pass
+        return value
+
 
 class EveUniverseEntityModel(EveUniverseBaseModel):
     """Base class for Eve Universe Entity models.
