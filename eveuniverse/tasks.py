@@ -118,7 +118,7 @@ def update_or_create_inline_object(
         parent_obj_id,
     )
     model_class = EveUniverseEntityModel.get_model_class(parent_model_name)
-    model_class.objects._update_or_create_inline_object(  # type: ignore
+    model_class.update_or_create_inline_object(
         parent_obj_id=parent_obj_id,
         parent_fk=parent_fk,
         eve_data_obj=eve_data_obj,

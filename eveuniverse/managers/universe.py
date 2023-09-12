@@ -126,7 +126,7 @@ class EveUniverseEntityModelManager(models.Manager):
 
             inline_objects = self.model._inline_objects(effective_sections)
             if inline_objects:
-                self._update_or_create_inline_objects(
+                self.model.update_or_create_inline_objects(
                     parent_eve_data_obj=eve_data_obj,
                     parent_obj=obj,
                     inline_objects=inline_objects,
@@ -185,134 +185,6 @@ class EveUniverseEntityModelManager(models.Manager):
         category, method = self.model._esi_path_object()
         esi_data = getattr(getattr(esi.client, category), method)(**params).results()
         return esi_data
-
-    def _update_or_create_inline_objects(
-        self,
-        *,
-        parent_eve_data_obj: dict,
-        parent_obj,
-        inline_objects: dict,
-        wait_for_children: bool,
-        enabled_sections: Iterable[str],
-        task_priority: Optional[int] = None,
-    ) -> None:
-        """updates_or_creates eve objects that are returned "inline" from ESI
-        for the parent eve objects as defined for this parent model (if any)
-        """
-        from eveuniverse.tasks import (
-            update_or_create_inline_object as task_update_or_create_inline_object,
-        )
-
-        if not parent_eve_data_obj or not parent_obj:
-            raise ValueError(
-                f"{self.model.__name__}: Tried to create inline object "
-                "from empty parent object"
-            )
-
-        for inline_field, inline_model_name in inline_objects.items():
-            if (
-                inline_field not in parent_eve_data_obj
-                or not parent_eve_data_obj[inline_field]
-            ):
-                continue
-
-            parent_fk, parent2_model_name, other_pk_info = self._identify_parent(
-                self.model, inline_model_name
-            )
-
-            for eve_data_obj in parent_eve_data_obj[inline_field]:
-                if wait_for_children:
-                    self._update_or_create_inline_object(
-                        parent_obj_id=parent_obj.id,
-                        parent_fk=parent_fk,
-                        eve_data_obj=eve_data_obj,
-                        other_pk_info=other_pk_info,
-                        parent2_model_name=parent2_model_name,
-                        inline_model_name=inline_model_name,
-                        enabled_sections=enabled_sections,
-                    )
-                else:
-                    params: Dict[str, Any] = {
-                        "kwargs": {
-                            "parent_obj_id": parent_obj.id,
-                            "parent_fk": parent_fk,
-                            "eve_data_obj": eve_data_obj,
-                            "other_pk_info": other_pk_info,
-                            "parent2_model_name": parent2_model_name,
-                            "inline_model_name": inline_model_name,
-                            "parent_model_name": type(parent_obj).__name__,
-                            "enabled_sections": list(enabled_sections),
-                        }
-                    }
-                    if task_priority:
-                        params["priority"] = task_priority
-                    task_update_or_create_inline_object.apply_async(**params)  # type: ignore
-
-    @staticmethod
-    def _identify_parent(model_class, inline_model_name: str) -> tuple:
-        inline_model_class = model_class.get_model_class(inline_model_name)
-        esi_mapping = inline_model_class._esi_mapping()
-        parent_fk = None
-        other_pk = None
-        parent_class_2 = None
-        for field_name, mapping in esi_mapping.items():
-            if mapping.is_pk:
-                if mapping.is_parent_fk:
-                    parent_fk = field_name
-                else:
-                    other_pk = (field_name, mapping)
-                    parent_class_2 = mapping.related_model
-
-        if not parent_fk or not other_pk:
-            raise ValueError(
-                f"ESI Mapping for {inline_model_name} not valid: {parent_fk}, {other_pk}"
-            )
-
-        parent2_model_name = parent_class_2.__name__ if parent_class_2 else None
-        other_pk_info = {
-            "name": other_pk[0],
-            "esi_name": other_pk[1].esi_name,
-            "is_fk": other_pk[1].is_fk,
-        }
-        return parent_fk, parent2_model_name, other_pk_info
-
-    def _update_or_create_inline_object(
-        self,
-        parent_obj_id: int,
-        parent_fk: str,
-        eve_data_obj: dict,
-        other_pk_info: Dict[str, Any],
-        parent2_model_name: Optional[str],
-        inline_model_name: str,
-        enabled_sections: Iterable[str],
-    ):
-        """Updates or creates a single inline object.
-        Will automatically create additional parent objects as needed
-        """
-        inline_model_class = self.model.get_model_class(inline_model_name)
-
-        args = {f"{parent_fk}_id": parent_obj_id}
-        esi_value = eve_data_obj.get(other_pk_info["esi_name"])
-        if other_pk_info["is_fk"]:
-            parent_class_2 = self.model.get_model_class(parent2_model_name)
-            try:
-                value = parent_class_2.objects.get(id=esi_value)
-            except parent_class_2.DoesNotExist:
-                try:
-                    value, _ = parent_class_2.objects.update_or_create_esi(
-                        id=esi_value, enabled_sections=enabled_sections
-                    )
-                except AttributeError:
-                    value = None
-        else:
-            value = esi_value
-
-        key = other_pk_info["name"]
-        args[key] = value  # type: ignore
-        args["defaults"] = inline_model_class.defaults_from_esi_obj(
-            eve_data_obj, enabled_sections=enabled_sections
-        )
-        inline_model_class.objects.update_or_create(**args)
 
     def update_or_create_all_esi(
         self,
@@ -596,35 +468,6 @@ class EveStargateManager(EveUniverseEntityModelManager):
                 obj.destination_eve_stargate.save()
 
         return obj, created
-
-
-class EveStationManager(EveUniverseEntityModelManager):
-    """For special handling of station services
-
-    :meta private:
-    """
-
-    def _update_or_create_inline_objects(
-        self,
-        *,
-        parent_eve_data_obj: dict,
-        parent_obj,
-        inline_objects: dict,
-        wait_for_children: bool,
-        enabled_sections: Iterable[str],
-        task_priority: Optional[int] = None,
-    ) -> None:
-        """updates_or_creates station service objects for EveStations"""
-        from eveuniverse.models import EveStationService
-
-        if "services" in parent_eve_data_obj:
-            services = []
-            for service_name in parent_eve_data_obj["services"]:
-                service, _ = EveStationService.objects.get_or_create(name=service_name)
-                services.append(service)
-
-            if services:
-                parent_obj.services.add(*services)
 
 
 class EveTypeManager(EveUniverseEntityModelManager):

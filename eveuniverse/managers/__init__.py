@@ -14,7 +14,6 @@ from .universe import (
     EveMoonManager,
     EvePlanetManager,
     EveStargateManager,
-    EveStationManager,
     EveTypeManager,
     EveUniverseEntityModelManager,
 )

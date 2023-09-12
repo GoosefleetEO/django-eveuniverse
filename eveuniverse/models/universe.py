@@ -35,7 +35,6 @@ from eveuniverse.managers import (
     EveMoonManager,
     EvePlanetManager,
     EveStargateManager,
-    EveStationManager,
     EveTypeManager,
 )
 from eveuniverse.providers import esi
@@ -1010,8 +1009,6 @@ class EveStation(EveUniverseEntityModel):
     reprocessing_stations_take = models.FloatField()
     services = models.ManyToManyField("EveStationService")
 
-    objects = EveStationManager()
-
     class _EveUniverseMeta:
         esi_pk = "station_id"
         esi_path_object = "Universe.get_universe_stations_station_id"
@@ -1030,6 +1027,28 @@ class EveStation(EveUniverseEntityModel):
     @classmethod
     def eve_entity_category(cls) -> str:
         return EveEntity.CATEGORY_STATION
+
+    @classmethod
+    def update_or_create_inline_objects(
+        self,
+        *,
+        parent_eve_data_obj: dict,
+        parent_obj,
+        inline_objects: dict,
+        wait_for_children: bool,
+        enabled_sections: Iterable[str],
+        task_priority: Optional[int] = None,
+    ) -> None:
+        """updates_or_creates station service objects for EveStations"""
+
+        if "services" in parent_eve_data_obj:
+            services = []
+            for service_name in parent_eve_data_obj["services"]:
+                service, _ = EveStationService.objects.get_or_create(name=service_name)
+                services.append(service)
+
+            if services:
+                parent_obj.services.add(*services)
 
 
 class EveStationService(models.Model):
