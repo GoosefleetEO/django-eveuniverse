@@ -124,16 +124,13 @@ class EveUniverseEntityModelManager(models.Manager):
                 if updated_sections:
                     obj.save()
 
-            inline_objects = self.model._inline_objects(effective_sections)
-            if inline_objects:
-                self.model.update_or_create_inline_objects(
-                    parent_eve_data_obj=eve_data_obj,
-                    parent_obj=obj,
-                    inline_objects=inline_objects,
-                    wait_for_children=wait_for_children,
-                    enabled_sections=effective_sections,
-                    task_priority=task_priority,
-                )
+            self.model.update_or_create_inline_objects(
+                parent_eve_data_obj=eve_data_obj,
+                parent_obj=obj,
+                wait_for_children=wait_for_children,
+                enabled_sections=effective_sections,
+                task_priority=task_priority,
+            )
 
             if include_children:
                 self.model.update_or_create_children(

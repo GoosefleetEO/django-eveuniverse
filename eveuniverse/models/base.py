@@ -371,7 +371,6 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         *,
         parent_eve_data_obj: dict,
         parent_obj,
-        inline_objects: dict,
         wait_for_children: bool,
         enabled_sections: Iterable[str],
         task_priority: Optional[int] = None,
@@ -382,6 +381,10 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         from eveuniverse.tasks import (
             update_or_create_inline_object as task_update_or_create_inline_object,
         )
+
+        inline_objects = cls._inline_objects(enabled_sections)
+        if not inline_objects:
+            return
 
         if not parent_eve_data_obj or not parent_obj:
             raise ValueError(

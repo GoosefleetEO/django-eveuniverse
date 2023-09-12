@@ -1030,11 +1030,10 @@ class EveStation(EveUniverseEntityModel):
 
     @classmethod
     def update_or_create_inline_objects(
-        self,
+        cls,
         *,
         parent_eve_data_obj: dict,
         parent_obj,
-        inline_objects: dict,
         wait_for_children: bool,
         enabled_sections: Iterable[str],
         task_priority: Optional[int] = None,
