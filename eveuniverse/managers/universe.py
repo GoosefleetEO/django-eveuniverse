@@ -271,31 +271,10 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
             ):
                 continue
 
-            inline_model_class = self.model.get_model_class(model_name)
-            esi_mapping = inline_model_class._esi_mapping()
-            parent_fk = None
-            other_pk = None
-            parent_class_2 = None
-            for field_name, mapping in esi_mapping.items():
-                if mapping.is_pk:
-                    if mapping.is_parent_fk:
-                        parent_fk = field_name
-                    else:
-                        other_pk = (field_name, mapping)
-                        parent_class_2 = mapping.related_model
+            parent_fk, parent2_model_name, other_pk_info = self._identify_parent(
+                model_name
+            )
 
-            if not parent_fk or not other_pk:
-                raise ValueError(
-                    f"ESI Mapping for {model_name} not valid: "
-                    f"{parent_fk}, {other_pk}"
-                )
-
-            parent2_model_name = parent_class_2.__name__ if parent_class_2 else None
-            other_pk_info = {
-                "name": other_pk[0],
-                "esi_name": other_pk[1].esi_name,
-                "is_fk": other_pk[1].is_fk,
-            }
             for eve_data_obj in parent_eve_data_obj[inline_field]:
                 if wait_for_children:
                     self._update_or_create_inline_object(
@@ -322,7 +301,34 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
                     }
                     if task_priority:
                         params["priority"] = task_priority
-                    task_update_or_create_inline_object.apply_async(**params)  # type: ignore
+                    task_update_or_create_inline_object.apply_async(**params)
+
+    def _identify_parent(self, model_name: str) -> tuple:
+        inline_model_class = self.model.get_model_class(model_name)
+        esi_mapping = inline_model_class._esi_mapping()
+        parent_fk = None
+        other_pk = None
+        parent_class_2 = None
+        for field_name, mapping in esi_mapping.items():
+            if mapping.is_pk:
+                if mapping.is_parent_fk:
+                    parent_fk = field_name
+                else:
+                    other_pk = (field_name, mapping)
+                    parent_class_2 = mapping.related_model
+
+        if not parent_fk or not other_pk:
+            raise ValueError(
+                f"ESI Mapping for {model_name} not valid: " f"{parent_fk}, {other_pk}"
+            )
+
+        parent2_model_name = parent_class_2.__name__ if parent_class_2 else None
+        other_pk_info = {
+            "name": other_pk[0],
+            "esi_name": other_pk[1].esi_name,
+            "is_fk": other_pk[1].is_fk,
+        }
+        return parent_fk, parent2_model_name, other_pk_info
 
     def _update_or_create_inline_object(
         self,
@@ -420,7 +426,7 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
     ) -> None:
-        """updates or creates all objects of this class from ESI.
+        """Update or create all objects of this class from ESI.
 
         Loading all objects can take a long time. Use with care!
 
@@ -437,48 +443,66 @@ class EveUniverseEntityModelManager(EveUniverseBaseModelManager):
         effective_sections = determine_effective_sections(enabled_sections)
 
         if self.model._is_list_only_endpoint():
-            esi_pk = self.model._esi_pk()
-            for eve_data_obj in self._fetch_from_esi():
-                args = {"id": eve_data_obj[esi_pk]}
-                args["defaults"] = self._defaults_from_esi_obj(
-                    eve_data_obj=eve_data_obj, enabled_sections=effective_sections
-                )
-                self.update_or_create(**args)
+            self._update_or_create_all_esi_list_endpoint(effective_sections)
 
         else:
-            if self.model._has_esi_path_list():
-                category, method = self.model._esi_path_list()
-                ids = getattr(
-                    getattr(esi.client, category),
-                    method,
-                )().results()
-                for id in ids:
-                    if wait_for_children:
-                        self.update_or_create_esi(
-                            id=id,
-                            include_children=include_children,
-                            wait_for_children=wait_for_children,
-                            enabled_sections=effective_sections,
-                        )
-                    else:
-                        params: Dict[str, Any] = {
-                            "kwargs": {
-                                "model_name": self.model.__name__,
-                                "id": id,
-                                "include_children": include_children,
-                                "wait_for_children": wait_for_children,
-                                "enabled_sections": list(effective_sections),
-                                "task_priority": task_priority,
-                            },
-                        }
-                        if task_priority:
-                            params["priority"] = task_priority
-                        task_update_or_create_eve_object.apply_async(**params)  # type: ignore
+            self._update_or_create_all_esi_normal(
+                include_children,
+                wait_for_children,
+                task_priority,
+                task_update_or_create_eve_object,
+                effective_sections,
+            )
 
-            else:
-                raise TypeError(
-                    f"ESI does not provide a list endpoint for {self.model.__name__}"
-                )
+    def _update_or_create_all_esi_list_endpoint(self, effective_sections):
+        esi_pk = self.model._esi_pk()
+        for eve_data_obj in self._fetch_from_esi():
+            params = {
+                "id": eve_data_obj[esi_pk],
+                "defaults": self._defaults_from_esi_obj(
+                    eve_data_obj=eve_data_obj, enabled_sections=effective_sections
+                ),
+            }
+            self.update_or_create(**params)
+
+    def _update_or_create_all_esi_normal(
+        self,
+        include_children,
+        wait_for_children,
+        task_priority,
+        task_update_or_create_eve_object,
+        effective_sections,
+    ):
+        if self.model._has_esi_path_list():
+            category, method = self.model._esi_path_list()
+            ids = getattr(getattr(esi.client, category), method)().results()
+            for id in ids:
+                if wait_for_children:
+                    self.update_or_create_esi(
+                        id=id,
+                        include_children=include_children,
+                        wait_for_children=wait_for_children,
+                        enabled_sections=effective_sections,
+                    )
+                else:
+                    params: Dict[str, Any] = {
+                        "kwargs": {
+                            "model_name": self.model.__name__,
+                            "id": id,
+                            "include_children": include_children,
+                            "wait_for_children": wait_for_children,
+                            "enabled_sections": list(effective_sections),
+                            "task_priority": task_priority,
+                        },
+                    }
+                    if task_priority:
+                        params["priority"] = task_priority
+                    task_update_or_create_eve_object.apply_async(**params)  # type: ignore
+
+        else:
+            raise TypeError(
+                f"ESI does not provide a list endpoint for {self.model.__name__}"
+            )
 
     def bulk_get_or_create_esi(
         self,
