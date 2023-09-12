@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Removed local swagger spec file
 - Refactoring based on feedback from pylint
 - Make pylint checks mandatory
+- Switched docs to alabaster theme
 
 ## [1.3.1] - 2023-08-05
 

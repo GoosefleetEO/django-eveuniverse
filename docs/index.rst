@@ -5,7 +5,8 @@ Contents
 ========
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
+   :maxdepth: 3
 
    operations
    developer

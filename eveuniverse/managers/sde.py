@@ -20,15 +20,15 @@ logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 class _ApiCacheManager(ABC):
     """A base class for adding ability to fetch objects from API with cache."""
 
-    sde_cache_timeout = 3600 * 24
-    sde_cache_key = ""
-    sde_api_route = ""
+    _sde_cache_timeout = 3600 * 24
+    _sde_cache_key = ""
+    _sde_api_route = ""
 
     def __init__(self) -> None:
-        if not self.sde_cache_key:
+        if not self._sde_cache_key:
             raise ValueError("Cache key not defined")
 
-        if not self.sde_api_route:
+        if not self._sde_api_route:
             raise ValueError("API route not defined")
 
     @classmethod
@@ -40,26 +40,26 @@ class _ApiCacheManager(ABC):
                 data_all[type_id] = []
             data_all[type_id].append(row)
         cache.set(
-            key=cls.sde_cache_key,
+            key=cls._sde_cache_key,
             value=data_all,
-            timeout=cls.sde_cache_timeout,
+            timeout=cls._sde_cache_timeout,
         )
         return data_all
 
     @classmethod
     def _fetch_sde_data_cached(cls) -> dict:
-        data = cache.get(cls.sde_cache_key)
+        data = cache.get(cls._sde_cache_key)
         if not data:
             response = requests.get(
-                urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls.sde_api_route),
+                urljoin(EVEUNIVERSE_API_SDE_URL, "latest/" + cls._sde_api_route),
                 timeout=10,
             )
             response.raise_for_status()
             data = cls._response_to_cache(response)
             cache.set(
-                key=cls.sde_cache_key,
+                key=cls._sde_cache_key,
                 value=data,
-                timeout=cls.sde_cache_timeout,
+                timeout=cls._sde_cache_timeout,
             )
         return data
 
@@ -69,9 +69,9 @@ class _ApiCacheManager(ABC):
 
 
 class EveTypeMaterialManager(models.Manager, _ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_TYPE_MATERIALS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "invTypeMaterials.json"
+    _sde_cache_key = "EVEUNIVERSE_TYPE_MATERIALS_REQUEST"
+    _sde_cache_timeout = 3600 * 24
+    _sde_api_route = "invTypeMaterials.json"
 
     def update_or_create_api(self, *, eve_type) -> None:
         from eveuniverse.models import EveType
@@ -91,9 +91,9 @@ class EveTypeMaterialManager(models.Manager, _ApiCacheManager):
 
 
 class EveIndustryActivityDurationManager(models.Manager, _ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_DURATIONS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "industryActivity.json"  # not related to EveIndustryActivity
+    _sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_DURATIONS_REQUEST"
+    _sde_cache_timeout = 3600 * 24
+    _sde_api_route = "industryActivity.json"  # not related to EveIndustryActivity
 
     def update_or_create_api(self, *, eve_type) -> None:
         from eveuniverse.models import EveIndustryActivity
@@ -113,9 +113,9 @@ class EveIndustryActivityDurationManager(models.Manager, _ApiCacheManager):
 
 
 class EveIndustryActivityMaterialManager(models.Manager, _ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_MATERIALS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "industryActivityMaterials.json"
+    _sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_MATERIALS_REQUEST"
+    _sde_cache_timeout = 3600 * 24
+    _sde_api_route = "industryActivityMaterials.json"
 
     def update_or_create_api(self, *, eve_type) -> None:
         from eveuniverse.models import EveIndustryActivity, EveType
@@ -140,9 +140,9 @@ class EveIndustryActivityMaterialManager(models.Manager, _ApiCacheManager):
 
 
 class EveIndustryActivityProductManager(models.Manager, _ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_PRODUCTS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "industryActivityProducts.json"
+    _sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_PRODUCTS_REQUEST"
+    _sde_cache_timeout = 3600 * 24
+    _sde_api_route = "industryActivityProducts.json"
 
     def update_or_create_api(self, *, eve_type) -> None:
         from eveuniverse.models import EveIndustryActivity, EveType
@@ -167,9 +167,9 @@ class EveIndustryActivityProductManager(models.Manager, _ApiCacheManager):
 
 
 class EveIndustryActivitySkillManager(models.Manager, _ApiCacheManager):
-    sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_SKILLS_REQUEST"
-    sde_cache_timeout = 3600 * 24
-    sde_api_route = "industryActivitySkills.json"
+    _sde_cache_key = "EVEUNIVERSE_INDUSTRY_ACTIVITY_SKILLS_REQUEST"
+    _sde_cache_timeout = 3600 * 24
+    _sde_api_route = "industryActivitySkills.json"
 
     def update_or_create_api(self, *, eve_type) -> None:
         from eveuniverse.models import EveIndustryActivity, EveType

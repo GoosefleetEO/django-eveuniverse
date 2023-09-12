@@ -41,10 +41,10 @@ class EveEntityQuerySet(models.QuerySet):
 class EveEntityManagerBase(EveUniverseEntityModelManager):
     """Custom manager for EveEntity"""
 
-    MAX_DEPTH = 5
+    _MAX_DEPTH = 5  # max recursion depth when resolving IDs
 
     def get_queryset(self) -> models.QuerySet:
-        """:private:"""
+        """:meta private:"""
         return EveEntityQuerySet(self.model, using=self._db)
 
     def get_or_create_esi(
@@ -303,7 +303,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         except HTTPNotFound:
             # if API fails to resolve all IDs, we divide and conquer,
             # trying to resolve each half of the ids separately
-            if len(ids) > 1 and depth < self.MAX_DEPTH:
+            if len(ids) > 1 and depth < self._MAX_DEPTH:
                 resolved_counter += self._resolve_entities_from_esi(ids[::2], depth + 1)
                 resolved_counter += self._resolve_entities_from_esi(
                     ids[1::2], depth + 1
