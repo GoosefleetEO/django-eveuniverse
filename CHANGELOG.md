@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Added abyssal deadspace property to EveSolarSystem
+- Allow specifying path for testdata in Path format
 
 ### Changed
 

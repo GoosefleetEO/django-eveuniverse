@@ -5,7 +5,8 @@ import json
 import logging
 from collections import OrderedDict
 from copy import deepcopy
-from typing import Iterable, List, NamedTuple, Optional
+from pathlib import Path
+from typing import Iterable, List, NamedTuple, Optional, Union
 
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -35,7 +36,7 @@ class ModelSpec(NamedTuple):
     enabled_sections: Optional[Iterable[str]] = None
 
 
-def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
+def create_testdata(spec: List[ModelSpec], filepath: Union[str, Path]) -> None:
     """Loads eve data from ESI as defined by spec and dumps it to file as JSON
 
     Args:
@@ -49,7 +50,7 @@ def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
 
     _check_if_esi_is_available()
     _load_data_per_spec(spec)
-    _dump_all_data_into_file(filepath)
+    _dump_all_data_into_file(Path(filepath))
 
 
 def _clear_database():
@@ -64,7 +65,7 @@ def _check_if_esi_is_available():
         raise RuntimeError("ESI not online")
 
 
-def _load_data_per_spec(spec):
+def _load_data_per_spec(spec: List[ModelSpec]):
     num = 0
     for model_spec in spec:
         num += 1
@@ -86,7 +87,7 @@ def _load_data_per_spec(spec):
         print()
 
 
-def _dump_all_data_into_file(filepath):
+def _dump_all_data_into_file(filepath: Path):
     data = OrderedDict()
     for model_class in EveUniverseBaseModel.all_models():
         if model_class.objects.count() > 0 and model_class.__name__ != "EveUnit":
@@ -105,7 +106,7 @@ def _dump_all_data_into_file(filepath):
             data[model_class.__name__] = my_data
 
     print(f"Writing testdata to: {filepath}")
-    with open(filepath, "w", encoding="utf-8") as file:
+    with filepath.open("w", encoding="utf-8") as file:
         json.dump(data, file, cls=DjangoJSONEncoder, indent=4, sort_keys=True)
 
 
@@ -149,14 +150,15 @@ def _process_eve_stargate(testdata, model_class, model_name):
             model_class.objects.update_or_create(id=id, defaults=obj)
 
 
-def load_testdata_from_file(filepath: str) -> None:
+def load_testdata_from_file(filepath: Union[str, Path]) -> None:
     """Create eve objects in the database from testdata dump given as JSON file.
 
     Args:
         filepath: Absolute path to the JSON file containing the testdata
         created by `create_testdata()`
     """
-    with open(filepath, "r", encoding="utf-8") as file:
+    my_filepath = Path(filepath)
+    with my_filepath.open("r", encoding="utf-8") as file:
         testdata = json.load(file)
 
     load_testdata_from_dict(testdata)
