@@ -19,6 +19,8 @@ from .universe import EveUniverseEntityModelManager
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
+_ESI_INVALID_IDS = [1]  # Will never try to resolve these invalid IDs from ESI
+
 
 class EveEntityQuerySet(models.QuerySet):
     """Custom queryset for EveEntity."""
@@ -31,9 +33,7 @@ class EveEntityQuerySet(models.QuerySet):
 
     def valid_ids(self) -> Set[int]:
         """Determine valid Ids in this Queryset."""
-        return set(
-            self.exclude(id__in=self.model.ESI_INVALID_IDS).values_list("id", flat=True)
-        )
+        return set(self.exclude(id__in=_ESI_INVALID_IDS).values_list("id", flat=True))
 
 
 class EveEntityManagerBase(EveUniverseEntityModelManager):
@@ -104,7 +104,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         """
         id = int(id)
         logger.info("%s: Trying to resolve ID to EveEntity with ESI", id)
-        if id in self.model.ESI_INVALID_IDS:
+        if id in _ESI_INVALID_IDS:
             logger.info("%s: ID is not valid", id)
             return None, False
         try:
@@ -286,7 +286,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         """Updates all Eve entity objects by id from ESI."""
         if not ids:
             return 0
-        ids = list(set((int(id) for id in ids if id not in self.model.ESI_INVALID_IDS)))
+        ids = list(set((int(id) for id in ids if id not in _ESI_INVALID_IDS)))
         logger.info("Updating %d entities from ESI", len(ids))
         resolved_counter = 0
         for chunk_ids in chunks(ids, POST_UNIVERSE_NAMES_MAX_ITEMS):

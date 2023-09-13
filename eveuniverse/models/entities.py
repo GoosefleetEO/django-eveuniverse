@@ -22,12 +22,10 @@ class EveEntity(EveUniverseEntityModel):
     """
 
     # NPC IDs
-    NPC_CORPORATION_ID_BEGIN = 1_000_000
-    NPC_CORPORATION_ID_END = 2_000_000
-    NPC_CHARACTER_ID_BEGIN = 3_000_000
-    NPC_CHARACTER_ID_END = 4_000_000
-
-    ESI_INVALID_IDS = {1}  # Will never try to resolve these invalid IDs from ESI
+    _NPC_CORPORATION_ID_BEGIN = 1_000_000
+    _NPC_CORPORATION_ID_END = 2_000_000
+    _NPC_CHARACTER_ID_BEGIN = 3_000_000
+    _NPC_CHARACTER_ID_END = 4_000_000
 
     # categories
     CATEGORY_ALLIANCE = "alliance"
@@ -122,12 +120,12 @@ class EveEntity(EveUniverseEntityModel):
         """True if this entity is an NPC character or NPC corporation, else False."""
         if (
             self.is_corporation
-            and self.NPC_CORPORATION_ID_BEGIN <= self.id < self.NPC_CORPORATION_ID_END
+            and self._NPC_CORPORATION_ID_BEGIN <= self.id < self._NPC_CORPORATION_ID_END
         ):
             return True
         if (
             self.is_character
-            and self.NPC_CHARACTER_ID_BEGIN <= self.id < self.NPC_CHARACTER_ID_END
+            and self._NPC_CHARACTER_ID_BEGIN <= self.id < self._NPC_CHARACTER_ID_END
         ):
             return True
         return False
