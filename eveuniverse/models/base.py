@@ -228,7 +228,7 @@ class EveUniverseBaseModel(models.Model):
         return value
 
     @classmethod
-    def defaults_from_esi_obj(
+    def _defaults_from_esi_obj(
         cls, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
     ) -> Dict[str, Any]:
         """Return defaults from an esi data object
@@ -514,7 +514,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
 
         key = other_pk_info["name"]
         params[key] = value
-        params["defaults"] = inline_model_class.defaults_from_esi_obj(
+        params["defaults"] = inline_model_class._defaults_from_esi_obj(
             eve_data_obj, enabled_sections=enabled_sections
         )
         inline_model_class.objects.update_or_create(**params)

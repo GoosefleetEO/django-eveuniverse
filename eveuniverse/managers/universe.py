@@ -18,7 +18,7 @@ from eveuniverse.utils import LoggerAddTag
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
-FakeResponse = namedtuple("FakeResponse", ["status_code"])
+_FakeResponse = namedtuple("_FakeResponse", ["status_code"])
 """:meta private:"""
 
 
@@ -108,7 +108,7 @@ class EveUniverseEntityModelManager(models.Manager):
             self.model, id, self._fetch_from_esi(id=id)
         )
         if eve_data_obj:
-            defaults = self.model.defaults_from_esi_obj(
+            defaults = self.model._defaults_from_esi_obj(
                 eve_data_obj, effective_sections
             )
             obj, created = self.update_or_create(id=id, defaults=defaults)
@@ -139,7 +139,7 @@ class EveUniverseEntityModelManager(models.Manager):
                 )
         else:
             raise HTTPNotFound(
-                FakeResponse(status_code=404),  # type: ignore
+                _FakeResponse(status_code=404),  # type: ignore
                 message=f"{self.model.__name__} object with id {id} not found",
             )
         return obj, created
@@ -160,7 +160,7 @@ class EveUniverseEntityModelManager(models.Manager):
                 return row
 
         raise HTTPNotFound(
-            FakeResponse(status_code=404),  # type: ignore
+            _FakeResponse(status_code=404),  # type: ignore
             message=f"{model_class.__name__} object with id {id} not found",
         )
 
@@ -221,7 +221,7 @@ class EveUniverseEntityModelManager(models.Manager):
         for eve_data_obj in self._fetch_from_esi():
             params = {
                 "id": eve_data_obj[esi_pk],
-                "defaults": self.model.defaults_from_esi_obj(
+                "defaults": self.model._defaults_from_esi_obj(
                     eve_data_obj=eve_data_obj, enabled_sections=effective_sections
                 ),
             }
