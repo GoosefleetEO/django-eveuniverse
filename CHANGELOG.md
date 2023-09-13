@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.4.0] - TBD
+## [1.4.0] - 2023-09-13
 
 ### Added
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Removed local swagger spec file
-- Refactoring based on feedback from pylint
+- Major refactoring and code based improvements based on feedback from pylint
 - Make pylint checks mandatory
 - Switched docs to alabaster theme
 
