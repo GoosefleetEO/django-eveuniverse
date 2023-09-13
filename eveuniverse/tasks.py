@@ -10,15 +10,8 @@ from django.db.utils import OperationalError
 from . import __title__
 from .app_settings import EVEUNIVERSE_LOAD_TASKS_PRIORITY, EVEUNIVERSE_TASKS_TIME_LIMIT
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS, EveCategoryId
-from .models import (
-    EveCategory,
-    EveEntity,
-    EveMarketPrice,
-    EveRegion,
-    EveType,
-    EveUniverseEntityModel,
-    determine_effective_sections,
-)
+from .models import EveCategory, EveEntity, EveMarketPrice, EveRegion, EveType
+from .models.base import EveUniverseEntityModel, determine_effective_sections
 from .providers import esi
 from .utils import LoggerAddTag, chunks
 

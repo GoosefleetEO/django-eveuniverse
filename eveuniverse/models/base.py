@@ -19,7 +19,7 @@ from eveuniverse.app_settings import (
     EVEUNIVERSE_LOAD_STATIONS,
     EVEUNIVERSE_LOAD_TYPE_MATERIALS,
 )
-from eveuniverse.managers import EveUniverseEntityModelManager
+from eveuniverse.managers.universe import EveUniverseEntityModelManager
 
 _NAMES_MAX_LENGTH = 100
 

@@ -195,7 +195,7 @@ class EveEntity(EveUniverseEntityModel):
         Returns:
             itself after update
         """
-        obj = EveEntity.objects.update_or_create_esi(id=self.id)[0]
+        obj = EveEntity.objects.update_or_create_esi(id=self.id)[0]  # type: ignore
         return obj
 
     def icon_url(self, size: int = EveUniverseEntityModel.DEFAULT_ICON_SIZE) -> str:

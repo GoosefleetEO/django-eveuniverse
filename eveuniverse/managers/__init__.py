@@ -15,7 +15,6 @@ from .universe import (
     EvePlanetManager,
     EveStargateManager,
     EveTypeManager,
-    EveUniverseEntityModelManager,
 )
 
 __all__ = [

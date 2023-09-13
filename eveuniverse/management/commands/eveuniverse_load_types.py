@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from eveuniverse import __title__, tasks
 from eveuniverse.core.esitools import is_esi_online
-from eveuniverse.models import determine_effective_sections
+from eveuniverse.models.base import determine_effective_sections
 from eveuniverse.utils import LoggerAddTag
 
 from . import EXPECTATION_TEXT, get_input
@@ -128,20 +128,20 @@ class Command(BaseCommand):
             if category_ids or group_ids or type_ids:
                 tasks.load_eve_types.delay(
                     category_ids=category_ids, group_ids=group_ids, type_ids=type_ids
-                )
+                )  # type: ignore
             if category_ids_with_dogma or group_ids_with_dogma or type_ids_with_dogma:
                 tasks.load_eve_types.delay(
                     category_ids=category_ids_with_dogma,
                     group_ids=group_ids_with_dogma,
                     type_ids=type_ids_with_dogma,
                     force_loading_dogma=True,
-                )
+                )  # type: ignore
             self.stdout.write(self.style.SUCCESS("Data load started!"))
         else:
             self.stdout.write(self.style.WARNING("Aborted"))
 
 
-def sum_items(*items) -> len:
+def sum_items(*items) -> int:
     total = 0
     for item in items:
         try:

@@ -19,9 +19,8 @@ from eveuniverse.models import (
     EveType,
     EveTypeDogmaEffect,
     EveUnit,
-    determine_effective_sections,
 )
-from eveuniverse.models.base import _EsiFieldMapping
+from eveuniverse.models.base import _EsiFieldMapping, determine_effective_sections
 from eveuniverse.utils import NoSocketsTestCase
 
 from ..testdata.esi import EsiClientStub

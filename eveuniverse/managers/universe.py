@@ -51,7 +51,7 @@ class EveUniverseEntityModelManager(models.Manager):
         Returns:
             A tuple consisting of the requested object and a created flag
         """
-        from eveuniverse.models import determine_effective_sections
+        from eveuniverse.models.base import determine_effective_sections
 
         id = int(id)
         effective_sections = determine_effective_sections(enabled_sections)
@@ -99,7 +99,7 @@ class EveUniverseEntityModelManager(models.Manager):
         Returns:
             A tuple consisting of the requested object and a created flag
         """
-        from eveuniverse.models import determine_effective_sections
+        from eveuniverse.models.base import determine_effective_sections
 
         id = int(id)
         effective_sections = determine_effective_sections(enabled_sections)
@@ -196,7 +196,7 @@ class EveUniverseEntityModelManager(models.Manager):
             wait_for_children: when false all objects will be loaded async, else blocking
             enabled_sections: Sections to load regardless of current settings
         """
-        from eveuniverse.models import determine_effective_sections
+        from eveuniverse.models.base import determine_effective_sections
         from eveuniverse.tasks import (
             update_or_create_eve_object as task_update_or_create_eve_object,
         )
@@ -288,7 +288,7 @@ class EveUniverseEntityModelManager(models.Manager):
         Returns:
             Queryset with all requested eve objects
         """
-        from eveuniverse.models import determine_effective_sections
+        from eveuniverse.models.base import determine_effective_sections
 
         ids = set(map(int, ids))
         effective_sections = determine_effective_sections(enabled_sections)
@@ -467,7 +467,7 @@ class EveTypeManager(EveUniverseEntityModelManager):
         enabled_sections: Optional[Iterable[str]] = None,
         task_priority: Optional[int] = None,
     ) -> Tuple[Any, bool]:
-        from eveuniverse.models import determine_effective_sections
+        from eveuniverse.models.base import determine_effective_sections
 
         effective_sections = determine_effective_sections(enabled_sections)
         obj, created = super().update_or_create_esi(
