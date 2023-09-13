@@ -43,18 +43,27 @@ def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
         filepath: absolute path of where to store the resulting JSON file
     """
 
-    # clear database
-    for MyModel in EveUniverseBaseModel.all_models():
-        if MyModel.__name__ != "EveUnit":
-            MyModel.objects.all().delete()
-
+    _clear_database()
     print()
-    # Check if ESI is available
+
+    _check_if_esi_is_available()
+    _load_data_per_spec(spec)
+    _dump_all_data_into_file(filepath)
+
+
+def _clear_database():
+    for model_class in EveUniverseBaseModel.all_models():
+        if model_class.__name__ != "EveUnit":
+            model_class.objects.all().delete()
+
+
+def _check_if_esi_is_available():
     print("Initializing ESI client ...")
     if not is_esi_online():
         raise RuntimeError("ESI not online")
 
-    # load data per spec
+
+def _load_data_per_spec(spec):
     num = 0
     for model_spec in spec:
         num += 1
@@ -64,10 +73,10 @@ def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
             f"{len(ids)} objects",
             end="",
         )
-        MyModel = EveUniverseBaseModel.get_model_class(model_spec.model_name)
+        model_class = EveUniverseBaseModel.get_model_class(model_spec.model_name)
         for id in ids:
             print(".", end="")
-            MyModel.objects.get_or_create_esi(
+            model_class.objects.get_or_create_esi(
                 id=id,
                 include_children=model_spec.include_children,
                 wait_for_children=True,
@@ -75,21 +84,24 @@ def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
             )
         print()
 
-    # dump all data into file
+
+def _dump_all_data_into_file(filepath):
     data = OrderedDict()
-    for MyModel in EveUniverseBaseModel.all_models():
-        if MyModel.objects.count() > 0 and MyModel.__name__ != "EveUnit":
+    for model_class in EveUniverseBaseModel.all_models():
+        if model_class.objects.count() > 0 and model_class.__name__ != "EveUnit":
             logger.info(
-                "Collecting %d rows for %s", MyModel.objects.count(), MyModel.__name__
+                "Collecting %d rows for %s",
+                model_class.objects.count(),
+                model_class.__name__,
             )
-            my_data = list(MyModel.objects.all().values())
+            my_data = list(model_class.objects.all().values())
             for row in my_data:
                 try:
                     del row["last_updated"]
                 except KeyError:
                     pass
 
-            data[MyModel.__name__] = my_data
+            data[model_class.__name__] = my_data
 
     print(f"Writing testdata to: {filepath}")
     with open(filepath, "w", encoding="utf-8") as file:
@@ -102,21 +114,21 @@ def load_testdata_from_dict(testdata: dict) -> None:
     Args:
         testdata: The dict containing the testdata as created by `create_testdata()`
     """
-    for MyModel in EveUniverseBaseModel.all_models():
-        model_name = MyModel.__name__
+    for model_class in EveUniverseBaseModel.all_models():
+        model_name = model_class.__name__
         if model_name in testdata:
-            if MyModel.__name__ == "EveStargate":
-                _process_eve_stargate(testdata, MyModel, model_name)
+            if model_class.__name__ == "EveStargate":
+                _process_eve_stargate(testdata, model_class, model_name)
             else:
-                _process_other_model(testdata, MyModel, model_name)
+                _process_other_model(testdata, model_class, model_name)
 
 
-def _process_other_model(testdata, MyModel, model_name):
-    entries = [MyModel(**obj) for obj in testdata[model_name]]
-    MyModel.objects.bulk_create(entries, batch_size=500)
+def _process_other_model(testdata, model_class, model_name):
+    entries = [model_class(**obj) for obj in testdata[model_name]]
+    model_class.objects.bulk_create(entries, batch_size=500)
 
 
-def _process_eve_stargate(testdata, MyModel, model_name):
+def _process_eve_stargate(testdata, model_class, model_name):
     for _ in range(2):
         for obj in deepcopy(testdata[model_name]):
             try:
@@ -133,7 +145,7 @@ def _process_eve_stargate(testdata, MyModel, model_name):
 
             id = obj["id"]
             del obj["id"]
-            MyModel.objects.update_or_create(id=id, defaults=obj)
+            model_class.objects.update_or_create(id=id, defaults=obj)
 
 
 def load_testdata_from_file(filepath: str) -> None:
