@@ -118,7 +118,7 @@ def update_or_create_inline_object(
         parent_obj_id,
     )
     model_class = EveUniverseEntityModel.get_model_class(parent_model_name)
-    model_class.update_or_create_inline_object(
+    model_class.update_or_create_inline_object(  # type: ignore
         parent_obj_id=parent_obj_id,
         parent_fk=parent_fk,
         eve_data_obj=eve_data_obj,
@@ -135,7 +135,7 @@ def update_or_create_inline_object(
 @shared_task(**TASK_ESI_DEFAULTS)
 def create_eve_entities(ids: Iterable[int]) -> None:
     """Task for bulk creating and resolving multiple entities from ESI."""
-    EveEntity.objects.bulk_create_esi(ids)
+    EveEntity.objects.bulk_create_esi(ids)  # type: ignore
 
 
 @shared_task(**TASK_ESI_DEFAULTS_ONCE)
@@ -153,7 +153,7 @@ def update_unresolved_eve_entities() -> None:
 @shared_task(**TASK_ESI_DEFAULTS)
 def _update_unresolved_eve_entities_for_page(ids: Iterable[int]) -> None:
     """Update unresolved EveEntity objects for given ids from ESI."""
-    EveEntity.objects.update_from_esi_by_id(ids)
+    EveEntity.objects.update_from_esi_by_id(ids)  # type: ignore
 
 
 # Object loaders
@@ -312,4 +312,4 @@ def load_eve_types(
 def update_market_prices(minutes_until_stale: Optional[int] = None):
     """Updates market prices from ESI.
     see EveMarketPrice.objects.update_from_esi() for details"""
-    EveMarketPrice.objects.update_from_esi(minutes_until_stale)
+    EveMarketPrice.objects.update_from_esi(minutes_until_stale)  # type: ignore

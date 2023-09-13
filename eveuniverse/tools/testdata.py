@@ -1,10 +1,11 @@
+# type: ignore
 """Tools for generating fixtures from production data for Eve Universe models."""
 
 import json
 import logging
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 from copy import deepcopy
-from typing import Iterable, List
+from typing import Iterable, List, NamedTuple, Optional
 
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -16,40 +17,29 @@ from eveuniverse.utils import LoggerAddTag
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
 
-_ModelSpec = namedtuple(
-    "ModelSpec", ["model_name", "ids", "include_children", "enabled_sections"]
-)
-
-
-# pylint: disable = invalid-name
-def ModelSpec(
-    model_name: str,
-    ids: List[int],
-    include_children: bool = False,
-    enabled_sections: Iterable[str] = None,
-) -> _ModelSpec:
-    """Wrapper for creating ModelSpec objects.
-
-    A ModelSpec class defines what objects are to be loaded as test data
+class ModelSpec(NamedTuple):
+    """A ModelSpec class defines what objects are to be loaded as test data.
 
     Args:
         model_name: Name of Eve Universe model
         ids: List of Eve IDs to be loaded
         include_children: Whether to also load children of those objects
+        enabled_sections: Sections to load regardless of current settings,
+            e.g. `[EveType.Section.DOGMAS]` will always load dogmas for EveTypes
     """
-    return _ModelSpec(
-        model_name=model_name,
-        ids=ids,
-        include_children=include_children,
-        enabled_sections=enabled_sections,
-    )
+
+    model_name: str
+    ids: List[int]
+    include_children: bool = False
+    enabled_sections: Optional[Iterable[str]] = None
 
 
 def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
     """Loads eve data from ESI as defined by spec and dumps it to file as JSON
 
     Args:
-        spec: Specification of which Eve objects to load. The specification can contain the same model more than once.
+        spec: Specification of which Eve objects to load.
+        The specification can contain the same model more than once.
         filepath: absolute path of where to store the resulting JSON file
     """
 
@@ -107,7 +97,7 @@ def create_testdata(spec: List[ModelSpec], filepath: str) -> None:
 
 
 def load_testdata_from_dict(testdata: dict) -> None:
-    """creates eve objects in the database from testdata dump given as dict
+    """Create eve objects in the database from testdata dump given as dict.
 
     Args:
         testdata: The dict containing the testdata as created by `create_testdata()`
@@ -147,10 +137,11 @@ def _process_eve_stargate(testdata, MyModel, model_name):
 
 
 def load_testdata_from_file(filepath: str) -> None:
-    """creates eve objects in the database from testdata dump given as JSON file
+    """Create eve objects in the database from testdata dump given as JSON file.
 
     Args:
-        filepath: Absolute path to the JSON file containing the testdata created by `create_testdata()`
+        filepath: Absolute path to the JSON file containing the testdata
+        created by `create_testdata()`
     """
     with open(filepath, "r", encoding="utf-8") as file:
         testdata = json.load(file)

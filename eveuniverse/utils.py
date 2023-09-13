@@ -65,7 +65,8 @@ def clean_setting(
         dirty_value = getattr(settings, name)
         # pylint: disable = too-many-boolean-expressions
         if (
-            isinstance(dirty_value, required_type)
+            required_type
+            and isinstance(dirty_value, required_type)
             and (min_value is None or dirty_value >= min_value)
             and (max_value is None or dirty_value <= max_value)
             and (choices is None or dirty_value in choices)
