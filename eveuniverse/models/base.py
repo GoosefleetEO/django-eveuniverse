@@ -94,7 +94,7 @@ class EveUniverseBaseModel(models.Model):
         return f"{self.__class__.__name__}({', '.join(fields_2)})"
 
     @classmethod
-    def all_models(cls) -> List[Dict[models.Model, int]]:
+    def all_models(cls) -> List[Dict[Any, int]]:
         """Return a list of all Eve Universe model classes sorted by load order."""
         mappings = []
         for model_class in apps.get_models():
@@ -117,11 +117,14 @@ class EveUniverseBaseModel(models.Model):
                     }
                 )
 
-        return [y["model"] for y in sorted(mappings, key=lambda x: x["load_order"])]
+        return [
+            mapping["model"]
+            for mapping in sorted(mappings, key=lambda obj: obj["load_order"])
+        ]
 
     @classmethod
     def get_model_class(cls, model_name: str):
-        """returns the model class for the given name"""
+        """Return the model class for the given name or raise error when not found."""
         model_class = apps.get_model("eveuniverse", model_name)
         if not issubclass(model_class, (EveUniverseBaseModel, EveUniverseInlineModel)):
             raise TypeError("Invalid model class")
@@ -129,7 +132,7 @@ class EveUniverseBaseModel(models.Model):
 
     @classmethod
     def _esi_pk(cls) -> str:
-        """returns the name of the pk column on ESI that must exist"""
+        """Return the name of the pk column on ESI that must exist."""
         return cls._eve_universe_meta_attr_strict("esi_pk")
 
     @classmethod
@@ -232,11 +235,11 @@ class EveUniverseBaseModel(models.Model):
     @classmethod
     def defaults_from_esi_obj(
         cls, eve_data_obj: dict, enabled_sections: Optional[Set[str]] = None
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """Return defaults from an esi data object
         for update/creating objects of this model.
         """
-        defaults = {}
+        defaults: Dict[str, Any] = {}
         for field_name, field_mapping in cls._esi_field_mappings(
             enabled_sections
         ).items():
