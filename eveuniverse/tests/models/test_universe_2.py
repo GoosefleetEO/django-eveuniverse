@@ -21,7 +21,7 @@ from eveuniverse.models import (
     EveUnit,
     determine_effective_sections,
 )
-from eveuniverse.models.base import EsiMapping
+from eveuniverse.models.base import _EsiFieldMapping
 from eveuniverse.utils import NoSocketsTestCase
 
 from ..testdata.esi import EsiClientStub
@@ -417,11 +417,11 @@ class TestEsiMapping(NoSocketsTestCase):
     maxDiff = None
 
     def test_single_pk(self):
-        mapping = EveCategory._esi_mapping()
+        mapping = EveCategory._esi_field_mappings()
         self.assertEqual(len(mapping.keys()), 3)
         self.assertEqual(
             mapping["id"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="category_id",
                 is_optional=False,
                 is_pk=True,
@@ -434,7 +434,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["name"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="name",
                 is_optional=True,
                 is_pk=False,
@@ -447,7 +447,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["published"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="published",
                 is_optional=False,
                 is_pk=False,
@@ -460,11 +460,11 @@ class TestEsiMapping(NoSocketsTestCase):
         )
 
     def test_with_fk(self):
-        mapping = EveConstellation._esi_mapping()
+        mapping = EveConstellation._esi_field_mappings()
         self.assertEqual(len(mapping.keys()), 6)
         self.assertEqual(
             mapping["id"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="constellation_id",
                 is_optional=False,
                 is_pk=True,
@@ -477,7 +477,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["name"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="name",
                 is_optional=True,
                 is_pk=False,
@@ -490,7 +490,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["eve_region"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="region_id",
                 is_optional=False,
                 is_pk=False,
@@ -503,7 +503,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["position_x"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name=("position", "x"),
                 is_optional=True,
                 is_pk=False,
@@ -516,7 +516,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["position_y"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name=("position", "y"),
                 is_optional=True,
                 is_pk=False,
@@ -529,7 +529,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["position_z"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name=("position", "z"),
                 is_optional=True,
                 is_pk=False,
@@ -542,11 +542,11 @@ class TestEsiMapping(NoSocketsTestCase):
         )
 
     def test_optional_fields(self):
-        mapping = EveAncestry._esi_mapping()
+        mapping = EveAncestry._esi_field_mappings()
         self.assertEqual(len(mapping.keys()), 6)
         self.assertEqual(
             mapping["id"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="id",
                 is_optional=False,
                 is_pk=True,
@@ -559,7 +559,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["name"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="name",
                 is_optional=True,
                 is_pk=False,
@@ -572,7 +572,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["eve_bloodline"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="bloodline_id",
                 is_optional=False,
                 is_pk=False,
@@ -585,7 +585,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["description"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="description",
                 is_optional=False,
                 is_pk=False,
@@ -598,7 +598,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["icon_id"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="icon_id",
                 is_optional=True,
                 is_pk=False,
@@ -611,7 +611,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["short_description"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="short_description",
                 is_optional=True,
                 is_pk=False,
@@ -624,11 +624,11 @@ class TestEsiMapping(NoSocketsTestCase):
         )
 
     def test_inline_model(self):
-        mapping = EveTypeDogmaEffect._esi_mapping()
+        mapping = EveTypeDogmaEffect._esi_field_mappings()
         self.assertEqual(len(mapping.keys()), 3)
         self.assertEqual(
             mapping["eve_type"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="eve_type",
                 is_optional=False,
                 is_pk=True,
@@ -641,7 +641,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["eve_dogma_effect"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="effect_id",
                 is_optional=False,
                 is_pk=True,
@@ -654,7 +654,7 @@ class TestEsiMapping(NoSocketsTestCase):
         )
         self.assertEqual(
             mapping["is_default"],
-            EsiMapping(
+            _EsiFieldMapping(
                 esi_name="is_default",
                 is_optional=False,
                 is_pk=False,
@@ -670,7 +670,7 @@ class TestEsiMapping(NoSocketsTestCase):
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MARKET_GROUPS", True)
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_DOGMAS", True)
     def test_EveType_mapping(self):
-        mapping = EveType._esi_mapping()
+        mapping = EveType._esi_field_mappings()
         self.assertSetEqual(
             set(mapping.keys()),
             {

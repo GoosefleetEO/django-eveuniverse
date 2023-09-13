@@ -24,8 +24,10 @@ from eveuniverse.managers import EveUniverseEntityModelManager
 _NAMES_MAX_LENGTH = 100
 
 
-class EsiMapping(NamedTuple):
-    esi_name: str
+class _EsiFieldMapping(NamedTuple):
+    """Mapping of a model field to parse related object data from an ESI endpoint."""
+
+    esi_name: str  # Name of the field in ESI data
     is_optional: bool
     is_pk: bool
     is_fk: bool
@@ -131,13 +133,17 @@ class EveUniverseBaseModel(models.Model):
         return cls._eve_universe_meta_attr_strict("esi_pk")
 
     @classmethod
-    def _esi_mapping(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
-        field_mappings = cls._eve_universe_meta_attr("field_mappings")
+    def _esi_field_mappings(
+        cls, enabled_sections: Optional[Set[str]] = None
+    ) -> Dict[str, _EsiFieldMapping]:
+        """Return ESI field mappings for this model."""
+        explicit_field_mappings = cls._eve_universe_meta_attr("field_mappings")
         functional_pk = cls._eve_universe_meta_attr("functional_pk")
         parent_fk = cls._eve_universe_meta_attr("parent_fk")
         dont_create_related = cls._eve_universe_meta_attr("dont_create_related")
         disabled_fields = cls._disabled_fields(enabled_sections)
-        mapping = {}
+
+        field_mappings: Dict[str, _EsiFieldMapping] = {}
         relevant_fields = [
             field
             for field in cls._meta.get_fields()
@@ -147,8 +153,8 @@ class EveUniverseBaseModel(models.Model):
             and not field.many_to_many
         ]
         for field in relevant_fields:
-            if field_mappings and field.name in field_mappings:
-                esi_name = field_mappings[field.name]
+            if explicit_field_mappings and field.name in explicit_field_mappings:
+                esi_name = explicit_field_mappings[field.name]
             else:
                 esi_name = field.name
 
@@ -179,7 +185,7 @@ class EveUniverseBaseModel(models.Model):
             except AttributeError:
                 is_optional = False
 
-            mapping[field.name] = EsiMapping(
+            field_mappings[field.name] = _EsiFieldMapping(
                 esi_name=esi_name,
                 is_optional=is_optional,
                 is_pk=is_pk,
@@ -190,7 +196,7 @@ class EveUniverseBaseModel(models.Model):
                 create_related=create_related,
             )
 
-        return mapping
+        return field_mappings
 
     @classmethod
     def _disabled_fields(cls, _enabled_sections: Optional[Set[str]] = None) -> set:
@@ -231,21 +237,23 @@ class EveUniverseBaseModel(models.Model):
         for update/creating objects of this model.
         """
         defaults = {}
-        for field_name, mapping in cls._esi_mapping(enabled_sections).items():
-            if mapping.is_pk:
+        for field_name, field_mapping in cls._esi_field_mappings(
+            enabled_sections
+        ).items():
+            if field_mapping.is_pk:
                 continue
 
-            if not isinstance(mapping.esi_name, tuple):
-                esi_value = cls._esi_value_from_tuple(eve_data_obj, mapping)
+            if not isinstance(field_mapping.esi_name, tuple):
+                esi_value = cls._esi_value_from_tuple(eve_data_obj, field_mapping)
             else:
-                esi_value = cls._esi_value_from_non_tuple(eve_data_obj, mapping)
+                esi_value = cls._esi_value_from_non_tuple(eve_data_obj, field_mapping)
 
             if esi_value is not None:
-                if mapping.is_fk:
-                    value = cls._gather_value_from_fk(mapping, esi_value)
+                if field_mapping.is_fk:
+                    value = cls._gather_value_from_fk(field_mapping, esi_value)
 
                 else:
-                    if mapping.is_charfield and esi_value is None:
+                    if field_mapping.is_charfield and esi_value is None:
                         value = ""
                     else:
                         value = esi_value
@@ -255,29 +263,33 @@ class EveUniverseBaseModel(models.Model):
         return defaults
 
     @staticmethod
-    def _esi_value_from_tuple(eve_data_obj: dict, mapping) -> Optional[Any]:
-        if mapping.esi_name in eve_data_obj:
-            return eve_data_obj[mapping.esi_name]
+    def _esi_value_from_tuple(
+        eve_data_obj: dict, field_mapping: _EsiFieldMapping
+    ) -> Optional[Any]:
+        if field_mapping.esi_name in eve_data_obj:
+            return eve_data_obj[field_mapping.esi_name]
         return None
 
     @staticmethod
-    def _esi_value_from_non_tuple(eve_data_obj: dict, mapping) -> Optional[Any]:
+    def _esi_value_from_non_tuple(
+        eve_data_obj: dict, field_mapping: _EsiFieldMapping
+    ) -> Optional[Any]:
         if (
-            mapping.esi_name[0] in eve_data_obj
-            and mapping.esi_name[1] in eve_data_obj[mapping.esi_name[0]]
+            field_mapping.esi_name[0] in eve_data_obj
+            and field_mapping.esi_name[1] in eve_data_obj[field_mapping.esi_name[0]]
         ):
-            return eve_data_obj[mapping.esi_name[0]][mapping.esi_name[1]]
+            return eve_data_obj[field_mapping.esi_name[0]][field_mapping.esi_name[1]]
 
         return None
 
     @staticmethod
-    def _gather_value_from_fk(mapping, esi_value):
-        parent_class = mapping.related_model
+    def _gather_value_from_fk(field_mapping, esi_value):
+        parent_class = field_mapping.related_model
         try:
             value = parent_class.objects.get(id=esi_value)
         except parent_class.DoesNotExist:
             value = None
-            if mapping.create_related:
+            if field_mapping.create_related:
                 try:
                     value = parent_class.objects.update_or_create_esi(
                         id=esi_value, include_children=False, wait_for_children=True
@@ -445,7 +457,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     @classmethod
     def _identify_parent(cls, inline_model_name: str) -> tuple:
         inline_model_class = cls.get_model_class(inline_model_name)
-        esi_mapping = inline_model_class._esi_mapping()
+        esi_mapping = inline_model_class._esi_field_mappings()
         parent_fk = None
         other_pk = None
         parent_class_2 = None
