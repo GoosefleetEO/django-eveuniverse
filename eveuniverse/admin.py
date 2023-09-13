@@ -1,3 +1,5 @@
+"""Admin site for Eve Universe."""
+
 from django.contrib import admin
 
 from .models import (

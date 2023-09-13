@@ -1,11 +1,10 @@
 
-.. include:: ../README.rst
-
-Contents
-========
+.. include:: ../README.md
+   :parser: myst_parser.sphinx_
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
+   :maxdepth: 3
 
    operations
    developer

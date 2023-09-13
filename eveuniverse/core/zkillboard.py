@@ -59,4 +59,5 @@ def region_url(eve_id: int) -> str:
 
 
 def solar_system_url(eve_id: int) -> str:
+    """Return zKillboard URL for a solar system."""
     return _build_url(_Category.SOLARSYSTEM, eve_id)

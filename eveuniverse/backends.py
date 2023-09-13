@@ -21,10 +21,12 @@ class DjangoBackend:
 
     @staticmethod
     def raise_or_lock(key, timeout):
+        """Set a global lock or raise AlreadyQueued if the lock could not be acquired."""
         acquired = cache.add(key=key, value="lock", timeout=timeout)
         if not acquired:
             raise AlreadyQueued(int(cache.ttl(key)))  # type: ignore
 
     @staticmethod
     def clear_lock(key):
+        """Remove a global lock."""
         return cache.delete(key)

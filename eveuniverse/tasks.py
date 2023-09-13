@@ -7,10 +7,11 @@ from celery import shared_task
 from celery_once import QueueOnce as BaseQueueOnce
 from django.db.utils import OperationalError
 
-from . import __title__, models
+from . import __title__
 from .app_settings import EVEUNIVERSE_LOAD_TASKS_PRIORITY, EVEUNIVERSE_TASKS_TIME_LIMIT
 from .constants import POST_UNIVERSE_NAMES_MAX_ITEMS, EveCategoryId
-from .models import EveEntity, EveMarketPrice, EveType, EveUniverseEntityModel
+from .models import EveCategory, EveEntity, EveMarketPrice, EveRegion, EveType
+from .models.base import EveUniverseEntityModel, determine_effective_sections
 from .providers import esi
 from .utils import LoggerAddTag, chunks
 
@@ -18,6 +19,7 @@ logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 # logging.getLogger("esi").setLevel(logging.INFO)
 
 
+# pylint: disable = abstract-method
 class QueueOnce(BaseQueueOnce):
     """Make sure all redundant tasks will abort gracefully."""
 
@@ -26,24 +28,24 @@ class QueueOnce(BaseQueueOnce):
 
 
 # params for all tasks
-TASK_DEFAULTS = {"time_limit": EVEUNIVERSE_TASKS_TIME_LIMIT}
+_TASK_DEFAULTS = {"time_limit": EVEUNIVERSE_TASKS_TIME_LIMIT}
 
 # params for tasks that make ESI calls
-TASK_ESI_DEFAULTS = {
-    **TASK_DEFAULTS,
+_TASK_ESI_DEFAULTS = {
+    **_TASK_DEFAULTS,
     **{
         "autoretry_for": [OperationalError],
         "retry_kwargs": {"max_retries": 3},
         "retry_backoff": True,
     },
 }
-TASK_ESI_DEFAULTS_ONCE = {**TASK_ESI_DEFAULTS, **{"base": QueueOnce}}
+_TASK_ESI_DEFAULTS_ONCE = {**_TASK_ESI_DEFAULTS, **{"base": QueueOnce}}
 
 
 # Eve Universe objects
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def load_eve_object(
     model_name: str, id: int, include_children=False, wait_for_children=True
 ) -> None:
@@ -57,7 +59,7 @@ def load_eve_object(
     )
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def update_or_create_eve_object(
     model_name: str,
     id: int,
@@ -90,7 +92,7 @@ def update_or_create_eve_object(
     )
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def update_or_create_inline_object(
     parent_obj_id: int,
     parent_fk: str,
@@ -109,7 +111,7 @@ def update_or_create_inline_object(
         parent_obj_id,
     )
     model_class = EveUniverseEntityModel.get_model_class(parent_model_name)
-    model_class.objects._update_or_create_inline_object(  # type: ignore
+    model_class.update_or_create_inline_object(  # type: ignore
         parent_obj_id=parent_obj_id,
         parent_fk=parent_fk,
         eve_data_obj=eve_data_obj,
@@ -123,13 +125,13 @@ def update_or_create_inline_object(
 # EveEntity objects
 
 
-@shared_task(**TASK_ESI_DEFAULTS)
+@shared_task(**_TASK_ESI_DEFAULTS)
 def create_eve_entities(ids: Iterable[int]) -> None:
     """Task for bulk creating and resolving multiple entities from ESI."""
-    EveEntity.objects.bulk_create_esi(ids)
+    EveEntity.objects.bulk_create_esi(ids)  # type: ignore
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def update_unresolved_eve_entities() -> None:
     """Update all unresolved EveEntity objects from ESI.
 
@@ -141,16 +143,16 @@ def update_unresolved_eve_entities() -> None:
         _update_unresolved_eve_entities_for_page.delay(chunk_ids)  # type: ignore
 
 
-@shared_task(**TASK_ESI_DEFAULTS)
+@shared_task(**_TASK_ESI_DEFAULTS)
 def _update_unresolved_eve_entities_for_page(ids: Iterable[int]) -> None:
     """Update unresolved EveEntity objects for given ids from ESI."""
-    EveEntity.objects.update_from_esi_by_id(ids)
+    EveEntity.objects.update_from_esi_by_id(ids)  # type: ignore
 
 
 # Object loaders
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def load_map(enabled_sections: Optional[List[str]] = None) -> None:
     """Load the complete Eve map with all regions, constellation and solar systems
     and additional related entities if they are enabled.
@@ -161,11 +163,9 @@ def load_map(enabled_sections: Optional[List[str]] = None) -> None:
     logger.info(
         "Loading complete map with all regions, constellations, solar systems "
         "and the following additional entities if related to the map: %s",
-        ", ".join(
-            EveUniverseEntityModel.determine_effective_sections(enabled_sections)
-        ),
+        ", ".join(determine_effective_sections(enabled_sections)),
     )
-    category, method = models.EveRegion._esi_path_list()
+    category, method = EveRegion._esi_path_list()
     all_ids = getattr(getattr(esi.client, category), method)().results()
     for id in all_ids:
         update_or_create_eve_object.delay(
@@ -178,7 +178,7 @@ def load_map(enabled_sections: Optional[List[str]] = None) -> None:
         )  # type: ignore
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def load_all_types(enabled_sections: Optional[List[str]] = None) -> None:
     """Load all eve types.
 
@@ -187,11 +187,9 @@ def load_all_types(enabled_sections: Optional[List[str]] = None) -> None:
     """
     logger.info(
         "Loading all eve types from ESI including these sections: %s",
-        ", ".join(
-            EveUniverseEntityModel.determine_effective_sections(enabled_sections)
-        ),
+        ", ".join(determine_effective_sections(enabled_sections)),
     )
-    category, method = models.EveCategory._esi_path_list()
+    category, method = EveCategory._esi_path_list()
     result = getattr(getattr(esi.client, category), method)().results()
     if not result:
         raise ValueError("Did not receive category IDs from ESI.")
@@ -248,7 +246,7 @@ def _load_type_with_children(type_id: int, force_loading_dogma: bool = False) ->
     )  # type: ignore
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def load_ship_types(enabled_sections: Optional[List[str]] = None) -> None:
     """Load all ship types.
 
@@ -261,7 +259,7 @@ def load_ship_types(enabled_sections: Optional[List[str]] = None) -> None:
     )
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def load_structure_types(enabled_sections: Optional[List[str]] = None) -> None:
     """Load all structure types.
 
@@ -274,7 +272,7 @@ def load_structure_types(enabled_sections: Optional[List[str]] = None) -> None:
     )
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def load_eve_types(
     category_ids: Optional[List[int]] = None,
     group_ids: Optional[List[int]] = None,
@@ -303,8 +301,8 @@ def load_eve_types(
             _load_type_with_children(type_id, force_loading_dogma)
 
 
-@shared_task(**TASK_ESI_DEFAULTS_ONCE)
+@shared_task(**_TASK_ESI_DEFAULTS_ONCE)
 def update_market_prices(minutes_until_stale: Optional[int] = None):
     """Updates market prices from ESI.
     see EveMarketPrice.objects.update_from_esi() for details"""
-    EveMarketPrice.objects.update_from_esi(minutes_until_stale)
+    EveMarketPrice.objects.update_from_esi(minutes_until_stale)  # type: ignore

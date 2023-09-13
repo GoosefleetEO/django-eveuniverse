@@ -1,4 +1,4 @@
-"""Helper functions and classes."""
+"""Helper functions and classes for Eve Universe."""
 
 import hashlib
 import json
@@ -18,7 +18,7 @@ def meters_to_au(value: float) -> Optional[float]:
 
 
 def get_or_create_esi_or_none(
-    prop_name: str, dct: dict, Model: type
+    prop_name: str, dct: dict, model_class: type
 ) -> Optional[models.Model]:
     """Create a new eveuniverse object from a dictionary entry and return it
     or return None if the prop name is not in the dict.
@@ -26,7 +26,7 @@ def get_or_create_esi_or_none(
     :meta private:
     """
     if eve_id := dct.get(prop_name):
-        return Model.objects.get_or_create_esi(id=eve_id)[0]  # type: ignore
+        return model_class.objects.get_or_create_esi(id=eve_id)[0]  # type: ignore
     return None
 
 

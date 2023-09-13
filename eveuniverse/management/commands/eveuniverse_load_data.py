@@ -1,3 +1,5 @@
+"""Load data management command for Eve Universe."""
+
 import logging
 from enum import Enum
 
@@ -6,7 +8,8 @@ from django.core.management.base import BaseCommand
 
 from eveuniverse import __title__, tasks
 from eveuniverse.core.esitools import is_esi_online
-from eveuniverse.models import EveType, EveUniverseEntityModel
+from eveuniverse.models import EveType
+from eveuniverse.models.base import determine_effective_sections
 from eveuniverse.utils import LoggerAddTag
 
 from . import EXPECTATION_TEXT, get_input
@@ -118,9 +121,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Aborted"))
 
     def _text_with_enabled_sections(self, text, enabled_sections=None):
-        effective_sections = list(
-            EveUniverseEntityModel.determine_effective_sections(enabled_sections)
-        )
+        effective_sections = list(determine_effective_sections(enabled_sections))
         if effective_sections:
             new_text = f"{text} including these sections: {', '.join(sorted(effective_sections))}"
         else:

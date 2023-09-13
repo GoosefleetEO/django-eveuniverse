@@ -15,16 +15,10 @@ from eveuniverse.models import (
     EveConstellation,
     EveDogmaAttribute,
     EveDogmaEffect,
-    EveDogmaEffectModifier,
     EveEntity,
     EveFaction,
     EveGraphic,
     EveGroup,
-    EveIndustryActivity,
-    EveIndustryActivityDuration,
-    EveIndustryActivityMaterial,
-    EveIndustryActivityProduct,
-    EveIndustryActivitySkill,
     EveMarketGroup,
     EveMarketPrice,
     EveMoon,
@@ -36,88 +30,14 @@ from eveuniverse.models import (
     EveStargate,
     EveStation,
     EveType,
-    EveTypeDogmaAttribute,
-    EveTypeDogmaEffect,
-    EveTypeMaterial,
-    EveUnit,
-    EveUniverseBaseModel,
 )
 from eveuniverse.utils import NoSocketsTestCase
 
-from .testdata.esi import BravadoOperationStub, EsiClientStub
+from ..testdata.esi import BravadoOperationStub, EsiClientStub
 
 unittest.util._MAX_LENGTH = 1000
-MODELS_PATH = "eveuniverse.models"
-MANAGERS_PATH = "eveuniverse.managers"
-
-
-class TestEveUniverseBaseModel(NoSocketsTestCase):
-    def test_get_model_class(self):
-        self.assertIs(
-            EveUniverseBaseModel.get_model_class("EveSolarSystem"), EveSolarSystem
-        )
-
-        with self.assertRaises(ValueError):
-            EveUniverseBaseModel.get_model_class("Unknown Class")
-
-    def test_all_models(self):
-        models = EveUniverseBaseModel.all_models()
-        self.maxDiff = None
-        self.assertListEqual(
-            models,
-            [
-                EveUnit,  # load_order = 100
-                EveIndustryActivity,  # load_order=101
-                EveEntity,  # load_order = 110
-                EveGraphic,  # load_order = 120
-                EveCategory,  # load_order = 130
-                EveGroup,  # load_order = 132
-                EveType,  # load_order = 134
-                EveTypeMaterial,  # load_order = 135
-                EveIndustryActivityDuration,  # load_order = 136
-                EveIndustryActivityMaterial,  # load_order = 137
-                EveIndustryActivityProduct,  # load_order = 138
-                EveIndustryActivitySkill,  # load_order = 139
-                EveDogmaAttribute,  # load_order = 140
-                EveDogmaEffect,  # load_order = 142
-                EveDogmaEffectModifier,  # load_order = 144
-                EveTypeDogmaEffect,  # load_order = 146
-                EveTypeDogmaAttribute,  # load_order = 148
-                EveRace,  # load_order = 150
-                EveBloodline,  # load_order = 170
-                EveAncestry,  # load_order = 180
-                EveRegion,  # load_order = 190
-                EveConstellation,  # load_order = 192
-                EveSolarSystem,  # load_order = 194
-                EveAsteroidBelt,  # load_order = 200
-                EvePlanet,  # load_order = 205
-                EveStation,  # load_order = 207
-                EveFaction,  # load_order = 210
-                EveMoon,  # load_order = 220
-                EveStar,  # load_order = 222
-                EveStargate,  # load_order = 224
-                EveMarketGroup,  # load_order = 230
-            ],
-        )
-
-    def test_eve_universe_meta_attr_1(self):
-        """When defined, return value"""
-        self.assertEqual(EveType._eve_universe_meta_attr("esi_pk"), "type_id")
-
-    def test_eve_universe_meta_attr_2(self):
-        """When not defined, then return None"""
-        self.assertIsNone(EveType._eve_universe_meta_attr("undefined_param"))
-
-    def test_eve_universe_meta_attr_3(self):
-        """When not defined and is_mandatory, then raise exception"""
-        with self.assertRaises(ValueError):
-            EveType._eve_universe_meta_attr_strict("undefined_param")
-
-    def test_eve_universe_meta_attr_4(self):
-        """When EveUniverseMeta class not defined, then return None"""
-        self.assertIsNone(
-            EveUniverseBaseModel._eve_universe_meta_attr("undefined_param")
-        )
+MODELS_PATH = "eveuniverse.models.base"
+MANAGERS_PATH = "eveuniverse.managers.universe"
 
 
 @patch(MANAGERS_PATH + ".esi")
@@ -590,7 +510,7 @@ class TestEveMarketPriceManager(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        with patch("eveuniverse.managers.esi") as mock_esi:
+        with patch("eveuniverse.managers.universe.esi") as mock_esi:
             mock_esi.client = EsiClientStub()
             EveType.objects.get_or_create_esi(id=603)
 
@@ -919,6 +839,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(jita.is_null_sec)
         self.assertFalse(jita.is_w_space)
         self.assertFalse(jita.is_trig_space)
+        self.assertFalse(jita.is_abyssal_deadspace)
 
     def test_can_identify_lowsec_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -929,6 +850,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(enaluri.is_null_sec)
         self.assertFalse(enaluri.is_w_space)
         self.assertFalse(enaluri.is_trig_space)
+        self.assertFalse(enaluri.is_abyssal_deadspace)
 
     def test_can_identify_nullsec_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -939,6 +861,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(hed_gp.is_high_sec)
         self.assertFalse(hed_gp.is_w_space)
         self.assertFalse(hed_gp.is_trig_space)
+        self.assertFalse(hed_gp.is_abyssal_deadspace)
 
     def test_can_identify_ws_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -949,6 +872,7 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(thera.is_low_sec)
         self.assertFalse(thera.is_high_sec)
         self.assertFalse(thera.is_trig_space)
+        self.assertFalse(thera.is_abyssal_deadspace)
 
     def test_can_identify_trig_system(self, mock_esi):
         mock_esi.client = EsiClientStub()
@@ -959,6 +883,20 @@ class TestEveSolarSystem(NoSocketsTestCase):
         self.assertFalse(otela.is_low_sec)
         self.assertFalse(otela.is_high_sec)
         self.assertTrue(otela.is_trig_space)
+        self.assertFalse(otela.is_abyssal_deadspace)
+
+    def test_can_identify_abyssal_deadspace(self, mock_esi):
+        mock_esi.client = EsiClientStub()
+
+        solar_system: EveSolarSystem = EveSolarSystem.objects.get_or_create_esi(
+            id=32000018
+        )[0]
+        self.assertFalse(solar_system.is_w_space)
+        self.assertFalse(solar_system.is_null_sec)
+        self.assertFalse(solar_system.is_low_sec)
+        self.assertFalse(solar_system.is_high_sec)
+        self.assertFalse(solar_system.is_trig_space)
+        self.assertTrue(solar_system.is_abyssal_deadspace)
 
     """
     @patch(MODELS_PATH + ".EVEUNIVERSE_LOAD_STARGATES", True)
@@ -1070,7 +1008,7 @@ class TestEveSolarSystemDistanceTo(NoSocketsTestCase):
 
 
 @patch(MANAGERS_PATH + ".esi")
-@patch("eveuniverse.models.esi")
+@patch("eveuniverse.models.universe_2.esi")
 class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
     def test_can_calculate_jumps(self, mock_esi_2, mock_esi_1):
         # given
@@ -1147,7 +1085,7 @@ class TestEveSolarSystemJumpsTo(NoSocketsTestCase):
         self.assertIsNone(otela.jumps_to(enaluri))
 
 
-@patch(MODELS_PATH + ".esi")
+@patch("eveuniverse.models.universe_2.esi")
 @patch(MANAGERS_PATH + ".esi")
 class TestEveSolarSystemRouteTo(NoSocketsTestCase):
     def test_should_return_valid_route(self, mock_esi_1, mock_esi_2):

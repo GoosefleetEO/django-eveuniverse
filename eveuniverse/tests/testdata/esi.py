@@ -1,14 +1,15 @@
 import inspect
 import json
-import os
 from collections import namedtuple
+from pathlib import Path
+from typing import Optional
 from unittest.mock import Mock
 
 from bravado.exception import HTTPNotFound
 
 from eveuniverse import models as eveuniverse_models
 
-_currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+_current_folder = Path(__file__).parent
 
 
 """
@@ -27,7 +28,9 @@ class BravadoOperationStub:
         def __init__(self, headers):
             self.headers = headers
 
-    def __init__(self, data, headers: dict = None, also_return_response: bool = False):
+    def __init__(
+        self, data, headers: Optional[dict] = None, also_return_response: bool = False
+    ):
         self._data = data
         self._headers = headers if headers else {"x-pages": 1}
         self.request_config = BravadoOperationStub.RequestConfig(also_return_response)
@@ -104,7 +107,7 @@ class EsiRoute:
 class EsiClientStub:
     @classmethod
     def _generate(cls):
-        """dnamically generates the client class with all attributes based on definition"""
+        """Dynamically generate the client class with all attributes based on definition."""
         EsiEndpoint = namedtuple("EsiSpec", ["category", "method", "key"])
         esi_endpoints = [
             EsiEndpoint("Dogma", "get_dogma_attributes_attribute_id", "attribute_id"),
@@ -168,21 +171,24 @@ EsiClientStub._generate()
 
 
 def _load_esi_data():
-    with open(_currentdir + "/esi_data.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
+    path = _current_folder / "esi_data.json"
+    with path.open("r", encoding="utf-8") as file:
+        data = json.load(file)
 
     # generate list endpoints from existing test data
     entity_classes = [
-        x
-        for x in [x[1] for x in inspect.getmembers(eveuniverse_models, inspect.isclass)]
-        if hasattr(x, "EveUniverseMeta")
-        and hasattr(x, "_is_list_only_endpoint")
-        and not x._is_list_only_endpoint()
-        and x._has_esi_path_list()
+        model_class
+        for model_class in [
+            x[1] for x in inspect.getmembers(eveuniverse_models, inspect.isclass)
+        ]
+        if hasattr(model_class, "_EveUniverseMeta")
+        and hasattr(model_class, "_is_list_only_endpoint")
+        and not model_class._is_list_only_endpoint()
+        and model_class._has_esi_path_list()
     ]
-    for EntityClass in entity_classes:
-        list_category, list_method = EntityClass._esi_path_list()
-        object_category, object_method = EntityClass._esi_path_object()
+    for entity_class in entity_classes:
+        list_category, list_method = entity_class._esi_path_list()
+        object_category, object_method = entity_class._esi_path_object()
         data[list_category][list_method] = [
             int(x) for x in data[object_category][object_method].keys()
         ]

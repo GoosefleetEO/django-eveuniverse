@@ -23,13 +23,12 @@ pre-commit:
     - pip install pre-commit
     - pre-commit run --all-files
 
-# pylint:
-#   stage: checks
-#   extends: .tox_setup
-#   image: python:3.10-bullseye
-#   script:
-#     - tox -e pylint
-#   allow_failure: True
+pylint:
+  stage: checks
+  extends: .tox_setup
+  image: python:3.10-bullseye
+  script:
+    - tox -e pylint
 
 test-py38:
   extends: .tox_setup

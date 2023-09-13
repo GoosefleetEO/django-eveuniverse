@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "django-eveuniverse"
 dynamic = ["description", "version"]
-readme = "README.rst"
+readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.8"
 authors = [{ name = "Erik Kalkoken", email = "kalkoken87@gmail.com" }]
@@ -64,10 +64,10 @@ disable = [
     "fixme",
     "too-many-arguments",
     "redefined-builtin",
-    # "import-outside-toplevel",
+    "import-outside-toplevel",
+    "duplicate-code",
+    "too-few-public-methods",
+    "protected-access",
     # "too-many-instance-attributes",
-    # "too-few-public-methods",
-    # "imported-auth-user",
-    # "redefined-builtin",
     # "no-member",
 ]

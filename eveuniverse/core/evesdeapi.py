@@ -27,6 +27,7 @@ class EveItem:
 
     @classmethod
     def from_dict(cls, record: dict) -> "EveItem":
+        """Create new obj from a record."""
         return cls(
             id=int(record["item_id"]),
             name=str(record["name"]),

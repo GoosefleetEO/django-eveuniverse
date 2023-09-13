@@ -9,7 +9,7 @@ from eveuniverse.utils import NoSocketsTestCase
 
 from .testdata.esi import EsiClientStub
 
-MODELS_PATH = "eveuniverse.models"
+MODELS_PATH = "eveuniverse.models.base"
 PACKAGE_PATH = "eveuniverse.management.commands"
 
 
@@ -131,7 +131,7 @@ class TestLoadDataCommand(NoSocketsTestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch("eveuniverse.managers.esi")
+@patch("eveuniverse.managers.universe.esi")
 @patch(PACKAGE_PATH + ".eveuniverse_load_types.is_esi_online", lambda: True)
 @patch(PACKAGE_PATH + ".eveuniverse_load_types.get_input")
 class TestLoadTypes(NoSocketsTestCase):
@@ -260,7 +260,7 @@ class TestLoadTypes(NoSocketsTestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch("eveuniverse.managers.esi")
+@patch("eveuniverse.managers.universe.esi")
 @patch(PACKAGE_PATH + ".eveuniverse_load_types.is_esi_online")
 @patch(PACKAGE_PATH + ".eveuniverse_load_types.get_input")
 class TestLoadTypesEsiCheck(NoSocketsTestCase):

@@ -16,13 +16,17 @@ Eve Models
 
 .. _api-manager-methods:
 
-Manager methods
+Eve Model Managers
 ====================
 
-.. automodule:: eveuniverse.managers
+.. automodule:: eveuniverse.managers.entities
     :members:
 
-.. _api-managers-eve-entity:
+.. automodule:: eveuniverse.managers.sde
+    :members:
+
+.. automodule:: eveuniverse.managers.universe
+    :members:
 
 Helpers
 ====================

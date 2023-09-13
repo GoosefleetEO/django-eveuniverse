@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.4.0] - TBD
+
+### Added
+
+- Added abyssal deadspace property to EveSolarSystem
+- Allow specifying path for testdata in Path format
+
+### Changed
+
+- Removed local swagger spec file
+- Refactoring based on feedback from pylint
+- Make pylint checks mandatory
+- Switched docs to alabaster theme
+
 ## [1.3.1] - 2023-08-05
 
 ### Added

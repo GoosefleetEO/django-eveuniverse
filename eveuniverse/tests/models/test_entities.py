@@ -6,10 +6,10 @@ from unittest.mock import patch
 from eveuniverse.models import EveEntity
 from eveuniverse.utils import NoSocketsTestCase
 
-from .testdata.esi import BravadoOperationStub, EsiClientStub
-from .testdata.factories import create_eve_entity
+from ..testdata.esi import BravadoOperationStub, EsiClientStub
+from ..testdata.factories import create_eve_entity
 
-MANAGERS_PATH = "eveuniverse.managers"
+MANAGERS_PATH = "eveuniverse.managers.entities"
 
 
 @patch(MANAGERS_PATH + ".esi")
