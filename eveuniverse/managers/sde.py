@@ -78,7 +78,7 @@ class EveTypeMaterialManager(models.Manager, _ApiCacheManager):
 
         type_material_data_all = self._fetch_sde_data_cached()
         for type_material_data in type_material_data_all.get(eve_type.id, []):
-            material_eve_type, _ = EveType.objects.get_or_create_esi(
+            material_eve_type, _ = EveType.objects.get_or_create_esi(  # type: ignore
                 id=type_material_data.get("materialTypeID")
             )
             self.update_or_create(
@@ -127,7 +127,7 @@ class EveIndustryActivityMaterialManager(models.Manager, _ApiCacheManager):
         data_all = self._fetch_sde_data_cached()
         activity_data = data_all.get(eve_type.id, {})
         for industry_material_data in activity_data:
-            material_eve_type, _ = EveType.objects.get_or_create_esi(
+            material_eve_type, _ = EveType.objects.get_or_create_esi(  # type: ignore
                 id=industry_material_data.get("materialTypeID")
             )
             activity = EveIndustryActivity.objects.get(
@@ -156,7 +156,7 @@ class EveIndustryActivityProductManager(models.Manager, _ApiCacheManager):
         data_all = self._fetch_sde_data_cached()
         activity_data = data_all.get(eve_type.id, {})
         for industry_products_data in activity_data:
-            product_eve_type, _ = EveType.objects.get_or_create_esi(
+            product_eve_type, _ = EveType.objects.get_or_create_esi(  # type: ignore
                 id=industry_products_data.get("productTypeID")
             )
             activity = EveIndustryActivity.objects.get(
@@ -185,7 +185,7 @@ class EveIndustryActivitySkillManager(models.Manager, _ApiCacheManager):
         data_all = self._fetch_sde_data_cached()
         activity_data = data_all.get(eve_type.id, {})
         for industry_skill_data in activity_data:
-            skill_eve_type, _ = EveType.objects.get_or_create_esi(
+            skill_eve_type, _ = EveType.objects.get_or_create_esi(  # type: ignore
                 id=industry_skill_data.get("skillID")
             )
             activity = EveIndustryActivity.objects.get(

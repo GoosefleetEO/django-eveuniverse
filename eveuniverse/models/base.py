@@ -1,8 +1,7 @@
 """Base models for Eve Universe."""
 
 import enum
-from collections import namedtuple
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Set, Tuple
 
 from django.apps import apps
 from django.db import models
@@ -22,24 +21,18 @@ from eveuniverse.app_settings import (
 )
 from eveuniverse.managers import EveUniverseEntityModelManager
 
-NAMES_MAX_LENGTH = 100
+_NAMES_MAX_LENGTH = 100
 
-EsiMapping = namedtuple(
-    "EsiMapping",
-    [
-        "esi_name",
-        "is_optional",
-        "is_pk",
-        "is_fk",
-        "related_model",
-        "is_parent_fk",
-        "is_charfield",
-        "create_related",
-    ],
-)
-"""
-:meta private:
-"""
+
+class EsiMapping(NamedTuple):
+    esi_name: str
+    is_optional: bool
+    is_pk: bool
+    is_fk: bool
+    related_model: Optional[Any]
+    is_parent_fk: bool
+    is_charfield: bool
+    create_related: bool
 
 
 class _SectionBase(str, enum.Enum):
@@ -145,20 +138,21 @@ class EveUniverseBaseModel(models.Model):
         dont_create_related = cls._eve_universe_meta_attr("dont_create_related")
         disabled_fields = cls._disabled_fields(enabled_sections)
         mapping = {}
-        for field in [
+        relevant_fields = [
             field
             for field in cls._meta.get_fields()
             if not field.auto_created
             and field.name not in {"last_updated", "enabled_sections"}
             and field.name not in disabled_fields
             and not field.many_to_many
-        ]:
+        ]
+        for field in relevant_fields:
             if field_mappings and field.name in field_mappings:
                 esi_name = field_mappings[field.name]
             else:
                 esi_name = field.name
 
-            if field.primary_key is True:
+            if getattr(field, "primary_key") is True:
                 is_pk = True
                 esi_name = cls._esi_pk()
             elif functional_pk and field.name in functional_pk:
@@ -180,9 +174,14 @@ class EveUniverseBaseModel(models.Model):
             else:
                 create_related = True
 
+            try:
+                is_optional = field.has_default()  # type: ignore
+            except AttributeError:
+                is_optional = False
+
             mapping[field.name] = EsiMapping(
                 esi_name=esi_name,
-                is_optional=field.has_default(),
+                is_optional=is_optional,
                 is_pk=is_pk,
                 is_fk=is_fk,
                 related_model=related_model,
@@ -308,7 +307,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
 
     id = models.PositiveIntegerField(primary_key=True, help_text="Eve Online ID")
     name = models.CharField(
-        max_length=NAMES_MAX_LENGTH,
+        max_length=_NAMES_MAX_LENGTH,
         default="",
         db_index=True,
         help_text="Eve Online name",
@@ -334,7 +333,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         parent_eve_data_obj: dict,
         include_children: bool,
         wait_for_children: bool,
-        enabled_sections: Iterable[str],
+        enabled_sections: Set[str],
         task_priority: Optional[int] = None,
     ) -> None:
         """updates or creates child objects as defined for this parent model (if any)"""
@@ -354,7 +353,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
                     id = obj["planet_id"] if key == "planets" else obj
                     if wait_for_children:
                         child_model_class = cls.get_model_class(child_class)
-                        child_model_class.objects.update_or_create_esi(
+                        child_model_class.objects.update_or_create_esi(  # type: ignore
                             id=id,
                             include_children=include_children,
                             wait_for_children=wait_for_children,
@@ -384,7 +383,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         parent_eve_data_obj: dict,
         parent_obj,
         wait_for_children: bool,
-        enabled_sections: Iterable[str],
+        enabled_sections: Set[str],
         task_priority: Optional[int] = None,
     ) -> None:
         """updates_or_creates eve objects that are returned "inline" from ESI
@@ -478,16 +477,16 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         parent_fk: str,
         eve_data_obj: dict,
         other_pk_info: Dict[str, Any],
-        parent2_model_name: Optional[str],
+        parent2_model_name: str,
         inline_model_name: str,
-        enabled_sections: Iterable[str],
+        enabled_sections: Set[str],
     ):
         """Updates or creates a single inline object.
         Will automatically create additional parent objects as needed
         """
         inline_model_class = cls.get_model_class(inline_model_name)
 
-        args = {f"{parent_fk}_id": parent_obj_id}
+        params: Dict[str, Any] = {f"{parent_fk}_id": parent_obj_id}
         esi_value = eve_data_obj.get(other_pk_info["esi_name"])
         if other_pk_info["is_fk"]:
             parent_class_2 = cls.get_model_class(parent2_model_name)
@@ -495,7 +494,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
                 value = parent_class_2.objects.get(id=esi_value)
             except parent_class_2.DoesNotExist:
                 try:
-                    value, _ = parent_class_2.objects.update_or_create_esi(
+                    value, _ = parent_class_2.objects.update_or_create_esi(  # type: ignore
                         id=esi_value, enabled_sections=enabled_sections
                     )
                 except AttributeError:
@@ -504,11 +503,11 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
             value = esi_value
 
         key = other_pk_info["name"]
-        args[key] = value  # type: ignore
-        args["defaults"] = inline_model_class.defaults_from_esi_obj(
+        params[key] = value
+        params["defaults"] = inline_model_class.defaults_from_esi_obj(
             eve_data_obj, enabled_sections=enabled_sections
         )
-        inline_model_class.objects.update_or_create(**args)
+        inline_model_class.objects.update_or_create(**params)
 
     @classmethod
     def eve_entity_category(cls) -> str:
@@ -544,7 +543,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         return mappings if mappings else {}
 
     @classmethod
-    def _inline_objects(cls, _enabled_sections: Optional[Set[str]] = None) -> dict:
+    def _inline_objects(cls, _enabled_sections: Optional[Iterable[str]] = None) -> dict:
         """returns a dict of inline objects if any"""
         inline_objects = cls._eve_universe_meta_attr("inline_objects")
         return inline_objects if inline_objects else {}

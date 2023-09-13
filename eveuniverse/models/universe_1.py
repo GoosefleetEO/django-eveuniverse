@@ -15,7 +15,7 @@ from eveuniverse.core import dotlan, eveimageserver, eveitems, eveskinserver
 from eveuniverse.managers import EveMarketPriceManager, EveTypeManager
 
 from .base import (
-    NAMES_MAX_LENGTH,
+    _NAMES_MAX_LENGTH,
     EveUniverseEntityModel,
     EveUniverseInlineModel,
     _SectionBase,
@@ -96,7 +96,7 @@ class EveDogmaAttribute(EveUniverseEntityModel):
     )
     default_value = models.FloatField(default=None, null=True)
     description = models.TextField(default="")
-    display_name = models.CharField(max_length=NAMES_MAX_LENGTH, default="")
+    display_name = models.CharField(max_length=_NAMES_MAX_LENGTH, default="")
     high_is_good = models.BooleanField(default=None, null=True)
     icon_id = models.PositiveIntegerField(default=None, null=True, db_index=True)
     published = models.BooleanField(default=None, null=True)
@@ -130,7 +130,7 @@ class EveDogmaEffect(EveUniverseEntityModel):
         null=True,
         related_name="discharge_attribute_effects",
     )
-    display_name = models.CharField(max_length=NAMES_MAX_LENGTH, default="")
+    display_name = models.CharField(max_length=_NAMES_MAX_LENGTH, default="")
     duration_attribute = models.ForeignKey(
         "EveDogmaAttribute",
         on_delete=models.SET_DEFAULT,
@@ -190,11 +190,11 @@ class EveDogmaEffect(EveUniverseEntityModel):
 class EveDogmaEffectModifier(EveUniverseInlineModel):
     """A modifier for a dogma effect in Eve Online"""
 
-    domain = models.CharField(max_length=NAMES_MAX_LENGTH, default="")
+    domain = models.CharField(max_length=_NAMES_MAX_LENGTH, default="")
     eve_dogma_effect = models.ForeignKey(
         "EveDogmaEffect", on_delete=models.CASCADE, related_name="modifiers"
     )
-    func = models.CharField(max_length=NAMES_MAX_LENGTH)
+    func = models.CharField(max_length=_NAMES_MAX_LENGTH)
     modified_attribute = models.ForeignKey(
         "EveDogmaAttribute",
         on_delete=models.SET_DEFAULT,

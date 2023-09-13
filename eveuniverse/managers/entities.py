@@ -29,7 +29,7 @@ class EveEntityQuerySet(models.QuerySet):
         """Updates all Eve entity objects in this queryset from ESI."""
         from eveuniverse.models import EveEntity
 
-        return EveEntity.objects.update_from_esi_by_id(self.valid_ids())
+        return EveEntity.objects.update_from_esi_by_id(self.valid_ids())  # type: ignore
 
     def valid_ids(self) -> Set[int]:
         """Determine valid Ids in this Queryset."""

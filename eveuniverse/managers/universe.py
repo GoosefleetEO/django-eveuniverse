@@ -331,7 +331,7 @@ class EvePlanetManager(EveUniverseEntityModelManager):
             raise ValueError("system_id not found in moon response - data error")
 
         system_id = esi_data["system_id"]
-        solar_system_data = EveSolarSystem.objects._fetch_from_esi(id=system_id)
+        solar_system_data = EveSolarSystem.objects._fetch_from_esi(id=system_id)  # type: ignore
         if "planets" not in solar_system_data:
             raise ValueError("planets not found in solar system response - data error")
 
@@ -376,7 +376,7 @@ class EvePlanetChildrenManager(EveUniverseEntityModelManager):
             raise ValueError("system_id not found in moon response - data error")
 
         system_id = esi_data["system_id"]
-        solar_system_data = EveSolarSystem.objects._fetch_from_esi(id=system_id)
+        solar_system_data = EveSolarSystem.objects._fetch_from_esi(id=system_id)  # type: ignore
         if "planets" not in solar_system_data:
             raise ValueError("planets not found in solar system response - data error")
 
@@ -470,20 +470,20 @@ class EveTypeManager(EveUniverseEntityModelManager):
     ) -> Tuple[Any, bool]:
         from eveuniverse.models import determine_effective_sections
 
+        effective_sections = determine_effective_sections(enabled_sections)
         obj, created = super().update_or_create_esi(
             id=id,
             include_children=include_children,
             wait_for_children=wait_for_children,
-            enabled_sections=enabled_sections,
+            enabled_sections=effective_sections,
             task_priority=task_priority,
         )
-        enabled_sections = determine_effective_sections(enabled_sections)
-        if enabled_sections:
-            if self.model.Section.TYPE_MATERIALS in enabled_sections:
+        if effective_sections:
+            if self.model.Section.TYPE_MATERIALS in effective_sections:
                 from eveuniverse.models import EveTypeMaterial
 
-                EveTypeMaterial.objects.update_or_create_api(eve_type=obj)
-            if self.model.Section.INDUSTRY_ACTIVITIES in enabled_sections:
+                EveTypeMaterial.objects.update_or_create_api(eve_type=obj)  # type: ignore
+            if self.model.Section.INDUSTRY_ACTIVITIES in effective_sections:
                 from eveuniverse.models import (
                     EveIndustryActivityDuration,
                     EveIndustryActivityMaterial,
@@ -491,10 +491,10 @@ class EveTypeManager(EveUniverseEntityModelManager):
                     EveIndustryActivitySkill,
                 )
 
-                EveIndustryActivityDuration.objects.update_or_create_api(eve_type=obj)
-                EveIndustryActivityProduct.objects.update_or_create_api(eve_type=obj)
-                EveIndustryActivitySkill.objects.update_or_create_api(eve_type=obj)
-                EveIndustryActivityMaterial.objects.update_or_create_api(eve_type=obj)
+                EveIndustryActivityDuration.objects.update_or_create_api(eve_type=obj)  # type: ignore
+                EveIndustryActivityProduct.objects.update_or_create_api(eve_type=obj)  # type: ignore
+                EveIndustryActivitySkill.objects.update_or_create_api(eve_type=obj)  # type: ignore
+                EveIndustryActivityMaterial.objects.update_or_create_api(eve_type=obj)  # type: ignore
         return obj, created
 
 

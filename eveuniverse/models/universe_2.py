@@ -175,7 +175,7 @@ class EvePlanet(EveUniverseEntityModel):
         return matches[0] if matches else ""
 
     @classmethod
-    def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
+    def _children(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         enabled_sections = determine_effective_sections(enabled_sections)
         children = {}
         if cls.Section.ASTEROID_BELTS in enabled_sections:
@@ -370,7 +370,7 @@ class EveSolarSystem(EveUniverseEntityModel):
             return None
 
         return [
-            EveSolarSystem.objects.get_or_create_esi(id=solar_system_id)
+            EveSolarSystem.objects.get_or_create_esi(id=solar_system_id)  # type: ignore
             for solar_system_id in path_ids
         ]
 
@@ -437,7 +437,7 @@ class EveSolarSystem(EveUniverseEntityModel):
         )
         if not item:
             return None
-        eve_type, _ = EveType.objects.get_or_create_esi(id=item.type_id)
+        eve_type, _ = EveType.objects.get_or_create_esi(id=item.type_id)  # type: ignore
         class_mapping = {
             EveGroupId.ASTEROID_BELT: EveAsteroidBelt,
             EveGroupId.MOON: EveMoon,
@@ -456,7 +456,7 @@ class EveSolarSystem(EveUniverseEntityModel):
         )
 
     @classmethod
-    def _children(cls, enabled_sections: Optional[Iterable[str]] = None) -> dict:
+    def _children(cls, enabled_sections: Optional[Set[str]] = None) -> dict:
         enabled_sections = determine_effective_sections(enabled_sections)
         children = {}
         if cls.Section.PLANETS in enabled_sections:
