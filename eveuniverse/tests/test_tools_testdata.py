@@ -1,7 +1,6 @@
-import inspect
 import json
-import os
 from collections import OrderedDict
+from pathlib import Path
 from unittest.mock import patch
 
 from eveuniverse.models import EveCategory, EveGroup, EveRegion, EveType
@@ -14,7 +13,7 @@ from eveuniverse.utils import NoSocketsTestCase
 
 from .testdata.esi import EsiClientStub
 
-_current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+_current_dir = Path(__file__).parent
 
 FILENAME_TESTDATA = "dummy.json"
 
@@ -41,8 +40,8 @@ class TestTestData(NoSocketsTestCase):
             ModelSpec("EveType", ids=[621], enabled_sections=[EveType.Section.DOGMAS]),
             ModelSpec("EveSolarSystem", ids=[30045339], include_children=True),
         ]
-        filepath = f"{_current_dir}/{FILENAME_TESTDATA}"
-        create_testdata(spec, filepath)
+        filepath = _current_dir / FILENAME_TESTDATA
+        create_testdata(spec, str(filepath))
 
         with open(filepath, "r", encoding="utf-8") as f:
             testdata = json.load(f, object_pairs_hook=OrderedDict)
@@ -68,11 +67,11 @@ class TestTestData(NoSocketsTestCase):
         # did load children of solar systems as requested
         self.assertEqual(self._get_ids(testdata, "EveStargate"), {50016284, 50016286})
 
-        os.remove(filepath)
+        filepath.unlink()
 
     def test_load_testdata_from_file(self):
-        filepath = f"{_current_dir}/testdata_example.json"
-        load_testdata_from_file(filepath)
+        filepath = _current_dir / "testdata_example.json"
+        load_testdata_from_file(str(filepath))
         self.assertTrue(EveCategory.objects.filter(id=6).exists())
         self.assertTrue(EveGroup.objects.filter(id=25).exists())
         self.assertTrue(EveGroup.objects.filter(id=26).exists())

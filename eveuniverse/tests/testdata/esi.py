@@ -1,7 +1,7 @@
 import inspect
 import json
-import os
 from collections import namedtuple
+from pathlib import Path
 from typing import Optional
 from unittest.mock import Mock
 
@@ -9,7 +9,7 @@ from bravado.exception import HTTPNotFound
 
 from eveuniverse import models as eveuniverse_models
 
-_currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+_current_folder = Path(__file__).parent
 
 
 """
@@ -107,7 +107,7 @@ class EsiRoute:
 class EsiClientStub:
     @classmethod
     def _generate(cls):
-        """dnamically generates the client class with all attributes based on definition"""
+        """Dynamically generate the client class with all attributes based on definition."""
         EsiEndpoint = namedtuple("EsiSpec", ["category", "method", "key"])
         esi_endpoints = [
             EsiEndpoint("Dogma", "get_dogma_attributes_attribute_id", "attribute_id"),
@@ -171,8 +171,9 @@ EsiClientStub._generate()
 
 
 def _load_esi_data():
-    with open(_currentdir + "/esi_data.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
+    path = _current_folder / "esi_data.json"
+    with path.open("r", encoding="utf-8") as file:
+        data = json.load(file)
 
     # generate list endpoints from existing test data
     entity_classes = [
