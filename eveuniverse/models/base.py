@@ -587,7 +587,10 @@ class EveUniverseInlineModel(EveUniverseBaseModel):
 def determine_effective_sections(
     enabled_sections: Optional[Iterable[str]] = None,
 ) -> Set[str]:
-    """Determine currently effective sections."""
+    """Determine currently effective sections.
+
+    :meta private:
+    """
     from .universe_1 import EveType
     from .universe_2 import EvePlanet, EveSolarSystem
 

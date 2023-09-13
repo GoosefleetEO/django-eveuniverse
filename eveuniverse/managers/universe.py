@@ -19,7 +19,6 @@ from eveuniverse.utils import LoggerAddTag
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
 _FakeResponse = namedtuple("_FakeResponse", ["status_code"])
-""":meta private:"""
 
 
 class EveUniverseEntityModelManager(models.Manager):
