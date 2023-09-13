@@ -169,19 +169,12 @@ class EveUniverseBaseModel(models.Model):
             else:
                 is_pk = False
 
-            is_parent_fk = bool(parent_fk and is_pk and field.name in parent_fk)
-
             if isinstance(field, models.ForeignKey):
                 is_fk = True
                 related_model = field.related_model
             else:
                 is_fk = False
                 related_model = None
-
-            if dont_create_related and field.name in dont_create_related:
-                create_related = False
-            else:
-                create_related = True
 
             try:
                 is_optional = field.has_default()  # type: ignore
@@ -194,9 +187,11 @@ class EveUniverseBaseModel(models.Model):
                 is_pk=is_pk,
                 is_fk=is_fk,
                 related_model=related_model,
-                is_parent_fk=is_parent_fk,
+                is_parent_fk=bool(parent_fk and is_pk and field.name in parent_fk),
                 is_charfield=isinstance(field, (models.CharField, models.TextField)),
-                create_related=create_related,
+                create_related=not (
+                    dont_create_related and field.name in dont_create_related
+                ),
             )
 
         return field_mappings
