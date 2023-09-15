@@ -313,7 +313,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     # TODO: Implement other sections
 
     # icons
-    DEFAULT_ICON_SIZE = 64
+    _DEFAULT_ICON_SIZE = 64
 
     id = models.PositiveIntegerField(primary_key=True, help_text="Eve Online ID")
     name = models.CharField(
@@ -337,7 +337,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         return self.name
 
     @classmethod
-    def update_or_create_children(
+    def _update_or_create_children(
         cls,
         *,
         parent_eve_data_obj: dict,
@@ -346,7 +346,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         enabled_sections: Set[str],
         task_priority: Optional[int] = None,
     ) -> None:
-        """updates or creates child objects as defined for this parent model (if any)"""
+        """Update or creates child objects as defined for this parent model (if any)."""
         from eveuniverse.tasks import (
             update_or_create_eve_object as task_update_or_create_eve_object,
         )
@@ -387,7 +387,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
                         task_update_or_create_eve_object.apply_async(**params)  # type: ignore
 
     @classmethod
-    def update_or_create_inline_objects(
+    def _update_or_create_inline_objects(
         cls,
         *,
         parent_eve_data_obj: dict,
@@ -396,8 +396,8 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         enabled_sections: Set[str],
         task_priority: Optional[int] = None,
     ) -> None:
-        """updates_or_creates eve objects that are returned "inline" from ESI
-        for the parent eve objects as defined for this parent model (if any)
+        """Updates or create eve objects that are returned "inline" from ESI
+        for the parent eve objects as defined for this parent model (if any).
         """
         from eveuniverse.tasks import (
             update_or_create_inline_object as task_update_or_create_inline_object,
@@ -426,7 +426,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
 
             for eve_data_obj in parent_eve_data_obj[inline_field]:
                 if wait_for_children:
-                    cls.update_or_create_inline_object(
+                    cls._update_or_create_inline_object(
                         parent_obj_id=parent_obj.id,
                         parent_fk=parent_fk,
                         eve_data_obj=eve_data_obj,
@@ -481,7 +481,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         return parent_fk, parent2_model_name, other_pk_info
 
     @classmethod
-    def update_or_create_inline_object(
+    def _update_or_create_inline_object(
         cls,
         parent_obj_id: int,
         parent_fk: str,
@@ -491,7 +491,8 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         inline_model_name: str,
         enabled_sections: Set[str],
     ):
-        """Updates or creates a single inline object.
+        """Update or create a single inline object.
+
         Will automatically create additional parent objects as needed
         """
         inline_model_class = cls.get_model_class(inline_model_name)
@@ -521,8 +522,8 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
 
     @classmethod
     def eve_entity_category(cls) -> str:
-        """returns the EveEntity category of this model if one exists
-        else and empty string
+        """Return the EveEntity category of this model if one exists
+        else an empty string.
         """
         return ""
 

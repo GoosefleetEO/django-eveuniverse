@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.4.1] - 2023-09-13
+
+### Changed
+
+- Made `EveUniverseEntityModel.DEFAULT_ICON_SIZE` and other internal methods private
+
+### Fixed
+
+- Made `EveUniverseEntityModel` available in public API again
+
 ## [1.4.0] - 2023-09-13
 
 ### Added

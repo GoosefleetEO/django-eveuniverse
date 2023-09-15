@@ -291,7 +291,7 @@ class EveFaction(EveUniverseEntityModel):
         """URL to default third party website with profile info about this entity."""
         return dotlan.faction_url(self.name)
 
-    def logo_url(self, size=EveUniverseEntityModel.DEFAULT_ICON_SIZE) -> str:
+    def logo_url(self, size=EveUniverseEntityModel._DEFAULT_ICON_SIZE) -> str:
         """returns an image URL for this faction
 
         Args:
@@ -489,7 +489,7 @@ class EveType(EveUniverseEntityModel):
 
     def icon_url(
         self,
-        size: int = EveUniverseEntityModel.DEFAULT_ICON_SIZE,
+        size: int = EveUniverseEntityModel._DEFAULT_ICON_SIZE,
         variant: Optional[IconVariant] = None,
         category_id: Optional[int] = None,
         is_blueprint: Optional[bool] = None,
@@ -527,7 +527,7 @@ class EveType(EveUniverseEntityModel):
             return eveimageserver.type_bpc_url(self.id, size=size)
 
         if variant is self.IconVariant.SKIN:
-            size = EveUniverseEntityModel.DEFAULT_ICON_SIZE if not size else size
+            size = EveUniverseEntityModel._DEFAULT_ICON_SIZE if not size else size
             if EVEUNIVERSE_USE_EVESKINSERVER:
                 return eveskinserver.type_icon_url(self.id, size=size)
 
@@ -539,7 +539,7 @@ class EveType(EveUniverseEntityModel):
 
         return eveimageserver.type_icon_url(self.id, size=size)
 
-    def render_url(self, size=EveUniverseEntityModel.DEFAULT_ICON_SIZE) -> str:
+    def render_url(self, size=EveUniverseEntityModel._DEFAULT_ICON_SIZE) -> str:
         """return an image URL to this type as render"""
         return eveimageserver.type_render_url(self.id, size=size)
 

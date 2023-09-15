@@ -1,5 +1,6 @@
 """Models for Eve Universe."""
 
+from .base import EveUniverseEntityModel
 from .entities import EveEntity
 from .sde import (
     EveIndustryActivity,
@@ -41,33 +42,28 @@ from .universe_2 import (
 )
 
 __all__ = [
+    "EveAncestry",
+    "EveAsteroidBelt",
+    "EveBloodline",
+    "EveCategory",
+    "EveConstellation",
+    "EveDogmaAttribute",
+    "EveDogmaEffect",
+    "EveDogmaEffectModifier",
     "EveEntity",
+    "EveFaction",
+    "EveGraphic",
+    "EveGroup",
     "EveIndustryActivity",
     "EveIndustryActivityDuration",
     "EveIndustryActivityMaterial",
     "EveIndustryActivityProduct",
     "EveIndustryActivitySkill",
-    "EveTypeMaterial",
-    "EveAncestry",
-    "EveBloodline",
-    "EveCategory",
-    "EveDogmaAttribute",
-    "EveDogmaEffect",
-    "EveDogmaEffectModifier",
-    "EveFaction",
-    "EveGraphic",
-    "EveGroup",
     "EveMarketGroup",
     "EveMarketPrice",
-    "EveRace",
-    "EveType",
-    "EveTypeDogmaAttribute",
-    "EveTypeDogmaEffect",
-    "EveUnit",
-    "EveAsteroidBelt",
-    "EveConstellation",
     "EveMoon",
     "EvePlanet",
+    "EveRace",
     "EveRegion",
     "EveSolarSystem",
     "EveStar",
@@ -75,4 +71,10 @@ __all__ = [
     "EveStation",
     "EveStationService",
     "EveType",
+    "EveType",
+    "EveTypeDogmaAttribute",
+    "EveTypeDogmaEffect",
+    "EveTypeMaterial",
+    "EveUnit",
+    "EveUniverseEntityModel",
 ]
