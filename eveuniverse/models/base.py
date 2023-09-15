@@ -313,7 +313,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     # TODO: Implement other sections
 
     # icons
-    DEFAULT_ICON_SIZE = 64
+    _DEFAULT_ICON_SIZE = 64
 
     id = models.PositiveIntegerField(primary_key=True, help_text="Eve Online ID")
     name = models.CharField(

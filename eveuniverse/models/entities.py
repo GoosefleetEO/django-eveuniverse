@@ -198,7 +198,7 @@ class EveEntity(EveUniverseEntityModel):
         obj = EveEntity.objects.update_or_create_esi(id=self.id)[0]  # type: ignore
         return obj
 
-    def icon_url(self, size: int = EveUniverseEntityModel.DEFAULT_ICON_SIZE) -> str:
+    def icon_url(self, size: int = EveUniverseEntityModel._DEFAULT_ICON_SIZE) -> str:
         """Create image URL for related EVE icon
 
         Args:
