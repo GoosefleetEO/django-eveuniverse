@@ -120,7 +120,7 @@ class EveUniverseEntityModelManager(models.Manager):
                 if updated_sections:
                     obj.save()
 
-            self.model.update_or_create_inline_objects(
+            self.model._update_or_create_inline_objects(
                 parent_eve_data_obj=eve_data_obj,
                 parent_obj=obj,
                 wait_for_children=wait_for_children,
@@ -129,7 +129,7 @@ class EveUniverseEntityModelManager(models.Manager):
             )
 
             if include_children:
-                self.model.update_or_create_children(
+                self.model._update_or_create_children(
                     parent_eve_data_obj=eve_data_obj,
                     include_children=include_children,
                     wait_for_children=wait_for_children,

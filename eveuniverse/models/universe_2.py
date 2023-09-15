@@ -607,7 +607,7 @@ class EveStation(EveUniverseEntityModel):
         return EveEntity.CATEGORY_STATION
 
     @classmethod
-    def update_or_create_inline_objects(
+    def _update_or_create_inline_objects(
         cls,
         *,
         parent_eve_data_obj: dict,

@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- Made `EveUniverseEntityModel.DEFAULT_ICON_SIZE` private
+- Made `EveUniverseEntityModel.DEFAULT_ICON_SIZE` and other internal methods private
 
 ### Fixed
 
