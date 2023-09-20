@@ -512,18 +512,18 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
         self.assertFalse(obj.is_station)
 
 
-# @patch(MANAGERS_PATH + ".esi")
-# class TestEveEntityBulkResolveIds(NoSocketsTestCase):
-#     def test_should_resolve_ids_to_names(self, mock_esi):
-#         # given
-#         mock_esi.client = EsiClientStub()
-#         # when
-#         EveEntity.objects.bulk_resolve_ids([1001, 2001])
-#         # then
-#         obj = EveEntity.objects.get(id=1001)
-#         self.assertEqual(obj.name, "Bruce Wayne")
-#         obj = EveEntity.objects.get(id=2001)
-#         self.assertEqual(obj.name, "Wayne Technologies")
+@patch(MANAGERS_PATH + ".esi")
+class TestEveEntityBulkResolveIds(NoSocketsTestCase):
+    def test_should_resolve_ids_to_names(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        EveEntity.objects.bulk_resolve_ids([1001, 2001])
+        # then
+        obj = EveEntity.objects.get(id=1001)
+        self.assertEqual(obj.name, "Bruce Wayne")
+        obj = EveEntity.objects.get(id=2001)
+        self.assertEqual(obj.name, "Wayne Technologies")
 
 
 @patch(MANAGERS_PATH + ".esi")
