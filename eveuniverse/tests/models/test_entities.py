@@ -525,6 +525,18 @@ class TestEveEntityBulkResolveIds(NoSocketsTestCase):
         obj = EveEntity.objects.get(id=2001)
         self.assertEqual(obj.name, "Wayne Technologies")
 
+    def test_should_resolve_given_ids_only(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        create_eve_entity(id=2001)
+        # when
+        EveEntity.objects.bulk_resolve_ids([1001])
+        # then
+        obj = EveEntity.objects.get(id=1001)
+        self.assertEqual(obj.name, "Bruce Wayne")
+        obj = EveEntity.objects.get(id=2001)
+        self.assertEqual(obj.name, "")
+
 
 @patch(MANAGERS_PATH + ".esi")
 class TestEveEntityManagerFetchEntitiesByName(NoSocketsTestCase):

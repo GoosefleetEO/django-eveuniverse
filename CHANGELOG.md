@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+
+- EveEntity.objects.bulk_resolve_ids(): New and better implementation for resolving IDs
+
 ### Fixed
 
 - EveEntity.objects.bulk_create_esi() does not resolve existing empty objs.
