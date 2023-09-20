@@ -513,32 +513,6 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
 
 
 @patch(MANAGERS_PATH + ".esi")
-class TestEveEntityBulkResolveIds(NoSocketsTestCase):
-    def test_should_resolve_ids_to_names(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        EveEntity.objects.bulk_resolve_ids([1001, 2001])
-        # then
-        obj = EveEntity.objects.get(id=1001)
-        self.assertEqual(obj.name, "Bruce Wayne")
-        obj = EveEntity.objects.get(id=2001)
-        self.assertEqual(obj.name, "Wayne Technologies")
-
-    def test_should_resolve_given_ids_only(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        create_eve_entity(id=2001)
-        # when
-        EveEntity.objects.bulk_resolve_ids([1001])
-        # then
-        obj = EveEntity.objects.get(id=1001)
-        self.assertEqual(obj.name, "Bruce Wayne")
-        obj = EveEntity.objects.get(id=2001)
-        self.assertEqual(obj.name, "")
-
-
-@patch(MANAGERS_PATH + ".esi")
 class TestEveEntityManagerFetchEntitiesByName(NoSocketsTestCase):
     def test_can_fetch_entity_by_name_from_esi(self, mock_esi):
         # given
@@ -720,28 +694,26 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
 
 @patch(MANAGERS_PATH + ".esi")
-class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
+class TestEveEntityBulkResolveIds(NoSocketsTestCase):
     def test_create_new_entities(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
 
         # when
-        result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
+        result = EveEntity.objects.bulk_resolve_ids(ids=[1001, 2001])
         self.assertEqual(result, 2)
 
         obj = EveEntity.objects.get(id=1001)
-        self.assertEqual(obj.id, 1001)
         self.assertEqual(obj.name, "Bruce Wayne")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
 
         obj = EveEntity.objects.get(id=2001)
-        self.assertEqual(obj.id, 2001)
         self.assertEqual(obj.name, "Wayne Technologies")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
     def test_should_return_zero_when_nothing_to_create(self, mock_esi):
         # when
-        result = EveEntity.objects.bulk_create_esi(ids=[])
+        result = EveEntity.objects.bulk_resolve_ids(ids=[])
         # then
         self.assertEqual(result, 0)
 
@@ -753,18 +725,16 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
         )
 
         # when
-        result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
+        result = EveEntity.objects.bulk_resolve_ids(ids=[1001, 2001])
 
         # then
         self.assertEqual(result, 1)
 
         obj = EveEntity.objects.get(id=1001)
-        self.assertEqual(obj.id, 1001)
         self.assertEqual(obj.name, "Bruce Wayne")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
 
         obj = EveEntity.objects.get(id=2001)
-        self.assertEqual(obj.id, 2001)
         self.assertEqual(obj.name, "Wayne Technologies")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
@@ -774,18 +744,16 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
         create_eve_entity(id=1001, category=EveEntity.CATEGORY_CORPORATION)
 
         # when
-        result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
+        result = EveEntity.objects.bulk_resolve_ids(ids=[1001, 2001])
 
         # then
         self.assertEqual(result, 2)
 
         obj = EveEntity.objects.get(id=1001)
-        self.assertEqual(obj.id, 1001)
         self.assertEqual(obj.name, "Bruce Wayne")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
 
         obj = EveEntity.objects.get(id=2001)
-        self.assertEqual(obj.id, 2001)
         self.assertEqual(obj.name, "Wayne Technologies")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
@@ -795,13 +763,12 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
         create_eve_entity(id=1001)
 
         # when
-        result = EveEntity.objects.bulk_create_esi(ids=[1001])
+        result = EveEntity.objects.bulk_resolve_ids(ids=[1001])
 
         # then
         self.assertEqual(result, 1)
 
         obj = EveEntity.objects.get(id=1001)
-        self.assertEqual(obj.id, 1001)
         self.assertEqual(obj.name, "Bruce Wayne")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
 

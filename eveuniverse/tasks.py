@@ -128,7 +128,7 @@ def update_or_create_inline_object(
 @shared_task(**_TASK_ESI_DEFAULTS)
 def create_eve_entities(ids: Iterable[int]) -> None:
     """Task for bulk creating and resolving multiple entities from ESI."""
-    EveEntity.objects.bulk_create_esi(ids)  # type: ignore
+    EveEntity.objects.bulk_resolve_ids(ids)  # type: ignore
 
 
 @shared_task(**_TASK_ESI_DEFAULTS_ONCE)

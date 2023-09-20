@@ -45,8 +45,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
     _MAX_DEPTH = 5  # max recursion depth when resolving IDs
 
     def bulk_create_esi(self, ids: Iterable[int]) -> int:
-        """bulk create and resolve multiple entities from ESI.
-        Will also resolve existing entities, that have no name.
+        """Resolve given IDs from ESI and update or create corresponding objects.
 
         Args:
             ids: List of valid EveEntity IDs
@@ -54,7 +53,25 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         Returns:
             Count of updated entities
         """
+        return self.bulk_resolve_ids(ids)
+
+    def bulk_resolve_ids(self, ids: Iterable[int]) -> int:
+        """Resolve given IDs from ESI and update or create corresponding objects.
+
+        Args:
+            ids: IDs to be resolved
+
+        Returns:
+            Count of updated entities
+        """
         ids = set(map(int, ids))
+        self._create_missing_objs(ids)
+
+        to_update_qs = self.filter(id__in=ids, name="")
+        return to_update_qs.update_from_esi()
+
+    def _create_missing_objs(self, ids: Set[int]) -> Set[int]:
+        """Create missing objs and return their IDs."""
         existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
         new_ids = ids.difference(existing_ids)
 
@@ -64,12 +81,9 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
                 objects,
                 batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
                 ignore_conflicts=True,
-            )
+            )  # type: ignore
 
-        to_update_qs = self.filter(id__in=new_ids) | self.filter(
-            id__in=ids.difference(new_ids), name=""
-        )
-        return to_update_qs.update_from_esi()  # type: ignore
+        return new_ids
 
     def bulk_resolve_names(self, ids: Iterable[int]) -> EveEntityNameResolver:
         """Resolve given IDs to names and return them.
@@ -82,7 +96,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
             of IDs
         """
         ids = set(map(int, ids))
-        self.bulk_create_esi(ids)
+        self.bulk_resolve_ids(ids)
         return EveEntityNameResolver(
             {
                 row[0]: row[1]
@@ -90,38 +104,8 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
             }
         )
 
-    def bulk_resolve_ids(self, ids: Iterable[int]) -> Set[int]:
-        """Resolve given IDs to names and create or update EveEntity objs for them.
-
-        Args:
-            ids: List of valid EveEntity IDs
-
-        Returns:
-            Count of resolved IDs.
-        """
-        ids = set(map(int, ids))
-        self._create_missing_objs(ids)
-        to_update_qs = self.filter(id__in=ids, name="")
-        return to_update_qs.update_from_esi()  # type: ignore
-
-    def _create_missing_objs(self, ids: Set[int]) -> list:
-        """Create missing EveEntity objs from IDs. Return newly created objs."""
-        existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
-        new_ids = ids.difference(existing_ids)
-
-        if not new_ids:
-            return []
-
-        objs = [self.model(id=id) for id in new_ids]
-        self.bulk_create(
-            objs,
-            batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
-            ignore_conflicts=True,
-        )
-        return objs
-
     def bulk_update_all_esi(self):
-        """Updates all EveEntity objects in the database from ESI.
+        """Update all EveEntity objects in the database from ESI.
 
         Returns:
             Count of updated entities.
@@ -129,7 +113,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         return self.all().update_from_esi()  # type: ignore
 
     def bulk_update_new_esi(self) -> int:
-        """updates all unresolved EveEntity objects in the database from ESI.
+        """Update all unresolved EveEntity objects in the database from ESI.
 
         Returns:
             Count of updated entities.
