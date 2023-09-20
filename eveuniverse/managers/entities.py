@@ -132,15 +132,14 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
         new_ids = ids.difference(existing_ids)
 
-        if not new_ids:
-            return 0
+        if new_ids:
+            objects = [self.model(id=id) for id in new_ids]
+            self.bulk_create(
+                objects,
+                batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
+                ignore_conflicts=True,
+            )
 
-        objects = [self.model(id=id) for id in new_ids]
-        self.bulk_create(
-            objects,
-            batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
-            ignore_conflicts=True,
-        )
         to_update_qs = self.filter(id__in=new_ids) | self.filter(
             id__in=ids.difference(new_ids), name=""
         )
@@ -264,7 +263,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
             raise ValueError(f"Invalid category: {category_key}") from None
 
     def bulk_resolve_names(self, ids: Iterable[int]) -> EveEntityNameResolver:
-        """returns a map of IDs to names in a resolver object for given IDs
+        """Resolve given IDs to names and return them.
 
         Args:
             ids: List of valid EveEntity IDs
@@ -281,6 +280,36 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
                 for row in self.filter(id__in=ids).values_list("id", "name")
             }
         )
+
+    # def bulk_resolve_ids(self, ids: Iterable[int]) -> Set[int]:
+    #     """Resolve given IDs to names and create or update EveEntity objs for them.
+
+    #     Args:
+    #         ids: List of valid EveEntity IDs
+
+    #     Returns:
+    #         Count of resolved IDs.
+    #     """
+    #     ids = set(map(int, ids))
+    #     self._create_missing_objs(ids)
+    #     to_update_qs = self.filter(id__in=ids, name="")
+    #     return to_update_qs.update_from_esi()  # type: ignore
+
+    # def _create_missing_objs(self, ids: Set[int]) -> list:
+    #     """Create missing EveEntity objs from IDs. Return newly created objs."""
+    #     existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
+    #     new_ids = ids.difference(existing_ids)
+
+    #     if not new_ids:
+    #         return []
+
+    #     objs = [self.model(id=id) for id in new_ids]
+    #     self.bulk_create(
+    #         objs,
+    #         batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
+    #         ignore_conflicts=True,
+    #     )
+    #     return objs
 
     def update_from_esi_by_id(self, ids: Iterable[int]) -> int:
         """Updates all Eve entity objects by id from ESI."""

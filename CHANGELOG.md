@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Fixed
+
+- EveEntity.objects.bulk_create_esi() does not resolve existing empty objs.
+
 ## [1.4.1] - 2023-09-13
 
 ### Changed

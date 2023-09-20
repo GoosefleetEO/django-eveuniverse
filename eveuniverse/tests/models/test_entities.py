@@ -277,7 +277,7 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
         self.assertEqual(EveEntity.objects.resolve_name(999), "")
         self.assertEqual(EveEntity.objects.resolve_name(None), "")
 
-    def test_can_bulk_resolve_name(self, mock_esi):
+    def test_can_bulk_resolve_names(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
         resolver = EveEntity.objects.bulk_resolve_names([1001, 2001, 3001])
@@ -512,6 +512,20 @@ class TestEveEntityManagerEsi(NoSocketsTestCase):
         self.assertFalse(obj.is_station)
 
 
+# @patch(MANAGERS_PATH + ".esi")
+# class TestEveEntityBulkResolveIds(NoSocketsTestCase):
+#     def test_should_resolve_ids_to_names(self, mock_esi):
+#         # given
+#         mock_esi.client = EsiClientStub()
+#         # when
+#         EveEntity.objects.bulk_resolve_ids([1001, 2001])
+#         # then
+#         obj = EveEntity.objects.get(id=1001)
+#         self.assertEqual(obj.name, "Bruce Wayne")
+#         obj = EveEntity.objects.get(id=2001)
+#         self.assertEqual(obj.name, "Wayne Technologies")
+
+
 @patch(MANAGERS_PATH + ".esi")
 class TestEveEntityManagerFetchEntitiesByName(NoSocketsTestCase):
     def test_can_fetch_entity_by_name_from_esi(self, mock_esi):
@@ -696,13 +710,12 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 @patch(MANAGERS_PATH + ".esi")
 class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
     def test_create_new_entities(self, mock_esi):
+        # given
         mock_esi.client = EsiClientStub()
 
+        # when
         result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
         self.assertEqual(result, 2)
-
-        result = EveEntity.objects.bulk_create_esi(ids=[])
-        self.assertEqual(result, 0)
 
         obj = EveEntity.objects.get(id=1001)
         self.assertEqual(obj.id, 1001)
@@ -714,13 +727,23 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
         self.assertEqual(obj.name, "Wayne Technologies")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
-    def test_create_only_non_existing_entities(self, mock_esi):
-        mock_esi.client = EsiClientStub()
+    def test_should_return_zero_when_nothing_to_create(self, mock_esi):
+        # when
+        result = EveEntity.objects.bulk_create_esi(ids=[])
+        # then
+        self.assertEqual(result, 0)
 
+    def test_create_only_non_existing_entities(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
         create_eve_entity(
             id=1001, name="Bruce Wayne", category=EveEntity.CATEGORY_CHARACTER
         )
+
+        # when
         result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
+
+        # then
         self.assertEqual(result, 1)
 
         obj = EveEntity.objects.get(id=1001)
@@ -734,10 +757,14 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
         self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
     def test_entities_without_name_will_be_refetched(self, mock_esi):
+        # given
         mock_esi.client = EsiClientStub()
-
         create_eve_entity(id=1001, category=EveEntity.CATEGORY_CORPORATION)
+
+        # when
         result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
+
+        # then
         self.assertEqual(result, 2)
 
         obj = EveEntity.objects.get(id=1001)
@@ -749,6 +776,22 @@ class TestEveEntityBulkCreateEsi(NoSocketsTestCase):
         self.assertEqual(obj.id, 2001)
         self.assertEqual(obj.name, "Wayne Technologies")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
+
+    def test_should_resolve_existing_entity_without_name(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+        create_eve_entity(id=1001)
+
+        # when
+        result = EveEntity.objects.bulk_create_esi(ids=[1001])
+
+        # then
+        self.assertEqual(result, 1)
+
+        obj = EveEntity.objects.get(id=1001)
+        self.assertEqual(obj.id, 1001)
+        self.assertEqual(obj.name, "Bruce Wayne")
+        self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
 
 
 @patch(MANAGERS_PATH + ".esi")
