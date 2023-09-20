@@ -47,7 +47,9 @@ class TestGetOrCreateEsiOrNone(NoSocketsTestCase):
 
 class TestEveEntityNameResolver(NoSocketsTestCase):
     def test_to_name(self):
+        # when
         resolver = EveEntityNameResolver({1: "alpha", 2: "bravo", 3: "charlie"})
+        # then
         self.assertEqual(resolver.to_name(2), "bravo")
         self.assertEqual(resolver.to_name(4), "")
 

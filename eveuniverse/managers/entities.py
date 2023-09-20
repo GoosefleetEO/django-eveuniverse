@@ -1,6 +1,7 @@
 """Managers and Querysets for EveEntity models."""
 
 import logging
+import warnings
 from collections import defaultdict
 from typing import Any, Iterable, Optional, Set, Tuple
 
@@ -26,7 +27,10 @@ class EveEntityQuerySet(models.QuerySet):
     """Custom queryset for EveEntity."""
 
     def update_from_esi(self) -> int:
-        """Updates all Eve entity objects in this queryset from ESI."""
+        """Updates all Eve entity objects in this queryset from ESI.
+
+        Return count of updated objs.
+        """
         from eveuniverse.models import EveEntity
 
         return EveEntity.objects.update_from_esi_by_id(self.valid_ids())  # type: ignore
@@ -40,6 +44,165 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
     """Custom manager for EveEntity"""
 
     _MAX_DEPTH = 5  # max recursion depth when resolving IDs
+
+    def bulk_create_esi(self, ids: Iterable[int]) -> int:
+        """Resolve given IDs from ESI and update or create corresponding objects.
+
+        `DEPRECATED` - please use ``bulk_resolve_ids()`` instead
+
+        Args:
+            ids: List of valid EveEntity IDs
+
+        Returns:
+            Count of updated entities
+        """
+        warnings.warn("Please use bulk_resolve_ids() instead.", DeprecationWarning)
+        return self.bulk_resolve_ids(ids)
+
+    def bulk_resolve_ids(self, ids: Iterable[int]) -> int:
+        """Resolve given IDs from ESI and update or create corresponding objects.
+
+        Args:
+            ids: IDs to be resolved
+
+        Returns:
+            Count of updated entities
+        """
+        ids = set(map(int, ids))
+        self._create_missing_objs(ids)
+
+        to_update_qs = self.filter(id__in=ids, name="")
+        return to_update_qs.update_from_esi()
+
+    def _create_missing_objs(self, ids: Set[int]) -> Set[int]:
+        """Create missing objs and return their IDs."""
+        existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
+        new_ids = ids.difference(existing_ids)
+
+        if new_ids:
+            objects = [self.model(id=id) for id in new_ids]
+            self.bulk_create(
+                objects,
+                batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
+                ignore_conflicts=True,
+            )  # type: ignore
+
+        return new_ids
+
+    def bulk_resolve_names(self, ids: Iterable[int]) -> EveEntityNameResolver:
+        """Resolve given IDs to names and return them.
+
+        Args:
+            ids: List of valid EveEntity IDs
+
+        Returns:
+            EveEntityNameResolver object helpful for quick resolving a large amount
+            of IDs
+        """
+        ids = set(map(int, ids))
+        self.bulk_resolve_ids(ids)
+        return EveEntityNameResolver(
+            {
+                row[0]: row[1]
+                for row in self.filter(id__in=ids).values_list("id", "name")
+            }
+        )
+
+    def bulk_update_all_esi(self):
+        """Update all EveEntity objects in the database from ESI.
+
+        Returns:
+            Count of updated entities.
+        """
+        return self.all().update_from_esi()  # type: ignore
+
+    def bulk_update_new_esi(self) -> int:
+        """Update all unresolved EveEntity objects in the database from ESI.
+
+        Returns:
+            Count of updated entities.
+        """
+        return self.filter(name="").update_from_esi()  # type: ignore
+
+    def fetch_by_names_esi(
+        self, names: Iterable[str], update: bool = False
+    ) -> models.QuerySet:
+        """Fetch entities matching given names.
+        Will fetch missing entities from ESI if needed or requested.
+
+        Note that names that are not found by ESI are ignored.
+
+        Args:
+            names: Names of entities to fetch
+            update: When True will always update from ESI
+
+        Returns:
+            query with matching entities.
+        """
+        names = set(names)
+        if update:
+            names_to_fetch = names
+        else:
+            existing_names = set(
+                self.filter(name__in=names).values_list("name", flat=True)
+            )
+            names_to_fetch = names - existing_names
+        if names_to_fetch:
+            esi_result = self._fetch_names_from_esi(names_to_fetch)
+            if esi_result:
+                self._update_or_create_entities(esi_result)
+        return self.filter(name__in=names)
+
+    def _fetch_names_from_esi(self, names: Iterable[str]) -> dict:
+        logger.info("Trying to fetch EveEntities from ESI by name")
+        result = defaultdict(list)
+        for chunk_names in chunks(list(names), 500):
+            result_chunk = esi.client.Universe.post_universe_ids(
+                names=chunk_names
+            ).results()
+            for category, entities in result_chunk.items():
+                if entities:
+                    result[category] += entities
+        result_compressed = {
+            category: entities for category, entities in result.items() if entities
+        }
+        return result_compressed
+
+    def _update_or_create_entities(self, esi_result):
+        for category_key, entities in esi_result.items():
+            try:
+                category = self._map_category_key_to_category(category_key)
+            except ValueError:
+                logger.warning(
+                    "Ignoring entities with unknown category %s: %s",
+                    category_key,
+                    entities,
+                )
+                continue
+
+            for entity in entities:
+                self.update_or_create(
+                    id=entity["id"],
+                    defaults={"name": entity["name"], "category": category},
+                )
+
+    def _map_category_key_to_category(self, category_key: str) -> str:
+        """Map category keys from ESI result to categories."""
+        my_map = {
+            "alliances": self.model.CATEGORY_ALLIANCE,
+            "characters": self.model.CATEGORY_CHARACTER,
+            "constellations": self.model.CATEGORY_CONSTELLATION,
+            "corporations": self.model.CATEGORY_CORPORATION,
+            "factions": self.model.CATEGORY_FACTION,
+            "inventory_types": self.model.CATEGORY_INVENTORY_TYPE,
+            "regions": self.model.CATEGORY_REGION,
+            "systems": self.model.CATEGORY_SOLAR_SYSTEM,
+            "stations": self.model.CATEGORY_STATION,
+        }
+        try:
+            return my_map[category_key]
+        except KeyError:
+            raise ValueError(f"Invalid category: {category_key}") from None
 
     def get_queryset(self) -> models.QuerySet:
         """:meta private:"""
@@ -78,6 +241,16 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
             )
 
         return obj, created
+
+    def resolve_name(self, id: int) -> str:
+        """Return the name for the given Eve entity ID
+        or an empty string if ID is not valid.
+        """
+        if id is not None:
+            obj, _ = self.get_or_create_esi(id=int(id))
+            if obj:
+                return obj.name
+        return ""
 
     def update_or_create_esi(
         self,
@@ -118,34 +291,6 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
             defaults={"name": item.get("name"), "category": item.get("category")},
         )
 
-    def bulk_create_esi(self, ids: Iterable[int]) -> int:
-        """bulk create and resolve multiple entities from ESI.
-        Will also resolve existing entities, that have no name.
-
-        Args:
-            ids: List of valid EveEntity IDs
-
-        Returns:
-            Count of updated entities
-        """
-        ids = set(map(int, ids))
-        existing_ids = set(self.filter(id__in=ids).values_list("id", flat=True))
-        new_ids = ids.difference(existing_ids)
-
-        if not new_ids:
-            return 0
-
-        objects = [self.model(id=id) for id in new_ids]
-        self.bulk_create(
-            objects,
-            batch_size=EVEUNIVERSE_BULK_METHODS_BATCH_SIZE,
-            ignore_conflicts=True,
-        )
-        to_update_qs = self.filter(id__in=new_ids) | self.filter(
-            id__in=ids.difference(new_ids), name=""
-        )
-        return to_update_qs.update_from_esi()  # type: ignore
-
     def update_or_create_all_esi(
         self,
         *,
@@ -156,131 +301,6 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
     ) -> None:
         """not implemented - do not use"""
         raise NotImplementedError()
-
-    def bulk_update_new_esi(self) -> int:
-        """updates all unresolved EveEntity objects in the database from ESI.
-
-        Returns:
-            Count of updated entities.
-        """
-        return self.filter(name="").update_from_esi()  # type: ignore
-
-    def bulk_update_all_esi(self):
-        """Updates all EveEntity objects in the database from ESI.
-
-        Returns:
-            Count of updated entities.
-        """
-        return self.all().update_from_esi()  # type: ignore
-
-    def resolve_name(self, id: int) -> str:
-        """Return the name for the given Eve entity ID
-        or an empty string if ID is not valid.
-        """
-        if id is not None:
-            obj, _ = self.get_or_create_esi(id=int(id))
-            if obj:
-                return obj.name
-        return ""
-
-    def fetch_by_names_esi(
-        self, names: Iterable[str], update: bool = False
-    ) -> models.QuerySet:
-        """Fetch entities matching given names.
-        Will fetch missing entities from ESI if needed or requested.
-
-        Note that names that are not found by ESI are ignored.
-
-        Args:
-            names: Names of entities to fetch
-            update: When True will always update from ESI
-
-        Returns:
-            query with matching entities.
-        """
-        names = set(names)
-        if update:
-            names_to_fetch = names
-        else:
-            existing_names = set(
-                self.filter(name__in=names).values_list("name", flat=True)
-            )
-            names_to_fetch = names - existing_names
-        if names_to_fetch:
-            esi_result = self._fetch_names_from_esi(names_to_fetch)
-            if esi_result:
-                self._update_or_create_entities(esi_result)
-        return self.filter(name__in=names)
-
-    def _update_or_create_entities(self, esi_result):
-        for category_key, entities in esi_result.items():
-            try:
-                category = self._map_category_key_to_category(category_key)
-            except ValueError:
-                logger.warning(
-                    "Ignoring entities with unknown category %s: %s",
-                    category_key,
-                    entities,
-                )
-                continue
-
-            for entity in entities:
-                self.update_or_create(
-                    id=entity["id"],
-                    defaults={"name": entity["name"], "category": category},
-                )
-
-    def _fetch_names_from_esi(self, names: Iterable[str]) -> dict:
-        logger.info("Trying to fetch EveEntities from ESI by name")
-        result = defaultdict(list)
-        for chunk_names in chunks(list(names), 500):
-            result_chunk = esi.client.Universe.post_universe_ids(
-                names=chunk_names
-            ).results()
-            for category, entities in result_chunk.items():
-                if entities:
-                    result[category] += entities
-        result_compressed = {
-            category: entities for category, entities in result.items() if entities
-        }
-        return result_compressed
-
-    def _map_category_key_to_category(self, category_key: str) -> str:
-        """Map category keys from ESI result to categories."""
-        my_map = {
-            "alliances": self.model.CATEGORY_ALLIANCE,
-            "characters": self.model.CATEGORY_CHARACTER,
-            "constellations": self.model.CATEGORY_CONSTELLATION,
-            "corporations": self.model.CATEGORY_CORPORATION,
-            "factions": self.model.CATEGORY_FACTION,
-            "inventory_types": self.model.CATEGORY_INVENTORY_TYPE,
-            "regions": self.model.CATEGORY_REGION,
-            "systems": self.model.CATEGORY_SOLAR_SYSTEM,
-            "stations": self.model.CATEGORY_STATION,
-        }
-        try:
-            return my_map[category_key]
-        except KeyError:
-            raise ValueError(f"Invalid category: {category_key}") from None
-
-    def bulk_resolve_names(self, ids: Iterable[int]) -> EveEntityNameResolver:
-        """returns a map of IDs to names in a resolver object for given IDs
-
-        Args:
-            ids: List of valid EveEntity IDs
-
-        Returns:
-            EveEntityNameResolver object helpful for quick resolving a large amount
-            of IDs
-        """
-        ids = set(map(int, ids))
-        self.bulk_create_esi(ids)
-        return EveEntityNameResolver(
-            {
-                row[0]: row[1]
-                for row in self.filter(id__in=ids).values_list("id", "name")
-            }
-        )
 
     def update_from_esi_by_id(self, ids: Iterable[int]) -> int:
         """Updates all Eve entity objects by id from ESI."""

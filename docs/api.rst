@@ -8,7 +8,7 @@ This chapter contains the developer reference documentation of the public API fo
 
 .. _api-eve-models:
 
-Eve Models
+Models
 ==========
 
 .. automodule:: eveuniverse.models
@@ -16,7 +16,7 @@ Eve Models
 
 .. _api-manager-methods:
 
-Eve Model Managers
+Managers
 ====================
 
 .. automodule:: eveuniverse.managers.entities

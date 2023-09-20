@@ -83,12 +83,22 @@ class TestTasks(NoSocketsTestCase):
         ).first()
         self.assertEqual(dogma_attribute_1.value, 5)
 
-    @patch(TASKS_PATH + ".EveEntity.objects.bulk_create_esi")
-    def test_create_eve_entities(self, mock_bulk_create_esi):
-        create_eve_entities([1, 2, 3])
-        self.assertTrue(mock_bulk_create_esi.called)
-        args, _ = mock_bulk_create_esi.call_args
-        self.assertListEqual(args[0], [1, 2, 3])
+    @patch(MANAGERS_PATH + ".entities.esi")
+    def test_create_eve_entities(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+
+        # when
+        create_eve_entities([1001, 2001])
+
+        # then
+        obj = EveEntity.objects.get(id=1001)
+        self.assertEqual(obj.name, "Bruce Wayne")
+        self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
+
+        obj = EveEntity.objects.get(id=2001)
+        self.assertEqual(obj.name, "Wayne Technologies")
+        self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
     @patch(TASKS_PATH + ".EveMarketPrice.objects.update_from_esi")
     def test_update_market_prices(self, mock_update_from_esi):
