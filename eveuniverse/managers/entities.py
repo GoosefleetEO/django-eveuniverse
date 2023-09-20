@@ -48,6 +48,8 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
     def bulk_create_esi(self, ids: Iterable[int]) -> int:
         """Resolve given IDs from ESI and update or create corresponding objects.
 
+        `DEPRECATED` - please use ``bulk_resolve_ids()`` instead
+
         Args:
             ids: List of valid EveEntity IDs
 

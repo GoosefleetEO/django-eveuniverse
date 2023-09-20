@@ -695,7 +695,7 @@ class TestEveEntityProfileUrl(NoSocketsTestCase):
 
 @patch(MANAGERS_PATH + ".esi")
 class TestEveEntityBulkResolveIds(NoSocketsTestCase):
-    def test_create_new_entities(self, mock_esi):
+    def test_should_resolve_and_create_new_objs(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
 
@@ -711,13 +711,13 @@ class TestEveEntityBulkResolveIds(NoSocketsTestCase):
         self.assertEqual(obj.name, "Wayne Technologies")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
-    def test_should_return_zero_when_nothing_to_create(self, mock_esi):
+    def test_should_return_zero_when_nothing_to_do(self, mock_esi):
         # when
         result = EveEntity.objects.bulk_resolve_ids(ids=[])
         # then
         self.assertEqual(result, 0)
 
-    def test_create_only_non_existing_entities(self, mock_esi):
+    def test_should_create_only_non_existing_entities(self, mock_esi):
         # given
         mock_esi.client = EsiClientStub()
         create_eve_entity(
@@ -771,6 +771,22 @@ class TestEveEntityBulkResolveIds(NoSocketsTestCase):
         obj = EveEntity.objects.get(id=1001)
         self.assertEqual(obj.name, "Bruce Wayne")
         self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
+
+    def test_should_resolve_and_create_new_objs_with_old_api(self, mock_esi):
+        # given
+        mock_esi.client = EsiClientStub()
+
+        # when
+        result = EveEntity.objects.bulk_create_esi(ids=[1001, 2001])
+        self.assertEqual(result, 2)
+
+        obj = EveEntity.objects.get(id=1001)
+        self.assertEqual(obj.name, "Bruce Wayne")
+        self.assertEqual(obj.category, EveEntity.CATEGORY_CHARACTER)
+
+        obj = EveEntity.objects.get(id=2001)
+        self.assertEqual(obj.name, "Wayne Technologies")
+        self.assertEqual(obj.category, EveEntity.CATEGORY_CORPORATION)
 
 
 @patch(MANAGERS_PATH + ".esi")
