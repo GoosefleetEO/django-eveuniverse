@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.5.0] - 2023-09-20
+
 ### Changed
 
 - EveEntity.objects.bulk_create_esi() renamed to bulk_resolve_ids()

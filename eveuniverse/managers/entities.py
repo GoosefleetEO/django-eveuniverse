@@ -1,6 +1,7 @@
 """Managers and Querysets for EveEntity models."""
 
 import logging
+import warnings
 from collections import defaultdict
 from typing import Any, Iterable, Optional, Set, Tuple
 
@@ -53,6 +54,7 @@ class EveEntityManagerBase(EveUniverseEntityModelManager):
         Returns:
             Count of updated entities
         """
+        warnings.warn("Please use bulk_resolve_ids() instead.", DeprecationWarning)
         return self.bulk_resolve_ids(ids)
 
     def bulk_resolve_ids(self, ids: Iterable[int]) -> int:

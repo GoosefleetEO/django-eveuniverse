@@ -3,5 +3,5 @@
 # pylint: disable = invalid-name
 default_app_config = "eveuniverse.apps.EveuniverseConfig"
 
-__version__ = "1.4.1"
+__version__ = "1.5.0"
 __title__ = "Eve Universe"
