@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.5.1] - 2023-10-05
+
+### Changed
+
+- Only show published categories, groups and types on admin site
+
 ## [1.5.0] - 2023-09-20
 
 ### Changed

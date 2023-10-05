@@ -1,6 +1,10 @@
 """Admin site for Eve Universe."""
 
+from typing import Any
+
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
 from .models import (
     EveCategory,
@@ -33,7 +37,9 @@ class EveUniverseEntityModelAdmin(admin.ModelAdmin):
 
 @admin.register(EveCategory)
 class EveCategoryAdmin(EveUniverseEntityModelAdmin):
-    pass
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        qs = super().get_queryset(request)
+        return qs.filter(published=True)
 
 
 @admin.register(EveConstellation)
@@ -43,7 +49,9 @@ class EveConstellationAdmin(EveUniverseEntityModelAdmin):
 
 @admin.register(EveGroup)
 class EveGroupAdmin(EveUniverseEntityModelAdmin):
-    pass
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        qs = super().get_queryset(request)
+        return qs.filter(published=True)
 
 
 @admin.register(EveMoon)
@@ -68,4 +76,6 @@ class EveSolarSystemAdmin(EveUniverseEntityModelAdmin):
 
 @admin.register(EveType)
 class EveTypeAdmin(EveUniverseEntityModelAdmin):
-    pass
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        qs = super().get_queryset(request)
+        return qs.filter(published=True)
