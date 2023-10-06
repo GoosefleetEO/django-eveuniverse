@@ -111,14 +111,7 @@ class EveUniverseEntityModelManager(models.Manager):
                 eve_data_obj, effective_sections
             )
             obj, created = self.update_or_create(id=id, defaults=defaults)
-            if effective_sections and hasattr(obj, "enabled_sections"):
-                updated_sections = False
-                for section in effective_sections:
-                    if str(section) in self.model.Section.values():
-                        setattr(obj.enabled_sections, section, True)
-                        updated_sections = True
-                if updated_sections:
-                    obj.save()
+            obj.set_updated_sections(effective_sections)
 
             self.model._update_or_create_inline_objects(
                 parent_eve_data_obj=eve_data_obj,

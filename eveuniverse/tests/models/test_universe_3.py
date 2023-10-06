@@ -90,6 +90,26 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             set(obj.eve_planets.values_list("id", flat=True)), {40349467, 40349471}
         )
 
+    # @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    # @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    # @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    # @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
+    # def test_should_create_solar_system_with_planets_on_demand_2(self, mock_esi):
+    #     # given
+    #     mock_esi.client = EsiClientStub()
+    #     # when
+    #     obj, _ = EveSolarSystem.objects.update_or_create_esi(
+    #         id=30045339,
+    #         include_children=True,
+    #         enabled_sections=[EveSolarSystem.Section.PLANETS],
+    #     )
+    #     # then
+    #     self.assertEqual(obj.id, 30045339)
+    #     self.assertTrue(obj.enabled_sections.planets)
+    #     self.assertEqual(
+    #         set(obj.eve_planets.values_list("id", flat=True)), {40349467, 40349471}
+    #     )
+
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", True)
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
@@ -247,6 +267,8 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
             {40349467, 40349471},
         )
         planet = solar_system.eve_planets.get(id=40349471)
+        self.assertTrue(planet.enabled_sections.asteroid_belts)
+        self.assertTrue(planet.enabled_sections.moons)
         self.assertEqual(
             set(planet.eve_asteroid_belts.values_list("id", flat=True)), {40349487}
         )
@@ -523,6 +545,33 @@ class TestEvePlanetWithSections(NoSocketsTestCase):
             set(obj.eve_moons.values_list("id", flat=True)), {40349472, 40349473}
         )
         self.assertFalse(obj.enabled_sections.asteroid_belts)
+        self.assertTrue(obj.enabled_sections.moons)
+
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_ASTEROID_BELTS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_MOONS", False)
+    def test_should_create_new_instance_with_moons_and_asteroid_belts_on_demand(
+        self, mock_esi
+    ):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        obj, _ = EvePlanet.objects.update_or_create_esi(
+            id=40349471,
+            include_children=True,
+            enabled_sections=[
+                EvePlanet.Section.MOONS,
+                EvePlanet.Section.ASTEROID_BELTS,
+            ],
+        )
+        # then
+        self.assertEqual(obj.id, 40349471)
+        self.assertEqual(
+            set(obj.eve_asteroid_belts.values_list("id", flat=True)), {40349487}
+        )
+        self.assertEqual(
+            set(obj.eve_moons.values_list("id", flat=True)), {40349472, 40349473}
+        )
+        self.assertTrue(obj.enabled_sections.asteroid_belts)
         self.assertTrue(obj.enabled_sections.moons)
 
 
