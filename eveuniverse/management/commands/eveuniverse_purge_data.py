@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from eveuniverse import __title__
-from eveuniverse.models import EveUniverseBaseModel
+from eveuniverse.models.base import EveUniverseBaseModel
 from eveuniverse.utils import LoggerAddTag
 
 from . import get_input

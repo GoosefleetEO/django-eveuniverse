@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.5.2] - 2023-10-06
+
+### Update notes
+
+This patch fixes a potential data issue for occurring in the future for solar systems and planets. Please run the following command to fix this issue in your already existing data:
+
+```sh
+python manage.py eveuniverse_fix_section_flags
+```
+
+### Changed
+
+- Added factory boy
+
+### Fixed
+
+- Do not mark an entity as loaded with a section if that section is not actually loaded, because it requires children to be loaded
+
 ## [1.5.1] - 2023-10-05
 
 ### Changed

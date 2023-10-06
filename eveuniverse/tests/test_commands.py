@@ -8,6 +8,11 @@ from eveuniverse.models import EveCategory, EveGroup, EveType
 from eveuniverse.utils import NoSocketsTestCase
 
 from .testdata.esi import EsiClientStub
+from .testdata.factories_2 import (
+    EveMoonFactory,
+    EvePlanetFactory,
+    EveSolarSystemFactory,
+)
 
 MODELS_PATH = "eveuniverse.models.base"
 PACKAGE_PATH = "eveuniverse.management.commands"
@@ -292,3 +297,51 @@ class TestLoadTypesEsiCheck(NoSocketsTestCase):
         )
         self.assertTrue(EveType.objects.filter(id=603).exists())
         self.assertFalse(mock_is_esi_online.called)
+
+
+class TestFixSections(NoSocketsTestCase):
+    def test_should_remove_planets_flag_when_no_planet(self):
+        # given
+        obj = EveSolarSystemFactory()
+        obj.enabled_sections.planets = True
+        obj.save()
+        # when
+        call_command("eveuniverse_fix_section_flags", stdout=StringIO())
+        # then
+        obj.refresh_from_db()
+        self.assertFalse(obj.enabled_sections.planets)
+
+    def test_should_not_remove_planets_flag_when_planets_exist(self):
+        # given
+        obj = EveSolarSystemFactory()
+        obj.enabled_sections.planets = True
+        obj.save()
+        EvePlanetFactory(eve_solar_system=obj)
+        # when
+        call_command("eveuniverse_fix_section_flags", stdout=StringIO())
+        # then
+        obj.refresh_from_db()
+        self.assertTrue(obj.enabled_sections.planets)
+
+    def test_should_remove_moons_flag_when_no_moons(self):
+        # given
+        obj = EvePlanetFactory()
+        obj.enabled_sections.moons = True
+        obj.save()
+        # when
+        call_command("eveuniverse_fix_section_flags", stdout=StringIO())
+        # then
+        obj.refresh_from_db()
+        self.assertFalse(obj.enabled_sections.moons)
+
+    def test_should_not_remove_moons_flag_when_moons_exist(self):
+        # given
+        obj = EvePlanetFactory()
+        obj.enabled_sections.moons = True
+        obj.save()
+        EveMoonFactory(eve_planet=obj)
+        # when
+        call_command("eveuniverse_fix_section_flags", stdout=StringIO())
+        # then
+        obj.refresh_from_db()
+        self.assertTrue(obj.enabled_sections.moons)
