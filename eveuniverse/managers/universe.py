@@ -111,7 +111,6 @@ class EveUniverseEntityModelManager(models.Manager):
                 eve_data_obj, effective_sections
             )
             obj, created = self.update_or_create(id=id, defaults=defaults)
-            obj.set_updated_sections(effective_sections)
 
             self.model._update_or_create_inline_objects(
                 parent_eve_data_obj=eve_data_obj,
@@ -129,6 +128,9 @@ class EveUniverseEntityModelManager(models.Manager):
                     enabled_sections=effective_sections,
                     task_priority=task_priority,
                 )
+
+            obj.set_updated_sections(effective_sections)
+
         else:
             raise HTTPNotFound(
                 _FakeResponse(status_code=404),  # type: ignore

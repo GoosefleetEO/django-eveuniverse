@@ -336,16 +336,24 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     def __str__(self) -> str:
         return self.name
 
-    def set_updated_sections(self, effective_sections):
+    def set_updated_sections(self, enabled_sections: Set[str]) -> bool:
         """Set updated sections for this object."""
-        if effective_sections and hasattr(self, "enabled_sections"):
-            updated_sections = False
-            for section in effective_sections:
-                if str(section) in self.Section.values():
-                    setattr(self.enabled_sections, section, True)
-                    updated_sections = True
-            if updated_sections:
-                self.save()
+        if not enabled_sections or not hasattr(self, "enabled_sections"):
+            return False
+
+        updated_sections = False
+        old_value = self.enabled_sections.mask
+        for section in enabled_sections:
+            if str(section) in self.Section.values():
+                setattr(self.enabled_sections, section, True)
+                updated_sections = True
+
+        has_changed = self.enabled_sections.mask != old_value
+        if not updated_sections or not has_changed:
+            return False
+
+        self.save()
+        return True
 
     @classmethod
     def _update_or_create_children(
