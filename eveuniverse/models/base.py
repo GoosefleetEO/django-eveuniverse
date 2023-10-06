@@ -338,6 +338,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     def __str__(self) -> str:
         return self.name
 
+    # pylint: disable = no-member
     def set_updated_sections(self, enabled_sections: Optional[Set[str]]) -> bool:
         """Set updated sections for this object."""
         if not enabled_sections or not hasattr(self, "enabled_sections"):
