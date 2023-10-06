@@ -306,7 +306,9 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     """
 
     class Section(_SectionBase):
-        """A section."""
+        """A section represents a related data topic to be loaded
+        when fetching data from ESI, e.g. dogmas for types.
+        """
 
     # sections
     LOAD_DOGMAS = "dogmas"
@@ -335,6 +337,26 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
 
     def __str__(self) -> str:
         return self.name
+
+    # pylint: disable = no-member
+    def set_updated_sections(self, enabled_sections: Optional[Set[str]]) -> bool:
+        """Set updated sections for this object."""
+        if not enabled_sections or not hasattr(self, "enabled_sections"):
+            return False
+
+        updated_sections = False
+        old_value = self.enabled_sections.mask
+        for section in enabled_sections:
+            if str(section) in self.Section.values():
+                setattr(self.enabled_sections, section, True)
+                updated_sections = True
+
+        has_changed = self.enabled_sections.mask != old_value
+        if not updated_sections or not has_changed:
+            return False
+
+        self.save()
+        return True
 
     @classmethod
     def _update_or_create_children(
@@ -552,6 +574,11 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         """returns the mapping of children for this class"""
         mappings = cls._eve_universe_meta_attr("children")
         return mappings if mappings else {}
+
+    @classmethod
+    def _sections_need_children(cls) -> Set[Section]:
+        """Return sections of this model, which require loading of children."""
+        return {section for section in cls.Section if cls._children({section})}
 
     @classmethod
     def _inline_objects(cls, _enabled_sections: Optional[Iterable[str]] = None) -> dict:
