@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Update notes
 
-This patch fixes a potential data issue for occurring in the future for solar systems and planets. Please run the following command to fix this issue in your already existing data:
+This patch fixes a potential data issue for solar systems and planets. Please run the following command to also fix this issue in your existing data:
 
 ```sh
 python manage.py eveuniverse_fix_section_flags
