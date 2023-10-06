@@ -150,6 +150,24 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
 
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
+    def test_should_not_mark_section_as_updated_when_children_are_not_fetched(
+        self, mock_esi
+    ):
+        # given
+        mock_esi.client = EsiClientStub()
+        # when
+        obj, _ = EveSolarSystem.objects.update_or_create_esi(
+            id=30045339,
+            enabled_sections=[EveSolarSystem.Section.STARGATES, EveType.Section.DOGMAS],
+        )
+        # then
+        self.assertEqual(obj.id, 30045339)
+        self.assertFalse(obj.enabled_sections.stargates)
+
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
+    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", True)
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
     def test_should_create_solar_system_with_stars_global(self, mock_esi):
@@ -218,26 +236,6 @@ class TestEveSolarSystemWithSections(NoSocketsTestCase):
         self.assertTrue(obj.enabled_sections.stations)
         self.assertEqual(
             set(obj.eve_stations.values_list("id", flat=True)), {60015068, 60015069}
-        )
-
-    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)
-    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARGATES", False)
-    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STARS", False)
-    @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_STATIONS", False)
-    def test_should_create_solar_system_with_stargates_on_demand_2(self, mock_esi):
-        # given
-        mock_esi.client = EsiClientStub()
-        # when
-        obj, _ = EveSolarSystem.objects.update_or_create_esi(
-            id=30045339,
-            include_children=True,
-            enabled_sections=[EveSolarSystem.Section.STARGATES, EveType.Section.DOGMAS],
-        )
-        # then
-        self.assertEqual(obj.id, 30045339)
-        self.assertTrue(obj.enabled_sections.stargates)
-        self.assertEqual(
-            set(obj.eve_stargates.values_list("id", flat=True)), {50016284, 50016286}
         )
 
     @patch(MODELS_PATH + ".base.EVEUNIVERSE_LOAD_PLANETS", False)

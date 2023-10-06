@@ -129,7 +129,14 @@ class EveUniverseEntityModelManager(models.Manager):
                     task_priority=task_priority,
                 )
 
-            obj.set_updated_sections(effective_sections)
+            if not include_children and effective_sections:
+                updated_sections = (
+                    effective_sections - self.model._sections_need_children()
+                )
+            else:
+                updated_sections = effective_sections
+
+            obj.set_updated_sections(updated_sections)
 
         else:
             raise HTTPNotFound(

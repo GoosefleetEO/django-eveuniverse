@@ -306,7 +306,9 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     """
 
     class Section(_SectionBase):
-        """A section."""
+        """A section represents a related data topic to be loaded
+        when fetching data from ESI, e.g. dogmas for types.
+        """
 
     # sections
     LOAD_DOGMAS = "dogmas"
@@ -336,7 +338,7 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
     def __str__(self) -> str:
         return self.name
 
-    def set_updated_sections(self, enabled_sections: Set[str]) -> bool:
+    def set_updated_sections(self, enabled_sections: Optional[Set[str]]) -> bool:
         """Set updated sections for this object."""
         if not enabled_sections or not hasattr(self, "enabled_sections"):
             return False
@@ -571,6 +573,11 @@ class EveUniverseEntityModel(EveUniverseBaseModel):
         """returns the mapping of children for this class"""
         mappings = cls._eve_universe_meta_attr("children")
         return mappings if mappings else {}
+
+    @classmethod
+    def _sections_need_children(cls) -> Set[Section]:
+        """Return sections of this model, which require loading of children."""
+        return {section for section in cls.Section if cls._children({section})}
 
     @classmethod
     def _inline_objects(cls, _enabled_sections: Optional[Iterable[str]] = None) -> dict:
