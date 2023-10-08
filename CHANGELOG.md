@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.5.3] - 2023-10-08
+
+### Changed
+
+- Updated dependency to include django-esi 5.0
+
 ## [1.5.2] - 2023-10-06
 
 ### Update notes
