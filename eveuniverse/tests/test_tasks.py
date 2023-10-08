@@ -215,8 +215,8 @@ class TestLoadEveTypes(TestCase):
         # given
         mock_esi_1.client = EsiClientStub()
         mock_esi_2.client = EsiClientStub()
-        category_ids = [EveCategoryId.STRUCTURE]
-        group_ids = [EveGroupId.PLANET]
+        category_ids = [EveCategoryId.STRUCTURE.value]
+        group_ids = [EveGroupId.PLANET.value]
         type_ids = [603]
         # when
         load_eve_types.delay(
